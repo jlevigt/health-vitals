@@ -2,16 +2,17 @@
   "name": "health-data-app",
   "private": true,
   "workspaces": [
-    "apps/*"
+    "packages/*"
   ],
   "scripts": {
-    "dev:api": "bun run --env-file=.env --cwd apps/api dev",
-    "dev:web": "bun run --cwd apps/web dev",
-    "dev:mock": "bun run --cwd apps/web dev:mock",
+    "dev:api": "bun run --env-file=.env --cwd packages/api dev",
+    "dev:web": "bun run --cwd packages/web dev",
+    "dev:mock": "bun run --cwd packages/web dev:mock",
+    "dev:worker": "bun run --env-file=.env --cwd packages/worker dev",
     "infra:up": "docker compose up -d",
     "infra:down": "docker compose down",
-    "migration:run": "bun run --env-file=.env infra/scripts/migrate.js",
-    "migration:create": "bun run --env-file=.env infra/scripts/migration-create.js"
+    "migration:run": "bun run --env-file=.env packages/shared/src/db/scripts/migrate.ts",
+    "migration:create": "bun run --env-file=.env packages/shared/src/db/scripts/migration-create.ts"
   },
   "dependencies": {
     "pg": "^8.16.3"
