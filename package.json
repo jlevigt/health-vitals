@@ -1,6 +1,7 @@
 {
   "name": "health-data-app",
   "private": true,
+  "type": "module",
   "workspaces": [
     "packages/*"
   ],
@@ -13,8 +14,5 @@
     "infra:down": "docker compose down",
     "migration:run": "bun run --env-file=.env packages/shared/src/db/scripts/migrate.ts",
     "migration:create": "bun run --env-file=.env packages/shared/src/db/scripts/migration-create.ts"
-  },
-  "dependencies": {
-    "pg": "^8.16.3"
   }
 }

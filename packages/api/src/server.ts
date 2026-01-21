@@ -1,4 +1,3 @@
-import "dotenv/config"; // Carrega variaveis do .env
 import { createApp } from "@/app.ts";
 import { logger } from "@/container.ts";
 import { pool } from "@/shared/db/index.ts";

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { api } from "../../api/client";
-import { TrendChart } from "../../components/TrendChart";
-import type { DashboardResponse, TrendSeries } from "../../api/types";
+import { api } from "@/api/client";
+import { TrendChart } from "@/components/TrendChart";
+import type { DashboardResponse, TrendSeries } from "@/api/types";
 import { Activity } from "lucide-react";
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';

@@ -9,7 +9,7 @@ import {
   X,
   ChevronRight
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { DnaWave } from './DnaWave';

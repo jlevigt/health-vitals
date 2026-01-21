@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createUserRouter } from "@/features/auth/register/routes.js";
+import { createUserRouter } from "@/features/auth/register/routes.ts";
 import { authenticateUserRouter } from "@/features/auth/login/routes.ts"; 
 import { verifyEmailRouter } from "@/features/auth/verify-email/routes.ts";
 import { refreshRouter } from "@/features/auth/refresh/routes.ts";

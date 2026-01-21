@@ -1,11 +1,11 @@
 // src/container.ts
-import { ILogger } from "./shared/logger/interface.ts";
-import { pinoInstance } from "./shared/logger/pino.ts";
-import { ILLMProvider } from "./shared/llm/interface.ts"; // NOVO
-import { GeminiProvider } from "./shared/llm/gemini.ts"; // NOVO
-import { MockLLMProvider } from "./shared/llm/mock.ts"; // NOVO
-import { IMailProvider } from "./shared/mail/interface.ts";
-import { NodeMailerProvider } from "./shared/mail/nodemailer.ts";
+import { ILogger } from "@/shared/logger/interface.ts";
+import { pinoInstance } from "@/shared/logger/pino.ts";
+import { ILLMProvider } from "@/shared/llm/interface.ts";
+import { GeminiProvider } from "@/shared/llm/gemini.ts";
+import { MockLLMProvider } from "@/shared/llm/mock.ts";
+import { IMailProvider } from "@/shared/mail/interface.ts";
+import { NodeMailerProvider } from "@/shared/mail/nodemailer.ts";
 
 // === Instâncias Singleton ===
 

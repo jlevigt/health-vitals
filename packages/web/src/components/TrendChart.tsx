@@ -9,7 +9,7 @@ import {
   ResponsiveContainer,
   ReferenceArea,
 } from 'recharts';
-import type { TrendSeries, TrendPoint } from '../api/types';
+import type { TrendSeries, TrendPoint } from '@/api/types';
 
 interface TrendChartProps {
   series: TrendSeries;
