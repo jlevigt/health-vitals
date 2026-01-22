@@ -1,11 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import { ListFilesService } from "./service.ts";
 import { ListFilesQuerySchema } from "../types.ts";
-import { pool } from "@/shared/db/index.ts";
-import { logger } from "@/container.ts";
-import { AppError } from "@/shared/errors/app.error.ts";
+import { db, logger } from "@/container.ts";
+import { AppError } from "@health-data/shared";
 
-const service = new ListFilesService(pool, logger);
+const service = new ListFilesService(db, logger);
 
 export async function listFilesController(
   req: Request,

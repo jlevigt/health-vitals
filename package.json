@@ -6,13 +6,15 @@
     "packages/*"
   ],
   "scripts": {
-    "dev:api": "bun run --env-file=.env --cwd packages/api dev",
+    "clean": "rm -rf node_modules bun.lockb bun.lock package-lock.json dist build out .cache packages/*/node_modules packages/*/bun.lock packages/*/package-lock.json packages/*/dist packages/*/build && find . -name \"*.tsbuildinfo\" -delete",
+    "dev:api": "bun --env-file=.env run --cwd packages/api dev",
     "dev:web": "bun run --cwd packages/web dev",
     "dev:mock": "bun run --cwd packages/web dev:mock",
-    "dev:worker": "bun run --env-file=.env --cwd packages/worker dev",
-    "infra:up": "docker compose up -d",
+    "dev:worker": "bun --env-file=.env run --cwd packages/worker dev",
+    "dev:all": "docker compose up --build",
+    "infra:up": "docker compose up -d postgres_dev rabbitmq minio",
     "infra:down": "docker compose down",
-    "migration:run": "bun run --env-file=.env packages/shared/src/db/scripts/migrate.ts",
-    "migration:create": "bun run --env-file=.env packages/shared/src/db/scripts/migration-create.ts"
+    "migration:run": "bun --env-file=.env run packages/shared/src/db/scripts/migrate.ts",
+    "migration:create": "bun --env-file=.env run packages/shared/src/db/scripts/migration-create.ts"
   }
 }

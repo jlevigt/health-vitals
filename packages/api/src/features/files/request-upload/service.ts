@@ -1,21 +1,19 @@
-import type { Pool } from "pg";
 import { v4 as uuidv4 } from "uuid";
-import { createStorageClient, Buckets } from "@health-data/shared/storage";
-import type { ILogger } from "@/shared/logger/interface.ts";
+import type { Database, Logger, StorageClient } from "@health-data/shared";
+import { Buckets } from "@health-data/shared";
 import {
   FileUploadItem,
   FileUploadUrlResponse,
   RequestUploadResponse,
-} from "./types.ts";
+} from "../types.ts";
 
 const SIGNED_URL_EXPIRES_IN = 3600; // 1 hour
 
 export class RequestUploadService {
-  private storage = createStorageClient();
-
   constructor(
-    private pool: Pool,
-    private logger: ILogger
+    private db: Database,
+    private storage: StorageClient,
+    private logger: Logger
   ) {}
 
   async execute(
@@ -26,7 +24,7 @@ export class RequestUploadService {
       userId,
     });
 
-    const client = await this.pool.connect();
+    const client = await this.db.connect();
     const results: FileUploadUrlResponse[] = [];
 
     try {
@@ -39,15 +37,14 @@ export class RequestUploadService {
 
         // Insert file record in CREATED state
         await client.query(
-          `INSERT INTO files (id, user_id, original_filename, object_key, size_bytes, content_type, status)
-           VALUES ($1, $2, $3, $4, $5, $6, 'CREATED')`,
+          `INSERT INTO files (id, user_id, original_filename, object_key, size_bytes, status)
+           VALUES ($1, $2, $3, $4, $5, 'CREATED')`,
           [
             fileId,
             userId,
             file.original_filename,
             objectKey,
             file.size_bytes,
-            file.content_type,
           ]
         );
 

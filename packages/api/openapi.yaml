@@ -27,6 +27,39 @@ components:
         is_active:
           type: boolean
     
+    File:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        filename:
+          type: string
+        status:
+          type: string
+          enum: [pending_upload, processing, completed, failed]
+        created_at:
+          type: string
+          format: date-time
+
+    Report:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        file_id:
+          type: string
+          format: uuid
+        collection_date:
+          type: string
+          format: date
+        lab_name:
+          type: string
+          nullable: true
+        observations_count:
+          type: integer
+
     Observation:
       type: object
       properties:
@@ -62,6 +95,24 @@ components:
           type: string
           nullable: true
 
+    DashboardPoint:
+      type: object
+      properties:
+        canonical_name:
+          type: string
+        collected_date:
+          type: string
+          format: date
+        normalized_value:
+          type: number
+          nullable: true
+        reference_low:
+          type: number
+          nullable: true
+        reference_high:
+          type: number
+          nullable: true
+
     Error:
       type: object
       properties:
@@ -82,9 +133,17 @@ paths:
               schema:
                 type: object
                 properties:
-                  status:
+                  uptime:
+                    type: number
+                  message:
                     type: string
+                  timestamp:
+                    type: integer
+                  db:
+                    type: string
+                    enum: [connected, disconnected]
 
+  # ==================== AUTH ====================
   /auth/register:
     post:
       summary: Register a new user
@@ -105,15 +164,20 @@ paths:
                   minLength: 6
       responses:
         '201':
-          description: User created
+          description: User created, verification email sent
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                type: object
+                properties:
+                  message:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
 
   /auth/login:
     post:
-      summary: Login
+      summary: Login with email and password
       tags: [Auth]
       requestBody:
         required: true
@@ -129,7 +193,7 @@ paths:
                   type: string
       responses:
         '200':
-          description: Success
+          description: Success, returns access token and sets refresh token cookie
           content:
             application/json:
               schema:
@@ -140,11 +204,36 @@ paths:
                   accessToken:
                     type: string
         '401':
-          description: Unauthorized
+          description: Invalid credentials or unverified email
+
+  /auth/logout:
+    post:
+      summary: Logout and invalidate session
+      tags: [Auth]
+      responses:
+        '200':
+          description: Logged out successfully
+
+  /auth/refresh:
+    post:
+      summary: Refresh access token using refresh token cookie
+      tags: [Auth]
+      responses:
+        '200':
+          description: New access token issued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+        '401':
+          description: Invalid or expired refresh token
 
   /auth/verify-email:
     post:
-      summary: Verify email with token
+      summary: Verify email with token (POST body)
       tags: [Auth]
       requestBody:
         required: true
@@ -162,7 +251,7 @@ paths:
         '200':
           description: Email verified
     get:
-      summary: Verify email via query params
+      summary: Verify email with token (query params - for email links)
       tags: [Auth]
       parameters:
         - name: email
@@ -179,66 +268,203 @@ paths:
         '200':
           description: Email verified
 
-  /auth/refresh:
+  /auth/password/recovery/request:
     post:
-      summary: Refresh access token
+      summary: Request password recovery email
       tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
       responses:
         '200':
-          description: Success
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  accessToken:
-                    type: string
+          description: Recovery email sent if account exists
 
-  /auth/logout:
+  /auth/password/reset:
     post:
-      summary: Logout
+      summary: Reset password using recovery token
       tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, token, newPassword]
+              properties:
+                email:
+                  type: string
+                  format: email
+                token:
+                  type: string
+                newPassword:
+                  type: string
+                  minLength: 6
       responses:
         '200':
-          description: Logged out
+          description: Password reset successfully
+        '400':
+          description: Invalid or expired token
 
-  /reports/upload:
+  /auth/password/change:
     post:
-      summary: Upload a PDF report
-      tags: [Reports]
+      summary: Change password (authenticated)
+      tags: [Auth]
       security:
         - bearerAuth: []
       requestBody:
+        required: true
         content:
-          multipart/form-data:
+          application/json:
             schema:
               type: object
+              required: [currentPassword, newPassword]
               properties:
-                file:
+                currentPassword:
                   type: string
-                  format: binary
+                newPassword:
+                  type: string
+                  minLength: 6
       responses:
-        '201':
-          description: Report processed
+        '200':
+          description: Password changed successfully
+        '401':
+          description: Current password incorrect
+
+  # ==================== FILES ====================
+  /files/uploads:
+    post:
+      summary: Request signed URLs for file upload
+      description: Returns pre-signed S3 URLs for direct browser upload
+      tags: [Files]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [files]
+              properties:
+                files:
+                  type: array
+                  items:
+                    type: object
+                    required: [filename, contentType]
+                    properties:
+                      filename:
+                        type: string
+                      contentType:
+                        type: string
+      responses:
+        '200':
+          description: Signed URLs for upload
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  reportId:
+                  uploads:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        fileId:
+                          type: string
+                          format: uuid
+                        uploadUrl:
+                          type: string
+                          format: uri
+                        expiresAt:
+                          type: string
+                          format: date-time
+
+  /files/{file_id}/upload-complete:
+    post:
+      summary: Confirm file upload completed
+      description: Triggers processing pipeline for the uploaded file
+      tags: [Files]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: file_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: File queued for processing
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  fileId:
                     type: string
                     format: uuid
-                  collectionDate:
+                  status:
                     type: string
-                  labName:
-                    type: string
-                    nullable: true
-                  observationsCount:
-                    type: integer
+                    enum: [processing]
+
+  /files:
+    get:
+      summary: List user's files
+      tags: [Files]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [pending_upload, processing, completed, failed]
+      responses:
+        '200':
+          description: List of files
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  files:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/File'
+
+  # ==================== REPORTS ====================
+  /reports:
+    get:
+      summary: List user's reports
+      tags: [Reports]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of reports
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reports:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Report'
 
   /reports/{id}/observations:
     get:
-      summary: List observations for a report
+      summary: Get observations for a specific report
       tags: [Reports]
       security:
         - bearerAuth: []
@@ -264,30 +490,35 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Observation'
+        '404':
+          description: Report not found
 
-  /dashboard/lipid_panel:
+  # ==================== DASHBOARDS ====================
+  /dashboards/{category}:
     get:
-      summary: Get lipid panel historical data
-      tags: [Dashboard]
+      summary: Get dashboard data for a category
+      description: Returns historical observation data for dashboard visualization
+      tags: [Dashboards]
       security:
         - bearerAuth: []
+      parameters:
+        - name: category
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [lipid_panel, glucose_metabolism, renal_function]
       responses:
         '200':
-          description: Success
+          description: Dashboard data points
           content:
             application/json:
               schema:
                 type: object
                 properties:
+                  category:
+                    type: string
                   points:
                     type: array
                     items:
-                      type: object
-                      properties:
-                        canonical_name:
-                          type: string
-                        collected_date:
-                          type: string
-                        normalized_value:
-                          type: number
-                          nullable: true
+                      $ref: '#/components/schemas/DashboardPoint'

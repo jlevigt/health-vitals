@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { ListReportsService } from "./service.ts";
-import { AppError } from "@/shared/errors/app.error.ts";
+import { AppError } from "@health-data/shared";
 
 export class ListReportsController {
   constructor(private service: ListReportsService) {}

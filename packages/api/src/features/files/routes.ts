@@ -2,7 +2,7 @@ import { Router } from "express";
 import { requestUploadRouter } from "./request-upload/routes.ts";
 import { confirmUploadRouter } from "./confirm-upload/routes.ts";
 import { listFilesRouter } from "./list/routes.ts";
-import { authMiddleware } from "@/shared/middlewares/auth.middleware.ts";
+import { authMiddleware } from "@/middlewares/auth.middleware.ts";
 
 const router = Router();
 

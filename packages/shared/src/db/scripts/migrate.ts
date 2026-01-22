@@ -2,7 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createDbPool } from "../index.ts";
-import { createLogger } from "../../logger/index.ts";
+import { createLogger } from "@/logger/index.ts";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -10,7 +10,16 @@ async function migrate() {
   const logger = createLogger({ name: "migration-runner" });
   
   // Create pool using shared implementation (picks up env vars automatically)
-  const pool = createDbPool();
+  const pool = createDbPool({
+    host: process.env.POSTGRES_HOST ?? "localhost",
+    port: parseInt(process.env.POSTGRES_PORT ?? "5432"),
+    database: process.env.POSTGRES_DB ?? "dev",
+    user: process.env.POSTGRES_USER ?? "local_user",
+    password: process.env.POSTGRES_PASSWORD ?? "local_password",
+    max: 10,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 5000,
+  });
   const client = await pool.connect();
 
   try {

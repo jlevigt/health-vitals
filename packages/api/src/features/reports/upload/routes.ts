@@ -2,7 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 import { pool } from "@/shared/db/index.ts";
 import { logger, llmProvider } from "@/container.ts";
-import { authMiddleware } from "@/shared/middlewares/auth.middleware.ts";
+import { authMiddleware } from "@/middlewares/auth.middleware.ts";
 import { UploadReportService } from "./service.ts";
 import { UploadReportController } from "./controller.ts";
 

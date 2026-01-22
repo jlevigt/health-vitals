@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { GetTrendsService } from "./service.ts";
-import { AppError } from "@/shared/errors/app.error.ts";
+import { AppError } from "@health-data/shared";
 
 const ALLOWED_CATEGORIES = ['lipid_panel', 'glucose_metabolism', 'renal_function'];
 

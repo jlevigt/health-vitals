@@ -1,11 +1,13 @@
 import { Request, Response, NextFunction } from "express";
 import { ConfirmUploadService } from "./service.ts";
 import { ConfirmUploadBodySchema } from "../types.ts";
-import { pool } from "@/shared/db/index.ts";
-import { logger } from "@/container.ts";
-import { AppError } from "@/shared/errors/app.error.ts";
+import { db, logger, getQueue } from "@/container.ts";
+import { AppError } from "@health-data/shared";
 
-const service = new ConfirmUploadService(pool, logger);
+const service = new ConfirmUploadService(db, logger, async () => {
+  const queue = await getQueue();
+  return queue.channel;
+});
 
 export async function confirmUploadController(
   req: Request,

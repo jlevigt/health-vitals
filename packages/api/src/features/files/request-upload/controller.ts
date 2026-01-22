@@ -1,11 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import { RequestUploadService } from "./service.ts";
 import { RequestUploadBodySchema } from "../types.ts";
-import { pool } from "@/shared/db/index.ts";
-import { logger } from "@/container.ts";
-import { AppError } from "@/shared/errors/app.error.ts";
+import { db, storage, logger } from "@/container.ts";
+import { AppError } from "@health-data/shared";
 
-const service = new RequestUploadService(pool, logger);
+const service = new RequestUploadService(db, storage, logger);
 
 export async function requestUploadController(
   req: Request,

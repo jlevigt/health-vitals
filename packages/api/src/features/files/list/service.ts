@@ -1,11 +1,10 @@
-import type { Pool } from "pg";
-import type { ILogger } from "@/shared/logger/interface.ts";
+import type { Database, Logger } from "@health-data/shared";
 import { FileListItem, ListFilesQuery } from "../types.ts";
 
 export class ListFilesService {
   constructor(
-    private pool: Pool,
-    private logger: ILogger
+    private db: Database,
+    private logger: Logger
   ) {}
 
   async execute(
@@ -28,7 +27,7 @@ export class ListFilesService {
 
     sql += ` ORDER BY created_at DESC LIMIT 100`;
 
-    const result = await this.pool.query(sql, params);
+    const result = await this.db.query(sql, params);
 
     return result.rows.map((row) => ({
       id: row.id,

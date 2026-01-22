@@ -5,25 +5,18 @@
  * using LLM to extract structured health data.
  */
 
-import { createQueueConnection, Queues } from "@health-data/shared/queue";
-import { createDbPool } from "@health-data/shared/db";
-import { createStorageClient } from "@health-data/shared/storage";
-import { createLogger } from "@health-data/shared/logger";
-import { FileProcessJobPayload } from "@health-data/shared/types";
+import { Queues, FileProcessJobPayload } from "@health-data/shared";
+import { db, storage, logger, llmProvider, getQueue, shutdown } from "./container.ts";
 import { processFileJob } from "./jobs/process-file/handler.ts";
 
 const PREFETCH_COUNT = 1; // Process one job at a time for rate limiting
 
 async function main() {
-  const logger = createLogger({ name: "worker" });
-  const pool = createDbPool();
-  const storage = createStorageClient();
-
   logger.info("Starting worker...");
 
   // Test database connection
   try {
-    await pool.query("SELECT 1");
+    await db.query("SELECT 1");
     logger.info("Database connection established");
   } catch (error: any) {
     logger.error("Failed to connect to database", { 
@@ -35,16 +28,16 @@ async function main() {
   }
 
   // Connect to RabbitMQ
-  let connection, channel;
+  let queue;
   try {
-    const result = await createQueueConnection();
-    connection = result.connection;
-    channel = result.channel;
+    queue = await getQueue();
     logger.info("RabbitMQ connection established");
   } catch (error) {
     logger.error("Failed to connect to RabbitMQ", { error });
     process.exit(1);
   }
+
+  const channel = queue.channel;
 
   // Setup queue
   await channel.assertQueue(Queues.FILE_PROCESSING, { durable: true });
@@ -53,7 +46,7 @@ async function main() {
   logger.info(`Worker started, consuming from '${Queues.FILE_PROCESSING}'`);
 
   // Consume messages
-  channel.consume(Queues.FILE_PROCESSING, async (msg) => {
+  await channel.consume(Queues.FILE_PROCESSING, async (msg) => {
     if (!msg) return;
 
     const startTime = Date.now();
@@ -69,7 +62,7 @@ async function main() {
     }
 
     try {
-      await processFileJob(payload, { pool, storage, logger });
+      await processFileJob(payload, { db, storage, logger, llmProvider });
 
       const duration = Date.now() - startTime;
       logger.info("Job completed successfully", {
@@ -93,23 +86,17 @@ async function main() {
   });
 
   // Graceful shutdown
-  const shutdown = async () => {
-    logger.info("Shutting down worker...");
-    
+  const handleShutdown = async () => {
     try {
-      await channel.close();
-      await connection.close();
-      await pool.end();
-      logger.info("Worker shutdown complete");
+      await shutdown();
       process.exit(0);
     } catch (error) {
-      logger.error("Error during shutdown", { error });
       process.exit(1);
     }
   };
 
-  process.on("SIGINT", shutdown);
-  process.on("SIGTERM", shutdown);
+  process.on("SIGINT", handleShutdown);
+  process.on("SIGTERM", handleShutdown);
 }
 
 main().catch((error) => {

@@ -12,17 +12,17 @@
  * 8. Update file status
  */
 
-import { Pool } from "@health-data/shared/db";
-import { StorageClient, Buckets } from "@health-data/shared/storage";
-import { ILogger } from "@health-data/shared/logger";
-import { FileProcessJobPayload, FileStatus } from "@health-data/shared/types";
+import type { Database, StorageClient, Logger, LLMProvider } from "@health-data/shared";
+import { Buckets, FileStatus } from "@health-data/shared";
+import type { FileProcessJobPayload } from "@health-data/shared";
 import { extractTextFromPdf } from "./pdf-extractor.ts";
 import { processWithLlm } from "./llm-processor.ts";
 
 export interface JobContext {
-  pool: Pool;
+  db: Database;
   storage: StorageClient;
-  logger: ILogger;
+  logger: Logger;
+  llmProvider: LLMProvider;
 }
 
 export async function processFileJob(
@@ -30,9 +30,9 @@ export async function processFileJob(
   ctx: JobContext
 ): Promise<void> {
   const { file_id, object_key, user_id } = payload;
-  const { pool, storage, logger } = ctx;
+  const { db, storage, logger, llmProvider } = ctx;
 
-  const client = await pool.connect();
+  const client = await db.connect();
 
   try {
     // Step 1: Lock and validate
@@ -82,7 +82,7 @@ export async function processFileJob(
         sizeBytes: fileBuffer.length,
       });
     } catch (storageError) {
-      await setFileFailed(pool, file_id, FileStatus.FAILED_RETRYABLE, "STORAGE_ERROR");
+      await setFileFailed(db, file_id, FileStatus.FAILED_RETRYABLE, "STORAGE_ERROR");
       throw storageError;
     }
 
@@ -92,7 +92,7 @@ export async function processFileJob(
       extractedText = await extractTextFromPdf(fileBuffer);
       
       if (!extractedText || extractedText.trim().length < 50) {
-        await setFileFailed(pool, file_id, FileStatus.FAILED_TERMINAL, "EMPTY_TEXT");
+        await setFileFailed(db, file_id, FileStatus.FAILED_TERMINAL, "EMPTY_TEXT");
         throw new Error("No meaningful text extracted from PDF");
       }
 
@@ -104,20 +104,20 @@ export async function processFileJob(
       if ((parseError as Error).message === "No meaningful text extracted from PDF") {
         throw parseError;
       }
-      await setFileFailed(pool, file_id, FileStatus.FAILED_RETRYABLE, "PDF_PARSE_ERROR");
+      await setFileFailed(db, file_id, FileStatus.FAILED_RETRYABLE, "PDF_PARSE_ERROR");
       throw parseError;
     }
 
     // Step 5-7: LLM processing with rate limiting and result persistence
     try {
-      await processWithLlm(pool, file_id, user_id, extractedText, file.original_filename, logger);
+      await processWithLlm(db, file_id, user_id, extractedText, file.original_filename, logger, llmProvider);
     } catch (llmError) {
       // processWithLlm handles setting file status on failure
       throw llmError;
     }
 
     // Step 8: Update file status to SUCCEEDED
-    await pool.query(
+    await db.query(
       `UPDATE files SET status = $1, processed_at = now() WHERE id = $2`,
       [FileStatus.SUCCEEDED, file_id]
     );
@@ -137,12 +137,12 @@ export async function processFileJob(
 }
 
 async function setFileFailed(
-  pool: Pool,
+  db: Database,
   fileId: string,
-  status: FileStatus,
+  status: typeof FileStatus[keyof typeof FileStatus],
   errorCode: string
 ): Promise<void> {
-  await pool.query(
+  await db.query(
     `UPDATE files SET status = $1, error_code = $2, processed_at = now() WHERE id = $3`,
     [status, errorCode, fileId]
   );

@@ -7,10 +7,8 @@
  * - Result parsing and database persistence
  */
 
-import { Pool } from "@health-data/shared/db";
-import { ILogger } from "@health-data/shared/logger";
-import { FileStatus } from "@health-data/shared/types";
-import { GoogleGenAI } from "@google/genai";
+import type { Database, Logger, LLMProvider, LLMResult } from "@health-data/shared";
+import { FileStatus } from "@health-data/shared";
 
 // Rate limits (adjust based on your LLM provider)
 const RATE_LIMITS = {
@@ -19,37 +17,20 @@ const RATE_LIMITS = {
   TPM: 100000,  // Tokens per minute
 };
 
-interface LlmResponse {
-  collection_date: string | null;
-  lab_name: string | null;
-  observations: Array<{
-    category: string;
-    canonical_name: string;
-    raw_name: string;
-    raw_value: string;
-    raw_unit?: string;
-    normalized_value?: number;
-    base_unit?: string;
-    reference_low?: number;
-    reference_high?: number;
-    loinc_code?: string;
-    material?: string;
-  }>;
-}
-
 export async function processWithLlm(
-  pool: Pool,
+  db: Database,
   fileId: string,
   userId: string,
   extractedText: string,
   filename: string,
-  logger: ILogger
+  logger: Logger,
+  llmProvider: LLMProvider
 ): Promise<void> {
   // Check rate limits
-  const canProceed = await checkRateLimits(pool, logger);
+  const canProceed = await checkRateLimits(db, logger);
   if (!canProceed) {
     // Set file back to QUEUED for retry
-    await pool.query(
+    await db.query(
       `UPDATE files SET status = $1 WHERE id = $2`,
       [FileStatus.QUEUED, fileId]
     );
@@ -58,9 +39,9 @@ export async function processWithLlm(
 
   // Record LLM request start
   const provider = "gemini";
-  const model = "gemini-2.0-flash";
+  const model = "gemini-2.5-flash";
   
-  const llmRequestResult = await pool.query(
+  const llmRequestResult = await db.query(
     `INSERT INTO llm_requests (file_id, provider, model, started_at)
      VALUES ($1, $2, $3, now())
      RETURNING id`,
@@ -69,22 +50,22 @@ export async function processWithLlm(
   const llmRequestId = llmRequestResult.rows[0].id;
 
   const startTime = Date.now();
-  let response: LlmResponse;
+  let response: LLMResult;
 
   try {
-    response = await callLlmApi(extractedText, filename, logger);
+    response = await llmProvider.processDocument(extractedText, filename);
   } catch (llmError) {
     const latency = Date.now() - startTime;
     
     // Update LLM request with error
-    await pool.query(
+    await db.query(
       `UPDATE llm_requests 
        SET finished_at = now(), latency_ms = $1, error_code = $2, error_message = $3
        WHERE id = $4`,
       [latency, "LLM_ERROR", (llmError as Error).message, llmRequestId]
     );
 
-    await pool.query(
+    await db.query(
       `UPDATE files SET status = $1, error_code = $2 WHERE id = $3`,
       [FileStatus.FAILED_RETRYABLE, "LLM_ERROR", fileId]
     );
@@ -95,7 +76,7 @@ export async function processWithLlm(
   const latency = Date.now() - startTime;
 
   // Update LLM request with success
-  await pool.query(
+  await db.query(
     `UPDATE llm_requests 
      SET finished_at = now(), latency_ms = $1
      WHERE id = $2`,
@@ -103,39 +84,65 @@ export async function processWithLlm(
   );
 
   // Persist results in a transaction
-  const client = await pool.connect();
+  const client = await db.connect();
   try {
     await client.query("BEGIN");
 
     // Insert report
     const reportResult = await client.query(
-      `INSERT INTO reports (user_id, file_id, collection_date, lab_name, file_name, status)
-       VALUES ($1, $2, $3, $4, $5, 'processed')
+      `INSERT INTO reports (file_id, collection_date, lab_name)
+       VALUES ($1, $2, $3)
        RETURNING id`,
-      [userId, fileId, response.collection_date, response.lab_name, filename]
+      [fileId, response.collection_date, response.lab_name]
     );
     const reportId = reportResult.rows[0].id;
 
     // Insert observations
     for (const obs of response.observations) {
+      // Find or create observation definition
+      const defResult = await client.query(
+        `SELECT id FROM observation_definitions WHERE canonical_name = $1`,
+        [obs.canonical_name]
+      );
+
+      let observationDefId: string;
+      if (defResult.rows.length > 0) {
+        observationDefId = defResult.rows[0].id;
+      } else {
+        // Find or create category
+        const categoryResult = await client.query(
+          `INSERT INTO observation_categories (code, display_name)
+           VALUES ($1, $2)
+           ON CONFLICT (code) DO UPDATE SET code = EXCLUDED.code
+           RETURNING id`,
+          [obs.category, obs.category.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())]
+        );
+        const categoryId = categoryResult.rows[0].id;
+
+        // Create observation definition
+        const newDefResult = await client.query(
+          `INSERT INTO observation_definitions (category_id, canonical_name, base_unit)
+           VALUES ($1, $2, $3)
+           RETURNING id`,
+          [categoryId, obs.canonical_name, obs.base_unit || 'unknown']
+        );
+        observationDefId = newDefResult.rows[0].id;
+      }
+
       await client.query(
         `INSERT INTO observations (
-          report_id, category, canonical_name, raw_name, raw_value, raw_unit,
-          normalized_value, base_unit, reference_low, reference_high, loinc_code, material
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+          report_id, observation_id, raw_name, raw_value, raw_unit,
+          normalized_value, reference_low, reference_high
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
         [
           reportId,
-          obs.category,
-          obs.canonical_name,
+          observationDefId,
           obs.raw_name,
           obs.raw_value,
           obs.raw_unit ?? null,
           obs.normalized_value ?? null,
-          obs.base_unit ?? "unknown",
           obs.reference_low ?? null,
           obs.reference_high ?? null,
-          obs.loinc_code ?? null,
-          obs.material ?? null,
         ]
       );
     }
@@ -150,7 +157,7 @@ export async function processWithLlm(
   } catch (dbError) {
     await client.query("ROLLBACK");
     
-    await pool.query(
+    await db.query(
       `UPDATE files SET status = $1, error_code = $2 WHERE id = $3`,
       [FileStatus.FAILED_RETRYABLE, "DB_ERROR", fileId]
     );
@@ -161,9 +168,9 @@ export async function processWithLlm(
   }
 }
 
-async function checkRateLimits(pool: Pool, logger: ILogger): Promise<boolean> {
+async function checkRateLimits(db: Database, logger: Logger): Promise<boolean> {
   // Check requests per minute
-  const rpmResult = await pool.query(
+  const rpmResult = await db.query(
     `SELECT COUNT(*) as count
      FROM llm_requests
      WHERE started_at > now() - interval '1 minute'`
@@ -176,7 +183,7 @@ async function checkRateLimits(pool: Pool, logger: ILogger): Promise<boolean> {
   }
 
   // Check requests per day
-  const rpdResult = await pool.query(
+  const rpdResult = await db.query(
     `SELECT COUNT(*) as count
      FROM llm_requests
      WHERE started_at >= date_trunc('day', now())`
@@ -189,81 +196,4 @@ async function checkRateLimits(pool: Pool, logger: ILogger): Promise<boolean> {
   }
 
   return true;
-}
-
-async function callLlmApi(
-  text: string,
-  filename: string,
-  logger: ILogger
-): Promise<LlmResponse> {
-  const apiKey = process.env.GEMINI_API_KEY;
-  
-  if (!apiKey) {
-    // Return mock data for development
-    logger.warn("No GEMINI_API_KEY, using mock response");
-    return {
-      collection_date: new Date().toISOString().split("T")[0],
-      lab_name: "Mock Lab",
-      observations: [
-        {
-          category: "lipid_panel",
-          canonical_name: "hdl_cholesterol",
-          raw_name: "HDL Colesterol",
-          raw_value: "45",
-          raw_unit: "mg/dL",
-          normalized_value: 45,
-          base_unit: "mg_dl",
-          reference_low: 40,
-          reference_high: 60,
-        },
-      ],
-    };
-  }
-
-  const genai = new GoogleGenAI({ apiKey });
-  
-  const prompt = `You are a medical lab report parser. Extract structured health data from this lab report.
-
-Return JSON in this exact format:
-{
-  "collection_date": "YYYY-MM-DD or null",
-  "lab_name": "Lab name or null",
-  "observations": [
-    {
-      "category": "lipid_panel|glucose_metabolism|renal_function|hepatic_function|complete_blood_count|thyroid_function|other",
-      "canonical_name": "snake_case_standardized_name",
-      "raw_name": "Original name from report",
-      "raw_value": "Original value as string",
-      "raw_unit": "Original unit or null",
-      "normalized_value": number or null,
-      "base_unit": "standardized_unit",
-      "reference_low": number or null,
-      "reference_high": number or null,
-      "loinc_code": "LOINC code if known or null",
-      "material": "blood|urine|serum|plasma|other or null"
-    }
-  ]
-}
-
-Lab report text from file "${filename}":
----
-${text.substring(0, 8000)}
----
-
-Extract all lab values. Be thorough. Return valid JSON only.`;
-
-  const response = await genai.models.generateContent({
-    model: "gemini-2.0-flash",
-    contents: prompt,
-  });
-
-  const responseText = response.text ?? "";
-  
-  // Parse JSON from response
-  const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) {
-    throw new Error("Failed to parse LLM response as JSON");
-  }
-
-  return JSON.parse(jsonMatch[0]) as LlmResponse;
 }
