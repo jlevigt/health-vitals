@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "bun --env-file=../../.env --watch src/worker.ts",
     "build": "tsc",
-    "start": "bun src/worker.ts"
+    "start": "bun src/worker.ts",
+    "test": "bun test --env-file=../../.env",
+    "test:llm": "RUN_LLM_TESTS=true bun test --env-file=../../.env src/__tests__/process-file.integration.test.ts"
   },
   "dependencies": {
     "@health-data/shared": "workspace:*",

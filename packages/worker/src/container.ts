@@ -23,7 +23,13 @@ import {
 export const logger: Logger = createLogger({ name: "worker" });
 
 // === Database ===
-export const db: Database = createDbPool();
+export const db: Database = createDbPool({
+  host: process.env.POSTGRES_HOST,
+  port: Number(process.env.POSTGRES_PORT),
+  database: process.env.POSTGRES_DB,
+  user: process.env.POSTGRES_USER,
+  password: process.env.POSTGRES_PASSWORD,
+});
 
 // === Storage ===
 export const storage: StorageClient = createStorageClient();

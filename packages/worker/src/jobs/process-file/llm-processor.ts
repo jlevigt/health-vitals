@@ -12,9 +12,9 @@ import { FileStatus } from "@health-data/shared";
 
 // Rate limits (adjust based on your LLM provider)
 const RATE_LIMITS = {
-  RPM: 60,      // Requests per minute
-  RPD: 1000,    // Requests per day
-  TPM: 100000,  // Tokens per minute
+  RPM: 5,      // Requests per minute
+  RPD: 20,    // Requests per day
+  TPM: 250000,  // Tokens per minute
 };
 
 export async function processWithLlm(
