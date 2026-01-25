@@ -112,6 +112,13 @@ export const DashboardPage: React.FC = () => {
             <Activity className="w-16 h-16" />
             <div className="space-y-1">
               <p className="text-lg font-bold">No trends found</p>
+              <p className="text-sm">Upload your first exam results to get started.</p>
+              <a 
+                href="/files" 
+                className="mt-4 px-6 py-2 bg-primary text-on-primary rounded-full text-sm font-bold shadow-sm hover:shadow-md transition-shadow inline-block"
+              >
+                Upload File
+              </a>
             </div>
           </div>
         )}

@@ -6,7 +6,7 @@ services:
     image: "postgres:18-alpine"
     shm_size: 128m
     env_file:
-      - .env
+      - ../../.env.local
     ports:
       - "5432:5432"
     volumes:
@@ -45,8 +45,8 @@ services:
 
   api:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: infra/Dockerfile
     container_name: "health-api"
     command: bun run dev:api
     ports:
@@ -57,20 +57,20 @@ services:
       rabbitmq:
         condition: service_started
     env_file:
-      - .env
+      - ../../.env.local
     environment:
       - POSTGRES_HOST=postgres_dev
       - RABBITMQ_HOST=rabbitmq
       - STORAGE_ENDPOINT=http://minio:9000
       - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres_dev:5432/${POSTGRES_DB}
     volumes:
-      - .:/app
+      - ../:/app
       - /app/node_modules
 
   worker:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: infra/Dockerfile
     container_name: "health-worker"
     command: bun run dev:worker
     depends_on:
@@ -79,14 +79,14 @@ services:
       rabbitmq:
         condition: service_started
     env_file:
-      - .env
+      - ../../.env.local
     environment:
       - POSTGRES_HOST=postgres_dev
       - RABBITMQ_HOST=rabbitmq
       - STORAGE_ENDPOINT=http://minio:9000
       - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres_dev:5432/${POSTGRES_DB}
     volumes:
-      - .:/app
+      - ../../:/app
       - /app/node_modules
 
 volumes:

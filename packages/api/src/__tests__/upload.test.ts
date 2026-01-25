@@ -200,9 +200,9 @@ describe("File Upload Integration Tests", () => {
         .set("Authorization", `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(Array.isArray(res.body)).toBe(true);
+      expect(Array.isArray(res.body.files)).toBe(true);
       // Should have at least the files we created in tests
-      expect(res.body.length).toBeGreaterThanOrEqual(1);
+      expect(res.body.files.length).toBeGreaterThanOrEqual(1);
     });
 
     it("should filter files by status", async () => {
@@ -212,9 +212,9 @@ describe("File Upload Integration Tests", () => {
         .set("Authorization", `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
-      expect(Array.isArray(res.body)).toBe(true);
+      expect(Array.isArray(res.body.files)).toBe(true);
       // All returned files should have QUEUED status
-      for (const file of res.body) {
+      for (const file of res.body.files) {
         expect(file.status).toBe(FileStatus.QUEUED);
       }
     });

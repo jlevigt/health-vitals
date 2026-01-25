@@ -53,7 +53,8 @@ export class CreateUserService {
       await client.query(verificationQuery, [user.id, tokenHash, expiresAt]);
 
       // 5. Send email
-      const verificationLink = `http://localhost:3000/auth/verify-email?token=${token}&email=${data.email}`;
+      const webUrl = process.env.WEB_URL || "http://localhost:5173";
+      const verificationLink = `${webUrl}/verify-email?token=${token}&email=${data.email}`;
       
       await this.mailProvider.sendMail(
         data.email,

@@ -11,8 +11,11 @@ A comprehensive solution for managing and visualizing health data. This project 
 │   ├── web/            # React/Vite Frontend (@health-data/web)
 │   ├── shared/         # Shared logic, DB migrations, types (@health-data/shared)
 │   └── worker/         # Background processing worker (@health-data/worker)
-├── .env                # Global configuration
-└── docker-compose.yml  # Shared services (Postgres, RabbitMQ, MinIO)
+├── infra/              # Infrastructure (Docker context, Scripts)
+│   ├── docker-compose.local.yml
+│   └── ...
+├── .env.local          # Local configuration (gitignored)
+└── .env.production     # Production configuration
 ```
 
 ## 🛠️ Tech Stack
@@ -36,7 +39,7 @@ bun install
 ```
 
 ### 3. Environment Setup
-Create a `.env` file in the root based on your credentials:
+Create a `.env.local` file in the root based on your credentials:
 ```env
 PORT=3000
 DATABASE_URL=postgres://user:pass@localhost:5432/health_db
