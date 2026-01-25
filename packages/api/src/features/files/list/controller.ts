@@ -26,7 +26,7 @@ export async function listFilesController(
     }
 
     const result = await service.execute(userId, parseResult.data);
-    res.status(200).json(result);
+    res.status(200).json({ files: result });
   } catch (error) {
     next(error);
   }

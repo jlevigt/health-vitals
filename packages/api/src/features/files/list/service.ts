@@ -31,7 +31,7 @@ export class ListFilesService {
 
     return result.rows.map((row) => ({
       id: row.id,
-      original_filename: row.original_filename,
+      filename: row.original_filename,
       status: row.status,
       created_at: row.created_at.toISOString(),
       processed_at: row.processed_at?.toISOString() ?? null,

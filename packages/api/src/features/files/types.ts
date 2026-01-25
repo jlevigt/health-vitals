@@ -75,7 +75,7 @@ export type ListFilesQuery = z.infer<typeof ListFilesQuerySchema>;
  */
 export interface FileListItem {
   id: string;
-  original_filename: string;
+  filename: string;
   status: string;
   created_at: string;
   processed_at: string | null;

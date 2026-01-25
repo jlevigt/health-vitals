@@ -6,6 +6,7 @@ import { RegisterPage } from "@/pages/auth/RegisterPage";
 import { MainLayout } from "@/components/MainLayout";
 import { DashboardPage } from "@/pages/dashboard/DashboardPage";
 import { ReportsPage } from "@/pages/reports/ReportsPage";
+import { FilesPage } from "@/pages/files/FilesPage";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
             <Route element={<MainLayout />}>
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/reports" element={<ReportsPage />} />
+              <Route path="/files" element={<FilesPage />} />
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
             </Route>
           </Route>

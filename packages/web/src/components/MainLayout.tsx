@@ -7,8 +7,10 @@ import {
   Menu, 
   LogOut, 
   X,
-  ChevronRight
+  ChevronRight,
+  FolderOpen
 } from 'lucide-react';
+
 import { useAuth } from '@/context/AuthContext';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -28,6 +30,7 @@ export const MainLayout: React.FC = () => {
 
   const navItems = [
     { to: '/dashboard', label: 'Dashboards', icon: LayoutDashboard },
+    { to: '/files', label: 'Files', icon: FolderOpen },
     { to: '/reports', label: 'Reports', icon: FileText },
   ];
 
@@ -48,11 +51,16 @@ export const MainLayout: React.FC = () => {
             <span className="text-lg font-bold tracking-tight text-on-surface">HealthVitals</span>
           </div>
         </div>
-
-        {/* Center Animation */}
+        
+        {
+          /*
+        // Center Animation
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block">
           <DnaWave />
         </div>
+        */
+        }
+        
 
         {/* User Menu */}
         <div className="relative">
