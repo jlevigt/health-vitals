@@ -27,7 +27,7 @@ const safeName = migrationName
 const filename = `${timestamp}_${safeName}.sql`;
 
 // 3. Define migrations directory path
-const migrationsDir = path.join(__dirname, "../migrations");
+const migrationsDir = path.join(__dirname, "../../shared/db/migrations");
 
 // Ensure directory exists
 if (!fs.existsSync(migrationsDir)) {
@@ -54,7 +54,7 @@ COMMIT;
 try {
   fs.writeFileSync(filePath, content);
   console.log("✅ Migration created successfully!");
-  console.log(`📄 File: packages/shared/src/db/migrations/${filename}`);
+  console.log(`📄 File: packages/shared/db/migrations/${filename}`);
 } catch (error) {
   console.error("❌ Error creating migration file:", error);
   process.exit(1);

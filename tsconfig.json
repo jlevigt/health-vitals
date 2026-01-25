@@ -16,6 +16,11 @@
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "allowJs": true,
-    "checkJs": false
+    "checkJs": false,
+    "baseUrl": ".",
+    "paths": {
+      "@health-data/shared/*": ["packages/shared/src/*"],
+      "@health-data/shared": ["packages/shared/src/index.ts"]
+    }
   }
 }

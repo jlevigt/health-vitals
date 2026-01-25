@@ -4,9 +4,10 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@health-data/shared/*": ["../shared/src/*"]
+      "@health-data/shared/*": ["../../packages/shared/src/*"],
+      "@health-data/shared": ["../../packages/shared/src/index.ts"]
     },
-    "types": ["bun", "node"]
+    "types": ["bun"]
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

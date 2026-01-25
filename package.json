@@ -3,16 +3,18 @@
   "private": true,
   "type": "module",
   "workspaces": [
+    "apps/*",
     "packages/*"
   ],
   "scripts": {
-    "dev:api": "bun run --cwd packages/api dev",
-    "dev:worker": "bun run --cwd packages/worker dev",
-    "dev:web": "bun run --cwd packages/web dev",
-    "dev:mock": "bun run --cwd packages/web dev:mock",
+    "dev:api": "bun --env-file=.env.local apps/api/src/server.ts",
+    "dev:worker": "bun --env-file=.env.local apps/worker/src/index.ts",
+    "dev:web": "bun run --cwd ./apps/web dev",
+    "dev:mock": "bun run --cwd ./apps/web dev:mock",
     "infra:up": "docker compose -f infra/docker/docker-compose.local.yml up -d postgres_dev rabbitmq minio",
     "infra:down": "docker compose -f infra/docker/docker-compose.local.yml down",
-    "migration:run": "bun --env-file=.env.local run packages/shared/src/db/scripts/migrate.ts",
-    "migration:create": "bun --env-file=.env.local run packages/shared/src/db/scripts/migration-create.ts"
+    "migration:run": "bun --env-file=.env.local packages/ops/scripts/migrate.ts",
+    "migration:create": "bun --env-file=.env.local packages/ops/scripts/migration-create.ts",
+    "s3:init": "bun --env-file=.env.local packages/ops/scripts/init.ts"
   }
 }

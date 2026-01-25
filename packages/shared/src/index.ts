@@ -31,3 +31,5 @@ export {
 
 // Types
 export * from "./types/index.ts";
+
+export { env } from "./config/env.ts";

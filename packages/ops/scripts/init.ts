@@ -4,13 +4,13 @@ import {
   HeadBucketCommand,
   PutBucketCorsCommand,
 } from "@aws-sdk/client-s3";
-import { Buckets } from "../index.ts";
+import { Buckets, env } from "@health-data/shared";
 
 async function initStorage() {
-  const endpoint = process.env.STORAGE_ENDPOINT ?? "http://localhost:9000";
-  const region = process.env.STORAGE_REGION ?? "us-east-1";
-  const accessKeyId = process.env.STORAGE_ACCESS_KEY ?? "minioadmin";
-  const secretAccessKey = process.env.STORAGE_SECRET_KEY ?? "minioadmin";
+  const endpoint = env.STORAGE_ENDPOINT;
+  const region = env.STORAGE_REGION;
+  const accessKeyId = env.STORAGE_ACCESS_KEY;
+  const secretAccessKey = env.STORAGE_SECRET_KEY;
 
   console.log(`🔌 Connecting to storage at ${endpoint}...`);
 
@@ -51,7 +51,7 @@ async function initStorage() {
           CORSConfiguration: {
             CORSRules: [
               {
-                AllowedHeaders: undefined,
+                AllowedHeaders: ["*"],
                 AllowedMethods: ["PUT", "POST", "GET", "HEAD"],
                 AllowedOrigins: ["*"],
                 ExposeHeaders: ["ETag"],
@@ -63,7 +63,17 @@ async function initStorage() {
       );
       console.log(`✅ CORS policy set.`);
     } catch (corsError: any) {
-      console.warn(`⚠️ Warning: Failed to set CORS policy. Client uploads might fail if running in browser.`, corsError.message);
+      if (corsError.name === "NotImplemented") {
+        console.log(
+          `ℹ️ CORS policy not supported by this storage provider (NotImplemented). ` +
+            `Ensure CORS is handled by the server environment (e.g., MINIO_API_CORS_ALLOW_ORIGIN).`
+        );
+      } else {
+        console.warn(
+          `⚠️ Warning: Failed to set CORS policy. Client uploads might fail if running in browser.\n` +
+            `Message: ${corsError.message}`
+        );
+      }
     }
   } catch (error) {
     console.error("❌ Error initializing storage:", error);

@@ -1,8 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { createDbPool } from "../index.ts";
-import { createLogger } from "@/logger/index.ts";
+import { createDbPool, env } from "@health-data/shared";
+import { createLogger } from "@health-data/shared/logger"; // Assuming logger is exported from shared or shared/logger
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -11,11 +11,11 @@ async function migrate() {
   
   // Create pool using shared implementation (picks up env vars automatically)
   const pool = createDbPool({
-    host: process.env.POSTGRES_HOST ?? "localhost",
-    port: parseInt(process.env.POSTGRES_PORT ?? "5432"),
-    database: process.env.POSTGRES_DB ?? "dev",
-    user: process.env.POSTGRES_USER ?? "local_user",
-    password: process.env.POSTGRES_PASSWORD ?? "local_password",
+    host: env.POSTGRES_HOST,
+    port: env.POSTGRES_PORT,
+    database: env.POSTGRES_DB,
+    user: env.POSTGRES_USER,
+    password: env.POSTGRES_PASSWORD,
     max: 10,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 5000,
@@ -46,7 +46,7 @@ async function migrate() {
     const appliedNames = new Set(appliedMigrations.map((row) => row.name));
 
     // 5. Read migration files
-    const migrationsDir = path.join(__dirname, "../migrations");
+    const migrationsDir = path.join(__dirname, "../../shared/db/migrations");
     
     if (!fs.existsSync(migrationsDir)) {
       fs.mkdirSync(migrationsDir, { recursive: true });
