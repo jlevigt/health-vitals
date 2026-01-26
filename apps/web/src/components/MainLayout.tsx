@@ -14,7 +14,7 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { DnaWave } from './DnaWave';
+// import { DnaWave } from './DnaWave';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
