@@ -8,7 +8,7 @@
   ],
   "scripts": {
     "dev:api": "bun --env-file=.env.local apps/api/src/server.ts",
-    "dev:worker": "bun --env-file=.env.local apps/worker/src/index.ts",
+    "dev:worker": "bun --env-file=.env.local apps/worker/src/worker.ts",
     "dev:web": "bun run --cwd ./apps/web dev",
     "dev:mock": "bun run --cwd ./apps/web dev:mock",
     "infra:up": "docker compose -f infra/docker/docker-compose.local.yml up -d postgres_dev rabbitmq minio",

@@ -29,6 +29,12 @@ services:
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_port_connectivity"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 15s
 
   minio:
     image: minio/minio
@@ -43,11 +49,16 @@ services:
     command: server /data --console-address ":9001"
     volumes:
       - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
 
   api:
     build:
-      context: ..
-      dockerfile: infra/Dockerfile
+      context: ../..
+      dockerfile: apps/api/Dockerfile.dev
     container_name: "health-api"
     command: bun run dev:api
     ports:
@@ -56,29 +67,9 @@ services:
       postgres_dev:
         condition: service_healthy
       rabbitmq:
-        condition: service_started
-    env_file:
-      - ../../.env.local
-    environment:
-      - POSTGRES_HOST=postgres_dev
-      - RABBITMQ_HOST=rabbitmq
-      - STORAGE_ENDPOINT=http://minio:9000
-      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres_dev:5432/${POSTGRES_DB}
-    volumes:
-      - ../:/app
-      - /app/node_modules
-
-  worker:
-    build:
-      context: ..
-      dockerfile: infra/Dockerfile
-    container_name: "health-worker"
-    command: bun run dev:worker
-    depends_on:
-      postgres_dev:
         condition: service_healthy
-      rabbitmq:
-        condition: service_started
+      minio:
+        condition: service_healthy
     env_file:
       - ../../.env.local
     environment:
@@ -89,6 +80,38 @@ services:
     volumes:
       - ../../:/app
       - /app/node_modules
+      - /app/apps/api/node_modules
+      - /app/libs/shared/node_modules # generic match for shared libs if they exist
+    networks:
+      - default
+
+  worker:
+    build:
+      context: ../..
+      dockerfile: apps/worker/Dockerfile.dev
+    container_name: "health-worker"
+    command: bun run dev:worker
+    depends_on:
+      postgres_dev:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    env_file:
+      - ../../.env.local
+    environment:
+      - POSTGRES_HOST=postgres_dev
+      - RABBITMQ_HOST=rabbitmq
+      - STORAGE_ENDPOINT=http://minio:9000
+      - DATABASE_URL=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres_dev:5432/${POSTGRES_DB}
+    volumes:
+      - ../../:/app
+      - /app/node_modules
+      - /app/apps/worker/node_modules
+      - /app/libs/shared/node_modules
+    networks:
+      - default
 
 volumes:
   postgres_data:
@@ -97,3 +120,7 @@ volumes:
     driver: local
   minio_data:
     driver: local
+
+networks:
+  default:
+    driver: bridge

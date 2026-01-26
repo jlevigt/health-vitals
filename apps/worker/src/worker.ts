@@ -27,13 +27,27 @@ async function main() {
     process.exit(1);
   }
 
-  // Connect to RabbitMQ
+  // Connect to RabbitMQ with retries
   let queue;
-  try {
-    queue = await getQueue();
-    logger.info("RabbitMQ connection established");
-  } catch (error) {
-    logger.error("Failed to connect to RabbitMQ", { error });
+  const maxRetries = 10;
+  const retryDelay = 5000; // 5 seconds
+
+  for (let i = 1; i <= maxRetries; i++) {
+    try {
+      queue = await getQueue();
+      logger.info("RabbitMQ connection established");
+      break;
+    } catch (error) {
+      if (i === maxRetries) {
+        logger.error("Failed to connect to RabbitMQ after maximum retries", { error });
+        process.exit(1);
+      }
+      logger.warn(`Failed to connect to RabbitMQ (attempt ${i}/${maxRetries}), retrying in ${retryDelay/1000}s...`);
+      await new Promise(resolve => setTimeout(resolve, retryDelay));
+    }
+  }
+
+  if (!queue) {
     process.exit(1);
   }
 
