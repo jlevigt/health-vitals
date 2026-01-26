@@ -1,6 +1,7 @@
 .env
 .env.local
 .env.*.local
+.env.production
 
 # Logs
 logs
@@ -25,3 +26,5 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+Resultado_LABORATORIO CLEMENTINO FRAGA_70005839058701.pdf

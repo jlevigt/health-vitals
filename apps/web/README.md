@@ -7,12 +7,12 @@ The client application for the Health Data App. A modern, AI-enhanced dashboard 
 - **Health Dashboards:** Visualizations for Lipid Panel, Glucose Metabolism, and more.
 - **Visual Excellence:** Premium UI with Glassmorphism, smooth gradients, and GSAP animations.
 - **Mock Mode:** Full offline capability using MSW (Mock Service Worker).
-- **Responsive:** Optimized for diagnostic analysis on any device.
+- **Modern Patterns:** React 19, Vite 7, ESM, and absolute imports (`@/`).
 
 ## 🛠️ Tech Stack
 
 - **React 19**
-- **Vite 6**
+- **Vite 7**
 - **Tailwind CSS 4**
 - **Recharts** (Data Visualization)
 - **GSAP** (Animations)
@@ -28,6 +28,8 @@ bun run dev:mock   # Using MSW Mock API (Standalone)
 
 ## 🏗️ Structure
 
-- `src/components/`: Reusable primitive components (Charts, Layouts).
+- `src/components/`: Reusable primitive components.
 - `src/pages/`: Main application views.
+- `src/context/`: Auth and Application state providers.
+- `src/api/`: API client and type definitions.
 - `src/mocks/`: MSW service definitions and mock data.

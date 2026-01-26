@@ -8,25 +8,26 @@ The backend engine for the Health Data App. This service handles data ingestion,
 - **AI Extraction:** Uses Google Gemini to parse PDF reports into structured data.
 - **Express 5:** Uses the latest Express for better performance and promise handling.
 - **Robust Auth:** JWT with refresh tokens and Argon2 hashing.
+- **Modern Patterns:** Full ESM support, strict TypeScript, and absolute imports (`@/`).
 
 ## 🛠️ Architecture
 
-The service follows a strict feature-based grouping:
 - `src/features/`: Authentication, Reports, and Dashboard logic.
 - `src/shared/`: Cross-cutting concerns (database pooled connection, logger).
+- `src/server.ts`: Entry point.
+- `src/app.ts`: Express application setup.
 
 ## 💻 Development
 
-This service is meant to be run from the project root using:
+Run from the project root:
 ```bash
 bun run dev:api
 ```
 
-However, if developing locally within this folder:
+Or locally within this folder:
 ```bash
-bun install
 bun run dev
 ```
 
 ## 📋 Environment
-This service consumes the root `.env` file. Ensure `DATABASE_URL` is set correctly.
+This service consumes the root `.env` file via Bun's automatic environment loading or explicit `--env-file` flag.

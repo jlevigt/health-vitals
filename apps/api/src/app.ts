@@ -1,8 +1,8 @@
 import express from "express";
 import cookieParser from "cookie-parser";
 import { routes } from "@/routes.ts";
-import { errorMiddleware } from "@/shared/middlewares/error.middleware.ts";
-import { httpLogger } from "@/shared/middlewares/http.logger.ts";
+import { errorMiddleware } from "@/middlewares/error.middleware";
+import { httpLogger } from "@/middlewares/http.logger";
 import cors from "cors";
 
 export const createApp = () => {

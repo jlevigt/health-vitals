@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@health-data/shared/*": ["../../packages/shared/src/*"],
+      "@health-data/shared": ["../../packages/shared/src/index.ts"]
+    },
+    "types": ["bun", "node"]
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

@@ -1,11 +1,10 @@
-import { Pool } from "node_modules/@types/pg/index.js";
 import argon2 from "argon2";
-import { AppError } from "@/shared/errors/app.error.ts";
-import { ILogger } from "@/shared/logger/interface.ts";
+import type { Database, Logger } from "@health-data/shared";
+import { AppError } from "@health-data/shared";
 import { VerifyEmailDTO } from "./types.ts";
 
 export class VerifyEmailService {
-  constructor(private db: Pool, private logger: ILogger) {}
+  constructor(private db: Database, private logger: Logger) {}
 
   async execute({ email, token }: VerifyEmailDTO) {
     const client = await this.db.connect();
@@ -13,8 +12,7 @@ export class VerifyEmailService {
     try {
       await client.query('BEGIN');
 
-      // 1. Busca usuário e token
-      // Buscamos o registro mais recente de verificação para este usuário que não expirou
+      // 1. Find user and token
       const query = `
         SELECT ev.id, ev.token_hash, ev.expires_at, u.id as user_id, u.is_active
         FROM email_verifications ev
@@ -32,32 +30,31 @@ export class VerifyEmailService {
       }
 
       if (record.is_active) {
-         // Já ativo, só retorna sucesso
+         // Already active, just return success
          await client.query('COMMIT');
          return { message: "Email already verified" };
       }
 
-      // 2. Verifica validade (data)
+      // 2. Verify validity (date)
       if (new Date() > new Date(record.expires_at)) {
         throw new AppError("Token expired", 400);
       }
 
-      // 3. Verifica hash do token
+      // 3. Verify token hash
       const valid = await argon2.verify(record.token_hash, token);
       if (!valid) {
          throw new AppError("Invalid token", 400);
       }
 
-      // 4. Ativa usuário
+      // 4. Activate user
       await client.query("UPDATE users SET is_active = true WHERE id = $1", [record.user_id]);
       
-      // 5. Opcional: Remove o token usado ou marca como usado (se tivesse coluna used_at)
-      // Como na tabela fornecida não tem 'used_at' para verifications, podemos deletar
+      // 5. Delete used token
       await client.query("DELETE FROM email_verifications WHERE id = $1", [record.id]);
 
       await client.query('COMMIT');
       
-      this.logger.info(`Email verificado com sucesso para user: ${record.user_id}`);
+      this.logger.info(`Email verified successfully for user: ${record.user_id}`);
       return { message: "Email verified successfully" };
 
     } catch (error) {

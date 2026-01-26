@@ -24,6 +24,7 @@ export const ReportsPage: React.FC = () => {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+
   const [expandedReportId, setExpandedReportId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -58,9 +59,11 @@ export const ReportsPage: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full space-y-6">
-      <div className="shrink-0">
-        <h1 className="text-2xl font-bold text-on-surface">Lab Reports</h1>
-        <p className="text-sm text-on-surface-variant">View and manage your processed clinical documents.</p>
+      <div className="shrink-0 flex justify-between items-start">
+        <div>
+          <h1 className="text-2xl font-bold text-on-surface">Lab Reports</h1>
+          <p className="text-sm text-on-surface-variant">View and manage your processed clinical documents.</p>
+        </div>
       </div>
 
       <div className="flex-1 overflow-hidden bg-white rounded-2xl border border-outline-variant shadow-sm flex flex-col">
@@ -118,6 +121,9 @@ export const ReportsPage: React.FC = () => {
           </div>
         )}
       </div>
+
+
+
     </div>
   );
 };

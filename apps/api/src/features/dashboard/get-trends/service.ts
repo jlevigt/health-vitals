@@ -1,27 +1,30 @@
-import type { Pool } from "node_modules/@types/pg/index.js";
+import type { Database } from "@health-data/shared";
 import { DashboardResponse, TrendSeries } from "./types.ts";
 
 export class GetTrendsService {
-  constructor(private pool: Pool) {}
+  constructor(private db: Database) {}
 
   async execute(userId: string, category: string): Promise<DashboardResponse> {
     const query = `
       SELECT 
-        o.canonical_name,
-        o.base_unit as unit,
+        od.canonical_name,
+        od.base_unit as unit,
         r.collection_date,
         o.normalized_value,
         o.reference_low,
         o.reference_high
       FROM observations o
+      JOIN observation_definitions od ON o.observation_id = od.id
+      JOIN observation_categories oc ON od.category_id = oc.id
       JOIN reports r ON o.report_id = r.id
-      WHERE r.user_id = $1 
-        AND o.category = $2
+      JOIN files f ON r.file_id = f.id
+      WHERE f.user_id = $1 
+        AND oc.code = $2
         AND o.normalized_value IS NOT NULL
       ORDER BY r.collection_date ASC
     `;
 
-    const result = await this.pool.query(query, [userId, category]);
+    const result = await this.db.query(query, [userId, category]);
 
     const seriesMap = new Map<string, TrendSeries>();
 
@@ -36,7 +39,6 @@ export class GetTrendsService {
 
       const series = seriesMap.get(row.canonical_name)!;
       
-      // Update unit if missing (sometimes only some rows have units)
       if (!series.unit && row.unit) {
           series.unit = row.unit;
       }

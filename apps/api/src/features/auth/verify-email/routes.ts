@@ -1,14 +1,13 @@
 import { Router } from "express";
-import { pool } from "@/shared/db/index.ts";
-import { logger } from "@/container.ts";
+import { db, logger } from "@/container.ts";
 import { VerifyEmailController } from "./controller.ts";
 import { VerifyEmailService } from "./service.ts";
 
 const verifyEmailRouter = Router();
-const service = new VerifyEmailService(pool, logger);
+const service = new VerifyEmailService(db, logger);
 const controller = new VerifyEmailController(service);
 
-// Suporta GET (clique no link) e POST (envio manual)
+// Supports GET (link click) and POST (manual submit)
 verifyEmailRouter.get("/", controller.handle);
 verifyEmailRouter.post("/", controller.handle);
 

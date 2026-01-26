@@ -1,17 +1,14 @@
-import { Pool } from "node_modules/@types/pg/index.js";
 import argon2 from "argon2";
 import crypto from "node:crypto";
-import { AppError } from "@/shared/errors/app.error.ts";
-import { ILogger } from "@/shared/logger/interface.ts";
-import { IMailProvider } from "@/shared/mail/interface.ts";
-import { CreateUserDTO } from "@/features/auth/register/types.ts";
+import type { Database, Logger, MailProvider } from "@health-data/shared";
+import { AppError } from "@health-data/shared";
+import { CreateUserDTO } from "./types.ts";
 
 export class CreateUserService {
-  // Injeção de Dependência: Recebe o Banco, Logger e MailProvider
   constructor(
-    private db: Pool, 
-    private logger: ILogger,
-    private mailProvider: IMailProvider
+    private db: Database, 
+    private logger: Logger,
+    private mailProvider: MailProvider
   ) {}
 
   async execute(data: CreateUserDTO) {
@@ -20,18 +17,18 @@ export class CreateUserService {
     try {
       await client.query('BEGIN');
 
-      // 1. Verifica se existe
+      // 1. Check if exists
       const exists = await client.query("SELECT id FROM users WHERE email = $1", [data.email]);
 
       if (exists.rows.length > 0) {
-        this.logger.error(`Tentativa de cadastro duplicado: ${data.email}`);
+        this.logger.error(`Duplicate registration attempt: ${data.email}`);
         throw new AppError("User already exists");
       }
 
-      // 2. Hash da senha
+      // 2. Hash password
       const passwordHash = await argon2.hash(data.password);
 
-      // 3. Cria User
+      // 3. Create user
       const userQuery = `
         INSERT INTO users (email, password_hash) 
         VALUES ($1, $2) 
@@ -41,11 +38,11 @@ export class CreateUserService {
       const userResult = await client.query(userQuery, [data.email, passwordHash]);
       const user = userResult.rows[0];
 
-      // 4. Cria Token de Verificação
+      // 4. Create verification token
       const token = crypto.randomBytes(32).toString('hex');
       const tokenHash = await argon2.hash(token);
       
-      // Expira em 24h
+      // Expires in 24h
       const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); 
 
       const verificationQuery = `
@@ -55,9 +52,9 @@ export class CreateUserService {
       
       await client.query(verificationQuery, [user.id, tokenHash, expiresAt]);
 
-      // 5. Envia Email
-      // Em produção, isso seria uma URL real do frontend
-      const verificationLink = `http://localhost:3000/auth/verify-email?token=${token}&email=${data.email}`;
+      // 5. Send email
+      const webUrl = process.env.WEB_URL || "http://localhost:5173";
+      const verificationLink = `${webUrl}/verify-email?token=${token}&email=${data.email}`;
       
       await this.mailProvider.sendMail(
         data.email,
@@ -67,7 +64,7 @@ export class CreateUserService {
 
       await client.query('COMMIT');
 
-      this.logger.info(`Usuário criado e email enviado: ${user.id}`);
+      this.logger.info(`User created and email sent: ${user.id}`);
       return user;
 
     } catch (error) {

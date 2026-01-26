@@ -4,6 +4,6 @@ import { HealthController } from "./controller.ts";
 const healthRouter = Router();
 const healthController = new HealthController();
 
-healthRouter.get("/", (req, res) => healthController.handle(req, res));
+healthRouter.get("/", healthController.handle);
 
 export { healthRouter };

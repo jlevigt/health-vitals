@@ -1,0 +1,20 @@
+{
+  "name": "@health-data/ops",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "migrate": "bun run scripts/migrate.ts",
+    "migrate:create": "bun run scripts/migration-create.ts",
+    "init:s3": "bun run scripts/init.ts"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.975.0",
+    "@health-data/shared": "workspace:*",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.2.0",
+    "typescript": "^5.9.3"
+  }
+}

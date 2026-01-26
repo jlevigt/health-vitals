@@ -1,7 +1,5 @@
-import { Pool } from "node_modules/@types/pg/index.js";
-import { ILogger } from "@/shared/logger/interface.ts";
-import { AppError } from "@/shared/errors/app.error.ts";
 import { z } from "zod";
+import type { Database, Logger } from "@health-data/shared";
 
 export const logoutSchema = z.object({
   refreshToken: z.string().min(1),
@@ -10,18 +8,15 @@ export const logoutSchema = z.object({
 export type LogoutDTO = z.infer<typeof logoutSchema>;
 
 export class LogoutService {
-  constructor(private db: Pool, private logger: ILogger) {}
+  constructor(private db: Database, private logger: Logger) {}
 
   async execute({ refreshToken }: LogoutDTO) {
     const [sessionId] = refreshToken.split(".");
     
-    // Não precisamos validar o segredo com hash caro para logout,
-    // apenas revogar a sessão se o ID for válido UUID.
-    // Isso evita DoS via hash calculation.
-    
+    // Validate UUID format without expensive hash verification
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (!sessionId || !uuidRegex.test(sessionId)) {
-         // Silenciosamente falha ou retorna sucesso para não vazar info
+         // Silently fail to avoid leaking info
          return; 
     }
 
@@ -30,6 +25,6 @@ export class LogoutService {
       [sessionId]
     );
 
-    this.logger.info(`Sessão revogada (Logout): ${sessionId}`);
+    this.logger.info(`Session revoked (Logout): ${sessionId}`);
   }
 }

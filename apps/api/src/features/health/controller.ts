@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { pool } from "@/shared/db/index.ts";
+import { db, logger } from "@/container.ts";
 
 export class HealthController {
   async handle(req: Request, res: Response) {
@@ -12,12 +12,15 @@ export class HealthController {
     };
 
     try {
-      await pool.query('SELECT 1');
+      await db.query('SELECT 1');
       healthcheck.db = 'connected';
       res.status(200).json(healthcheck);
     } catch (error) {
+      const errMsg = error instanceof Error ? error.message : String(error);
+      logger.error(`Health check DB query failed: ${errMsg}`);
       healthcheck.db = 'disconnected';
       res.status(503).json(healthcheck);
     }
   }
 }
+

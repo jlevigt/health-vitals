@@ -1,13 +1,12 @@
 import { Router } from "express";
-import { pool } from "@/shared/db/index.ts";
-import { authMiddleware } from "@/shared/middlewares/auth.middleware.ts";
+import { db } from "@/container.ts";
+import { authMiddleware } from "@/middlewares/auth.middleware.ts";
 import { GetTrendsService } from "./service.ts";
 import { GetTrendsController } from "./controller.ts";
 
 const router = Router();
 
-// === MANUAL DEPENDENCY INJECTION ===
-const service = new GetTrendsService(pool);
+const service = new GetTrendsService(db);
 const controller = new GetTrendsController(service);
 
 // GET /dashboard/:category
