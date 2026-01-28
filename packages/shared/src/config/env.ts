@@ -7,11 +7,11 @@ const envSchema = z.object({
 
   // Database
   DATABASE_URL: z.string().startsWith("postgres://"),
-  POSTGRES_HOST: z.string().default("localhost"),
-  POSTGRES_PORT: z.coerce.number().default(5432),
-  POSTGRES_USER: z.string(),
-  POSTGRES_PASSWORD: z.string(),
-  POSTGRES_DB: z.string(),
+  POSTGRES_HOST: z.string().default("localhost").optional(),
+  POSTGRES_PORT: z.coerce.number().default(5432).optional(),
+  POSTGRES_USER: z.string().optional(),
+  POSTGRES_PASSWORD: z.string().optional(),
+  POSTGRES_DB: z.string().optional(),
 
   // Security
   SECRET_JWT_KEY: z.string().min(32),

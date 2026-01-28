@@ -9,7 +9,6 @@ describe("Auth Integration Tests", () => {
   const testEmail = `test_${Date.now()}@example.com`;
   const testPassword = "password123";
   let verificationToken: string | undefined;
-  let accessToken: string | undefined;
   
   // Use agent to persist cookies
   const agent = request.agent(app);
@@ -63,9 +62,6 @@ describe("Auth Integration Tests", () => {
       const cookieArray = Array.isArray(cookies) ? cookies : cookies ? [cookies] : [];
       expect(cookieArray.some((c: string) => c.includes("refreshToken"))).toBe(true);
       expect(cookieArray.some((c: string) => c.includes("HttpOnly"))).toBe(true);
-      
-      // Store accessToken for subsequent tests
-      accessToken = res.body.accessToken;
   });
 
   it("should refresh token successfully using refreshToken from cookie", async () => {
@@ -81,9 +77,6 @@ describe("Auth Integration Tests", () => {
       expect(cookies).toBeDefined();
       const cookieArray = Array.isArray(cookies) ? cookies : cookies ? [cookies] : [];
       expect(cookieArray.some((c: string) => c.includes("refreshToken"))).toBe(true);
-      
-      // Update accessToken for subsequent tests
-      accessToken = res.body.accessToken;
   });
 
   it("should logout successfully", async () => {

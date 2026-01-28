@@ -1,5 +1,5 @@
 {
-  "name": "@health-data/ops",
+  "name": "@health-vitals/ops",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.975.0",
-    "@health-data/shared": "workspace:*",
+    "@health-vitals/shared": "workspace:*",
     "zod": "^3.24.1"
   },
   "devDependencies": {

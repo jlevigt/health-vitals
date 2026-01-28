@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { db, logger } from "@/container.ts";
 
 export class HealthController {
-  async handle(req: Request, res: Response) {
+  async handle(_req: Request, res: Response) {
     const healthcheck = {
       uptime: process.uptime(),
       message: 'OK',

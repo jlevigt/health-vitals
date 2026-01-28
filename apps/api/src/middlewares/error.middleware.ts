@@ -1,9 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import { ZodError } from "zod"; // <--- Importe o ZodError
 import { AppError } from "@health-data/shared/errors";
-import { logger } from "@/container.ts";
 
-export const errorMiddleware = (err: Error, req: Request, res: Response, next: NextFunction) => {
+export const errorMiddleware = (err: Error, _req:  Request, res: Response, _next: NextFunction) => {
   // 1. Tratamento de Erros de Validação (Zod) -> 400 Bad Request
   if (err instanceof ZodError) {
     return res.status(400).json({

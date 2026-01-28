@@ -29,6 +29,6 @@ export interface Report {
   id: string;
   fileName: string;
   date: string;
-  status: "processed" | "processing" | "failed";
+  lab_name: string | null;
   observationsCount: number;
 }

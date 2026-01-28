@@ -3,11 +3,7 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { AppError } from "@health-data/shared/errors";
 
-interface IPayload {
-  sub: string;
-}
-
-export function authMiddleware(req: Request, res: Response, next: NextFunction) {
+export function authMiddleware(req: Request, _res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
@@ -24,9 +20,6 @@ export function authMiddleware(req: Request, res: Response, next: NextFunction) 
   try {
     const { sub: userId } = jwt.verify(token, process.env.SECRET_JWT_KEY) as unknown as { sub: string };
 
-    // Adiciona o ID do usuário ao objeto de requisição
-    // É necessário estender o tipo Request do Express para fazer isso de forma type-safe
-    // @ts-ignore
     req.user = {
       id: userId,
     };

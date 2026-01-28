@@ -16,7 +16,7 @@ import { UploadModal } from "../../components/UploadModal";
 interface FileItem {
   id: string;
   filename: string;
-  status: 'pending_upload' | 'processing' | 'completed' | 'failed';
+  status: 'CREATED' | 'QUEUED' | 'PROCESSING' | 'SUCCEEDED' | 'FAILED_RETRYABLE' | 'FAILED_TERMINAL';
   created_at: string;
 }
 
@@ -49,19 +49,21 @@ export const FilesPage: React.FC = () => {
 
   const getStatusBadge = (status: FileItem['status']) => {
     switch (status) {
-      case 'completed':
+      case 'SUCCEEDED':
         return (
           <div className="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[10px] font-bold uppercase border border-green-200 flex items-center gap-1 w-fit">
             <CheckCircle2 className="w-3 h-3" /> Completed
           </div>
         );
-      case 'processing':
+      case 'PROCESSING':
+      case 'QUEUED':
         return (
           <div className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold uppercase border border-blue-200 flex items-center gap-1 w-fit">
             <Clock className="w-3 h-3 animate-pulse" /> Processing
           </div>
         );
-      case 'failed':
+      case 'FAILED_RETRYABLE':
+      case 'FAILED_TERMINAL':
         return (
           <div className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-bold uppercase border border-red-200 flex items-center gap-1 w-fit">
             <AlertCircle className="w-3 h-3" /> Failed

@@ -20,7 +20,7 @@ export async function confirmUploadController(
       throw new AppError("Unauthorized", 401);
     }
 
-    const { file_id } = req.params;
+    const { file_id } = req.params as { file_id: string };
     if (!file_id) {
       throw new AppError("File ID is required", 400);
     }

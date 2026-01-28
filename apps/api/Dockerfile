@@ -1,37 +1,24 @@
-FROM oven/bun:latest AS base
+FROM oven/bun:1.3.6-alpine AS base
 WORKDIR /app
 
-# Install dependencies based on lockfile
+# Copy root package files
 COPY package.json bun.lock tsconfig.json ./
-COPY packages/api/package.json ./packages/api/
-COPY packages/shared/package.json ./packages/shared/
-COPY packages/web/package.json ./packages/web/
-COPY packages/worker/package.json ./packages/worker/
 
-# Clean install
-RUN bun install --frozen-lockfile
+# Copy shared packages
+COPY packages/shared/package.json ./packages/shared/
+COPY apps/api/package.json ./apps/api/
+
+# Install dependencies (production only)
+RUN bun install --production
 
 # Copy source code
-COPY . .
+COPY packages/shared ./packages/shared
+COPY apps/api ./apps/api
 
-# Build step if needed (or just run directly with bun)
-# For this monorepo setup, we can run directly.
-
-FROM oven/bun:latest AS release
-WORKDIR /app
-
-COPY --from=base /app/node_modules ./node_modules
-COPY --from=base /app/packages ./packages
-COPY --from=base /app/package.json ./package.json
-COPY --from=base /app/tsconfig.json ./tsconfig.json
-COPY --from=base /app/bun.lock ./bun.lock
-
-# Script for starting might be needed to wait for resources or run migrations
-# We'll rely on the entrypoint script which we will mount or COPY
-
+# Set environment variables
 ENV NODE_ENV=production
-EXPOSE 3000
+ENV BUN_INSTALL_GLOBALS=0
 
-RUN chmod +x infra/scripts/entrypoint.sh
-ENTRYPOINT ["infra/scripts/entrypoint.sh"]
-CMD ["bun", "run", "start:api"]
+USER bun
+
+CMD ["bun", "apps/api/src/server.ts"]

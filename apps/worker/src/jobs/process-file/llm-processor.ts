@@ -20,7 +20,7 @@ const RATE_LIMITS = {
 export async function processWithLlm(
   db: Database,
   fileId: string,
-  userId: string,
+  _userId: string,
   extractedText: string,
   filename: string,
   logger: Logger,

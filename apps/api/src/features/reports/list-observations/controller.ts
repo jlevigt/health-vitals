@@ -6,7 +6,6 @@ export class ListReportObservationsController {
   constructor(private service: ListReportObservationsService) {}
 
   handle = async (req: Request, res: Response): Promise<void> => {
-    // @ts-ignore
     const userId = req.user?.id;
     const { id: reportId } = req.params;
 

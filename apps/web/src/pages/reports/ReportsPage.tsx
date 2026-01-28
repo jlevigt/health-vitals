@@ -7,8 +7,7 @@ import {
   ChevronUp, 
   Activity, 
   AlertCircle,
-  CheckCircle2,
-  Clock
+
 } from "lucide-react";
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -71,7 +70,7 @@ export const ReportsPage: React.FC = () => {
         <div className="grid grid-cols-[1fr_auto_auto_auto] gap-4 px-6 py-3 border-b border-outline-variant bg-surface-variant/20 text-xs font-bold text-on-surface-variant uppercase tracking-wider">
           <div>Report Name</div>
           <div>Date</div>
-          <div className="text-center">Status</div>
+          <div>Lab</div>
           <div className="text-center w-8"></div>
         </div>
 
@@ -181,16 +180,8 @@ const ReportRow: React.FC<{
           {report.date}
         </div>
 
-        <div className="flex justify-center">
-            {report.status === 'processed' ? (
-                <div className="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[10px] font-bold uppercase border border-green-200 flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" /> Processed
-                </div>
-            ) : (
-                 <div className="px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700 text-[10px] font-bold uppercase border border-yellow-200 flex items-center gap-1">
-                    <Clock className="w-3 h-3" /> Processing
-                </div>
-            )}
+        <div className="text-sm text-on-surface truncate max-w-[150px]">
+            {report.lab_name || <span className="text-on-surface-variant italic">Unknown Lab</span>}
         </div>
 
         <div className="text-on-surface-variant">

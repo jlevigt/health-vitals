@@ -68,7 +68,7 @@ export const handlers = [
       id: `report-${i + 1}`,
       fileName: `Lab_Report_${2023 - Math.floor(i / 12)}_${(i % 12) + 1}.pdf`,
       date: `2023-${String((i % 12) + 1).padStart(2, '0')}-15`,
-      status: 'processed',
+      lab_name: 'Quest Diagnostics',
       observationsCount: Math.floor(Math.random() * 20) + 5,
     }));
     return HttpResponse.json(reports);

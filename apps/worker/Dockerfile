@@ -1,28 +1,24 @@
-FROM oven/bun:latest AS base
+FROM oven/bun:1.3.6-alpine AS base
 WORKDIR /app
 
-# Install dependencies based on lockfile
+# Copy root package files
 COPY package.json bun.lock tsconfig.json ./
-COPY packages/api/package.json ./packages/api/
-COPY packages/shared/package.json ./packages/shared/
-COPY packages/web/package.json ./packages/web/
-COPY packages/worker/package.json ./packages/worker/
 
-# Clean install
-RUN bun install --frozen-lockfile
+# Copy shared packages
+COPY packages/shared/package.json ./packages/shared/
+COPY apps/worker/package.json ./apps/worker/
+
+# Install dependencies (production only)
+RUN bun install --frozen-lockfile --production
 
 # Copy source code
-COPY . .
+COPY packages/shared ./packages/shared
+COPY apps/worker ./apps/worker
 
-FROM oven/bun:latest AS release
-WORKDIR /app
-
-COPY --from=base /app/node_modules ./node_modules
-COPY --from=base /app/packages ./packages
-COPY --from=base /app/package.json ./package.json
-COPY --from=base /app/tsconfig.json ./tsconfig.json
-COPY --from=base /app/bun.lock ./bun.lock
-
+# Set environment variables
 ENV NODE_ENV=production
+ENV BUN_INSTALL_GLOBALS=0
 
-CMD ["bun", "run", "start:worker"]
+USER bun
+
+CMD ["bun", "apps/worker/src/worker.ts"]

@@ -8,7 +8,6 @@ export class GetTrendsController {
   constructor(private service: GetTrendsService) {}
 
   handle = async (req: Request, res: Response): Promise<void> => {
-    // @ts-ignore
     const userId = req.user?.id;
     const category = req.params.category as string;
 

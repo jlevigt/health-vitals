@@ -1,4 +1,4 @@
-# Health Data App (Monorepo)
+# Health Vitals (Monorepo)
 
 A comprehensive solution for managing and visualizing health data. This project uses AI to extract structured data from PDF lab reports and provides a detailed dashboard for health metrics.
 
@@ -7,10 +7,10 @@ A comprehensive solution for managing and visualizing health data. This project 
 ```text
 .
 ├── packages/           # Monorepo packages
-│   ├── api/            # Node.js/Express Backend (@health-data/api)
-│   ├── web/            # React/Vite Frontend (@health-data/web)
-│   ├── shared/         # Shared logic, DB migrations, types (@health-data/shared)
-│   └── worker/         # Background processing worker (@health-data/worker)
+│   ├── api/            # Node.js/Express Backend (@health-vitals/api)
+│   ├── web/            # React/Vite Frontend (@health-vitals/web)
+│   ├── shared/         # Shared logic, DB migrations, types (@health-vitals/shared)
+│   └── worker/         # Background processing worker (@health-vitals/worker)
 ├── infra/              # Infrastructure (Docker context, Scripts)
 │   ├── docker-compose.local.yml
 │   └── ...

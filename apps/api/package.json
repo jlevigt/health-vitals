@@ -1,11 +1,11 @@
 {
   "scripts": {
-    "dev": "bun --env-file=../../.env.local --watch src/server.ts",
+    "dev": "bun --env-file=../../.env --watch src/server.ts",
     "build": "tsc",
     "start": "bun src/server.ts"
   },
   "dependencies": {
-    "@health-data/shared": "workspace:*",
+    "@health-vitals/shared": "workspace:*",
     "argon2": "^0.44.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -38,7 +38,7 @@
     "supertest": "^7.2.2",
     "typescript": "^5.9.3"
   },
-  "name": "@health-data/api",
+  "name": "@health-vitals/api",
   "version": "0.1.0",
   "private": true,
   "type": "module"

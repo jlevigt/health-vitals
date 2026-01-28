@@ -1,5 +1,5 @@
 {
-  "name": "health-data-app",
+  "name": "health-vitals",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -7,14 +7,14 @@
     "packages/*"
   ],
   "scripts": {
-    "dev:api": "bun --env-file=.env.local apps/api/src/server.ts",
-    "dev:worker": "bun --env-file=.env.local apps/worker/src/worker.ts",
+    "dev:api": "bun --env-file=.env apps/api/src/server.ts",
+    "dev:worker": "bun --env-file=.env apps/worker/src/worker.ts",
     "dev:web": "bun run --cwd ./apps/web dev",
     "dev:mock": "bun run --cwd ./apps/web dev:mock",
-    "infra:up": "docker compose -f infra/docker/docker-compose.local.yml up -d postgres_dev rabbitmq minio",
-    "infra:down": "docker compose -f infra/docker/docker-compose.local.yml down",
-    "migration:run": "bun --env-file=.env.local packages/ops/scripts/migrate.ts",
-    "migration:create": "bun --env-file=.env.local packages/ops/scripts/migration-create.ts",
-    "s3:init": "bun --env-file=.env.local packages/ops/scripts/init.ts"
+    "infra:up": "docker compose up -d",
+    "infra:down": "docker compose down",
+    "migration:run": "bun --env-file=.env packages/ops/scripts/migrate.ts",
+    "migration:create": "bun --env-file=.env packages/ops/scripts/migration-create.ts",
+    "s3:init": "bun --env-file=.env packages/ops/scripts/init.ts"
   }
 }
