@@ -25,9 +25,9 @@ export interface StorageClient {
 }
 
 export interface StorageConfig {
-  endpoint?: string;
-  region?: string;
-  accessKeyId?: string;
-  secretAccessKey?: string;
+  endpoint: string;
+  region: string;
+  accessKeyId: string;
+  secretAccessKey: string;
   forcePathStyle?: boolean;
 }

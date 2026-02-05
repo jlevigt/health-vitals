@@ -1,0 +1,32 @@
+services:
+  api:
+    image: 127.0.0.1:5000/my-apps:api-latest
+    env_file:
+      - ../.env
+    networks:
+      - prod01
+    deploy:
+      replicas: 1
+      labels:
+        - "traefik.enable=true"
+        # Since we are local, we use api.localhost
+        - "traefik.http.routers.api.rule=Host(`api.localhost`)"
+        - "traefik.http.services.api.loadbalancer.server.port=3000"
+        - "traefik.docker.network=prod01"
+      restart_policy:
+        condition: on-failure
+
+  worker:
+    image: 127.0.0.1:5000/my-apps:worker-latest
+    env_file:
+      - ../.env
+    networks:
+      - prod01
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+networks:
+  prod01:
+    external: true

@@ -17,6 +17,7 @@ import {
   LLMProvider,
   GeminiProvider,
   MockLLMProvider,
+  env,
 } from "@health-data/shared";
 
 // === Logger ===
@@ -24,29 +25,48 @@ export const logger: Logger = createLogger({ name: "worker" });
 
 // === Database ===
 export const db: Database = createDbPool({
-  host: process.env.POSTGRES_HOST,
-  port: Number(process.env.POSTGRES_PORT),
-  database: process.env.POSTGRES_DB,
-  user: process.env.POSTGRES_USER,
-  password: process.env.POSTGRES_PASSWORD,
+  connectionString: env.DATABASE_URL,
 });
 
 // === Storage ===
-export const storage: StorageClient = createStorageClient();
+export const storage: StorageClient = createStorageClient({
+  endpoint: env.STORAGE_ENDPOINT,
+  region: env.STORAGE_REGION,
+  accessKeyId: env.STORAGE_ACCESS_KEY,
+  secretAccessKey: env.STORAGE_SECRET_KEY,
+  forcePathStyle: true,
+});
 
 // === Queue ===
 let _queue: QueueConnection | null = null;
 
 export async function getQueue(): Promise<QueueConnection> {
-  if (!_queue) {
-    _queue = await createQueueConnection();
-    logger.info("Queue connection established");
+  if (_queue) return _queue;
+
+  const maxRetries = 10;
+  const retryDelay = 5000;
+
+  for (let i = 1; i <= maxRetries; i++) {
+    try {
+      logger.info(`Connecting to RabbitMQ (attempt ${i}/${maxRetries})...`);
+      _queue = await createQueueConnection(env.RABBITMQ_URL);
+      logger.info("RabbitMQ connection established");
+      return _queue;
+    } catch (error) {
+      if (i === maxRetries) {
+        logger.error("Failed to connect to RabbitMQ after maximum retries", { error });
+        process.exit(1);
+      }
+      logger.warn(`Failed to connect to RabbitMQ, retrying in ${retryDelay/1000}s...`);
+      await new Promise(resolve => setTimeout(resolve, retryDelay));
+    }
   }
-  return _queue;
+  
+  throw new Error("Failed to connect to RabbitMQ");
 }
 
 // === LLM Provider ===
-export const llmProvider: LLMProvider = process.env.GEMINI_API_KEY
+export const llmProvider: LLMProvider = env.GEMINI_API_KEY
   ? new GeminiProvider(logger)
   : new MockLLMProvider();
 

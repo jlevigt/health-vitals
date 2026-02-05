@@ -1,21 +1,12 @@
 import amqp, { type Channel, type ConsumeMessage } from "amqplib";
-import type { QueueConfig, QueueConnection, QueueChannel } from "./interface.ts";
+import type { QueueConnection, QueueChannel } from "./interface.ts";
 
 /**
  * Create a connection to RabbitMQ
  */
 export async function createQueueConnection(
-  config?: QueueConfig
+  url: string
 ): Promise<QueueConnection> {
-  const url =
-    config?.url ??
-    process.env.RABBITMQ_URL ??
-    `amqp://${config?.username ?? process.env.RABBITMQ_USER ?? "guest"}:${
-      config?.password ?? process.env.RABBITMQ_PASSWORD ?? "guest"
-    }@${config?.hostname ?? process.env.RABBITMQ_HOST ?? "localhost"}:${
-      config?.port ?? parseInt(process.env.RABBITMQ_PORT ?? "5672")
-    }/${config?.vhost ?? process.env.RABBITMQ_VHOST ?? ""}`;
-
   const connection = await amqp.connect(url);
   const channel = await connection.createChannel();
 

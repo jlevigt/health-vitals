@@ -1,35 +1,29 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { createDbPool, env } from "@health-data/shared";
-import { createLogger } from "@health-data/shared/logger"; // Assuming logger is exported from shared or shared/logger
+import { Client } from "pg";
+import { env } from "@health-data/shared";
+import { createLogger } from "@health-data/shared/logger";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 async function migrate() {
   const logger = createLogger({ name: "migration-runner" });
   
-  // Create pool using shared implementation (picks up env vars automatically)
-  const pool = createDbPool({
-    host: env.POSTGRES_HOST,
-    port: env.POSTGRES_PORT,
-    database: env.POSTGRES_DB,
-    user: env.POSTGRES_USER,
-    password: env.POSTGRES_PASSWORD,
-    max: 10,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 5000,
+  // Create single connection using DATABASE_URL
+  const client = new Client({
+    connectionString: env.DATABASE_URL,
   });
-  const client = await pool.connect();
 
   try {
+    await client.connect();
+    
     logger.info("🔄 Starting migrations...");
 
     // 1. Start Transaction
     await client.query("BEGIN");
 
     // 2. Advisory Lock (arbitrary ID 123456789)
-    // Prevents multiple containers from running migrations simultaneously
     await client.query("SELECT pg_advisory_xact_lock(123456789)");
 
     // 3. Create control table if not exists
@@ -54,7 +48,7 @@ async function migrate() {
     
     const files = fs.readdirSync(migrationsDir)
       .filter(file => file.endsWith('.sql'))
-      .sort(); // Ensures chronological order due to timestamp prefixes
+      .sort();
 
     // 6. Execution Loop
     let count = 0;
@@ -85,12 +79,13 @@ async function migrate() {
 
   } catch (error) {
     // Rollback on error
-    await client.query("ROLLBACK");
+    try {
+      await client.query("ROLLBACK");
+    } catch (ignore) {}
     logger.error("❌ Migration failed (Rollback executed)", { error });
     process.exit(1);
   } finally {
-    client.release();
-    await pool.end();
+    await client.end();
   }
 }
 

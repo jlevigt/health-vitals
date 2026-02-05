@@ -11,20 +11,15 @@ import type { StorageClient, StorageConfig } from "./interface.ts";
 /**
  * Create an S3-compatible storage client (works with Minio and Cloudflare R2)
  */
-export function createStorageClient(config?: StorageConfig): StorageClient {
+export function createStorageClient(config: StorageConfig): StorageClient {
   const s3 = new S3Client({
-    endpoint:
-      config?.endpoint ?? process.env.STORAGE_ENDPOINT ?? "http://localhost:9000",
-    region: config?.region ?? process.env.STORAGE_REGION ?? "us-east-1",
+    endpoint: config.endpoint,
+    region: config.region,
     credentials: {
-      accessKeyId:
-        config?.accessKeyId ?? process.env.STORAGE_ACCESS_KEY ?? "minioadmin",
-      secretAccessKey:
-        config?.secretAccessKey ??
-        process.env.STORAGE_SECRET_KEY ??
-        "minioadmin",
+      accessKeyId: config.accessKeyId,
+      secretAccessKey: config.secretAccessKey,
     },
-    forcePathStyle: config?.forcePathStyle ?? true, // Required for Minio
+    forcePathStyle: config.forcePathStyle ?? true, // Required for Minio
   });
 
   return {

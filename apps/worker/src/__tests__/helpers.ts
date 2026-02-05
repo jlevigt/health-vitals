@@ -26,11 +26,7 @@ let _testDb: Database | null = null;
 export function getTestDb(): Database {
   if (!_testDb) {
     _testDb = createDbPool({
-      host: process.env.POSTGRES_HOST,
-      port: Number(process.env.POSTGRES_PORT),
-      database: process.env.POSTGRES_DB,
-      user: process.env.POSTGRES_USER,
-      password: process.env.POSTGRES_PASSWORD,
+      connectionString: process.env.DATABASE_URL || `postgresql://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASSWORD}@${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT}/${process.env.POSTGRES_DB}`,
     });
   }
   return _testDb;
@@ -48,7 +44,12 @@ let _testStorage: StorageClient | null = null;
 
 export function getTestStorage(): StorageClient {
   if (!_testStorage) {
-    _testStorage = createStorageClient();
+    _testStorage = createStorageClient({
+      endpoint: process.env.STORAGE_ENDPOINT || "http://localhost:9000",
+      region: process.env.STORAGE_REGION || "us-east-1",
+      accessKeyId: process.env.STORAGE_ACCESS_KEY_ID || "minioadmin",
+      secretAccessKey: process.env.STORAGE_SECRET_ACCESS_KEY || "minioadmin",
+    });
   }
   return _testStorage;
 }

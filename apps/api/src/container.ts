@@ -17,6 +17,7 @@ import {
   MockMailProvider,
   Database,
   QueueConnection,
+  env,
 } from "@health-data/shared";
 
 // === Logger ===
@@ -26,11 +27,7 @@ export const logger: Logger = createLogger({ name: "api" });
 const dbLogger = createLogger({ name: "db" });
 
 export const db: Database = createDbPool({
-  host: process.env.POSTGRES_HOST ?? "localhost",
-  port: parseInt(process.env.POSTGRES_PORT ?? "5432"),
-  database: process.env.POSTGRES_DB,
-  user: process.env.POSTGRES_USER,
-  password: process.env.POSTGRES_PASSWORD,
+  connectionString: env.DATABASE_URL,
   max: 10,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,
@@ -42,15 +39,28 @@ db.on("error", (err) => {
 });
 
 // === Storage ===
-export const storage: StorageClient = createStorageClient();
+export const storage: StorageClient = createStorageClient({
+  endpoint: env.STORAGE_ENDPOINT,
+  region: env.STORAGE_REGION,
+  accessKeyId: env.STORAGE_ACCESS_KEY,
+  secretAccessKey: env.STORAGE_SECRET_KEY,
+  forcePathStyle: true,
+});
 
 // === Queue (API is publisher) ===
 let _queue: QueueConnection | null = null;
 
 export async function getQueue(): Promise<QueueConnection> {
   if (!_queue) {
-    _queue = await createQueueConnection();
-    logger.info("Queue connection established");
+    logger.info("Connecting to RabbitMQ...");
+    try {
+      _queue = await createQueueConnection(env.RABBITMQ_URL);
+      logger.info("RabbitMQ connection established");
+    } catch (error) {
+       logger.error("Failed to connect to RabbitMQ", { error });
+       // API cannot function without queue for async tasks, fail fast or let it throw
+       throw error;
+    }
   }
   return _queue;
 }
@@ -59,8 +69,8 @@ export async function getQueue(): Promise<QueueConnection> {
 import { ResendProvider } from "@health-data/shared";
 
 // === Mail Provider ===
-const mailProviderType = process.env.MAIL_PROVIDER || "nodemailer";
-const resendApiKey = process.env.RESEND_API_KEY;
+const mailProviderType = env.MAIL_PROVIDER || "nodemailer";
+const resendApiKey = env.RESEND_API_KEY;
 
 let mailer: MailProvider;
 

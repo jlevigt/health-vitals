@@ -1,5 +1,4 @@
-import pg from "pg";
-const { Pool } = pg;
+import { Pool } from "pg";
 import type { PoolClient } from "pg";
 import type { Database, DbConfig } from "./interface.ts";
 
@@ -9,11 +8,7 @@ import type { Database, DbConfig } from "./interface.ts";
  */
 export function createDbPool(config: DbConfig): Database {
   const pool = new Pool({
-    host: config.host,
-    port: config.port,
-    database: config.database,
-    user: config.user,
-    password: config.password,
+    connectionString: config.connectionString,
     max: config.max ?? 10,
     idleTimeoutMillis: config.idleTimeoutMillis ?? 30000,
     connectionTimeoutMillis: config.connectionTimeoutMillis ?? 2000,

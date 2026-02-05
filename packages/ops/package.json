@@ -11,6 +11,8 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.975.0",
     "@health-vitals/shared": "workspace:*",
+    "@types/pg": "^8.16.0",
+    "pg": "^8.18.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {

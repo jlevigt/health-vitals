@@ -4,11 +4,7 @@ import type { PoolClient } from "pg";
  * Database configuration interface
  */
 export interface DbConfig {
-  host?: string;
-  port?: number;
-  database?: string;
-  user?: string;
-  password?: string;
+  connectionString: string;
   max?: number;
   idleTimeoutMillis?: number;
   connectionTimeoutMillis?: number;

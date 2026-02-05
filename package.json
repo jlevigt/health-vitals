@@ -15,6 +15,6 @@
     "infra:down": "docker compose down",
     "migration:run": "bun --env-file=.env packages/ops/scripts/migrate.ts",
     "migration:create": "bun --env-file=.env packages/ops/scripts/migration-create.ts",
-    "s3:init": "bun --env-file=.env packages/ops/scripts/init.ts"
+    "init:s3": "bun --env-file=.env packages/ops/scripts/init.ts"
   }
 }
