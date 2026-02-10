@@ -2,14 +2,15 @@ import { z } from "zod";
 
 const envSchema = z.object({
   // Server Config
-  PORT: z.coerce.number(),
-  NODE_ENV: z.enum(["development", "production", "test"]),
-
+  PORT: z.coerce.number().optional(),
+  NODE_ENV: z.string(),
+  WEB_URL: z.string().optional(),
+  
   // Database
-  DATABASE_URL: z.url(),
+  DATABASE_URL: z.string(),
 
   // Security
-  SECRET_JWT_KEY: z.string().min(32),
+  SECRET_JWT_KEY: z.string(),
 
   // AI Provider
   GEMINI_API_KEY: z.string().optional(),
@@ -23,14 +24,14 @@ const envSchema = z.object({
   RESEND_API_KEY: z.string().optional(),
 
   // Storage
-  STORAGE_ENDPOINT: z.url(),
+  STORAGE_ENDPOINT: z.string(),
   STORAGE_REGION: z.string(),
   STORAGE_ACCESS_KEY: z.string(),
   STORAGE_SECRET_KEY: z.string(),
   STORAGE_BUCKET: z.string().optional(),
 
   // RabbitMQ
-  RABBITMQ_URL: z.url(),
+  RABBITMQ_URL: z.string(),
 });
 
 // Validate and export environment variables

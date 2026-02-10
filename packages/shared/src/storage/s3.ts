@@ -20,6 +20,8 @@ export function createStorageClient(config: StorageConfig): StorageClient {
       secretAccessKey: config.secretAccessKey,
     },
     forcePathStyle: config.forcePathStyle ?? true, // Required for Minio
+    requestChecksumCalculation: "WHEN_REQUIRED",
+    responseChecksumValidation: "WHEN_REQUIRED",
   });
 
   return {
@@ -91,6 +93,7 @@ export function createStorageClient(config: StorageConfig): StorageClient {
         Bucket: bucket,
         Key: key,
         ContentType: contentType,
+        ChecksumAlgorithm: undefined
       });
       return getSignedUrl(s3, command, { expiresIn });
     },

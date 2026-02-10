@@ -1,0 +1,60 @@
+services:
+  api:
+    image: jlevigt/my-apps:api-latest
+    networks:
+      - prod01
+    deploy:
+      replicas: 1
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+      rollback_config:
+        parallelism: 1
+        order: stop-first
+      restart_policy:
+        condition: on-failure
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.api.rule=Host(`api.binderlex.com`)"
+        - "traefik.http.routers.api.entrypoints=websecure"
+        - "traefik.http.routers.api.tls.certresolver=letsencryptresolver"
+        - "traefik.http.services.api.loadbalancer.server.port=3000"
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      PORT: ${PORT}
+      WEB_URL: ${WEB_URL}
+      SECRET_JWT_KEY: ${SECRET_JWT_KEY}
+      DATABASE_URL: ${DATABASE_URL}
+      RABBITMQ_URL: ${RABBITMQ_URL}
+      STORAGE_ENDPOINT: ${STORAGE_ENDPOINT}
+      STORAGE_REGION: ${STORAGE_REGION}
+      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY}
+      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY}
+      MAIL_PROVIDER: ${MAIL_PROVIDER}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+
+  worker:
+    image: jlevigt/my-apps:worker-latest
+    networks:
+      - prod01
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      # No Traefik labels needed as this is an internal background worker
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      DATABASE_URL: ${DATABASE_URL}
+      RABBITMQ_URL: ${RABBITMQ_URL}
+      STORAGE_ENDPOINT: ${STORAGE_ENDPOINT}
+      STORAGE_REGION: ${STORAGE_REGION}
+      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY}
+      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      SECRET_JWT_KEY: "not-in-use-secret-jwt-key"
+      
+
+networks:
+  prod01:
+    external: true

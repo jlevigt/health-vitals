@@ -4,8 +4,10 @@ import { logger, db } from "@/container.ts";
 const app = createApp();
 const PORT = process.env.PORT || 3000;
 
+const endpoint = process.env.NODE_ENV === "production" ? "https://binderlex.com" : "http://localhost:" + PORT;
+
 app.listen(PORT, () => {
-  logger.info(`Server running on port http://localhost:${PORT}`);
+  logger.info(`Server running at ${endpoint}`);
 });
 
 // Graceful Shutdown
