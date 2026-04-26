@@ -7,17 +7,18 @@
     "packages/*"
   ],
   "scripts": {
-    "dev:api": "bun --env-file=.env apps/api/src/server.ts",
-    "dev:worker": "bun --env-file=.env apps/worker/src/worker.ts",
-    "dev:web": "bun run --cwd ./apps/web dev",
-    "dev:mock": "bun run --cwd ./apps/web dev:mock",
+    "dev:api": "bun --env-file=.env --watch apps/api/src/server.ts",
+    "dev:worker": "bun --env-file=.env --watch apps/worker/src/worker.ts",
+    "dev:web": "bun --filter @health-vitals/web run dev",
+    "dev:mock": "bun --filter @health-vitals/web run dev:mock",
+    "dev": "bun run infra:up && bun run migration:run && (bun run dev:api & bun run dev:worker & bun run dev:web)",
     "infra:up": "docker compose up -d",
     "infra:down": "docker compose down",
     "migration:run": "bun --env-file=.env apps/migrator/src/index.ts",
     "migration:create": "bun --env-file=.env packages/ops/scripts/migration-create.ts",
     "init:s3": "bun --env-file=.env packages/ops/scripts/init.ts",
     "lint": "echo 'No linting configured yet'",
-    "typecheck": "bun x tsc -b",
+    "typecheck": "bun --filter @health-vitals/contracts build && bun --filter @health-vitals/core build && bun --filter @health-vitals/infra build && bun --filter @health-vitals/migrator build",
     "test": "bun test --env-file=.env apps/*/src packages/*/src"
   },
   "devDependencies": {

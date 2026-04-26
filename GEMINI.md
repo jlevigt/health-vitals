@@ -4,14 +4,13 @@ This file serves as the primary instructional context for Gemini CLI interaction
 
 ## 🚀 Project Overview
 
-**Health Vitals** is a comprehensive monorepo designed for managing health metrics and extracting structured clinical data from PDF lab reports using AI.
+**Health Vitals** is a comprehensive monorepo for managing health metrics and extracting structured clinical data from PDF lab reports using AI.
 
-- **Architecture:** Monorepo with Bun Workspaces.
-- **Backend:** Express 5 (ESM), PostgreSQL (via `pg`), RabbitMQ (message broker).
-- **Frontend:** React 19, Vite 7, Tailwind CSS 4, Recharts.
-- **Worker:** Background processing for AI (Gemini) extraction and PDF parsing.
-- **Infrastructure:** Managed via Docker Compose (Postgres, RabbitMQ, MinIO).
-- **Core Runtime:** Bun is the primary runtime for scripts, testing, and execution.
+- **Architecture:** Monorepo with Bun Workspaces + Layered Packages.
+- **Backend:** Express 5 (ESM), PostgreSQL, RabbitMQ.
+- **Frontend:** React 19, Vite 7, Tailwind CSS 4.
+- **Infrastructure:** Docker Compose (Local), Docker Swarm (Prod).
+- **Core Runtime:** Bun is the primary runtime.
 
 ## 📂 Repository Structure
 
@@ -19,66 +18,55 @@ This file serves as the primary instructional context for Gemini CLI interaction
 /
 ├── apps/
 │   ├── api/            # Express REST API (Port 3000)
-│   ├── web/            # React/Vite Frontend (Port 5173)
-│   └── worker/         # Background job processor (AI extraction)
+│   ├── web/            # React/Vite Frontend (Port 80/5173)
+│   ├── worker/         # Background job processor (RabbitMQ consumer)
+│   └── migrator/       # Database migration runner (Run-once)
 ├── packages/
-│   ├── shared/         # Core logic: DB, Config, Logger, Types, LLM
-│   └── ops/            # Operational scripts: Migrations, S3 Bootstrap
-├── infra/              # Docker Compose and environment configuration
+│   ├── contracts/      # Pure types & Zod schemas (@health-vitals/contracts)
+│   ├── core/           # Interfaces & domain logic (@health-vitals/core)
+│   ├── infra/          # Infrastructure implementations (@health-vitals/infra)
+│   └── ops/            # Operational & bootstrap scripts
+├── database/           # SQL Migrations
+├── infra/              # Docker Swarm & deployment configs
 └── GEMINI.md           # This file (Instructional context)
 ```
 
 ## 🛠️ Operational Workflows
 
-All key commands are orchestrated from the root `package.json` using Bun.
-
 | Task | Command |
 |---|---|
-| **Setup** | `bun install` |
-| **Infrastructure** | `bun run infra:up` (Start Docker stack) |
+| **Full Dev Setup** | `bun run dev` (Starts infra, runs migrations, boots all apps) |
+| **Infrastructure** | `bun run infra:up` (Start Docker infrastructure) |
 | **Migrations** | `bun run migration:run` (Apply SQL migrations) |
-| **API Dev** | `bun run dev:api` (Start backend) |
-| **Web Dev** | `bun run dev:web` (Start frontend) |
-| **Worker Dev** | `bun run dev:worker` (Start worker) |
-| **Mock Web** | `bun run dev:mock` (Start frontend with MSW) |
+| **Testing** | `bun run test` (Run suite across all packages) |
+| **Typecheck** | `bun run typecheck` (Verify TS integrity) |
 
 ## 🏗️ Architectural Patterns & Standards
 
-Follow these established patterns when modifying or extending the codebase:
+### 1. Strict Layering
+Follow the dependency rule: `contracts` ← `core` ← `infra` ← `apps`.
+- **Contracts**: Zero-dependency types and schemas.
+- **Core**: Domain interfaces and logic. No implementation details (no SDKs).
+- **Infra**: Concrete implementations (PG, RabbitMQ, S3).
+- **Apps**: Composition root. Performs Manual Dependency Injection.
 
-### 1. Feature-Oriented API
-The API is organized by business features in `apps/api/src/features/`.
-- Each feature has its own `routes.ts`, `controller.ts`, `service.ts`, and `types.ts`.
-- Avoid cross-feature contamination; keep logic local to the feature folder.
+### 2. Manual Dependency Injection
+- Encapsulate business logic in services that accept interfaces (from `core`) in their constructor.
+- Instantiate and wire these in the app's `container.ts`.
 
-### 2. Service Layer & Manual DI
-- Encapsulate business logic in class-based services.
-- Dependencies (DB, Logger, etc.) must be passed via the constructor (**Manual Dependency Injection**).
-- Services typically expose a single `execute` method.
-
-### 3. Shared Infrastructure
-- All external dependencies (DB, S3, Queue, Mail, LLM) are abstracted in `packages/shared`.
-- Use the interfaces defined in `packages/shared/src/` instead of direct implementations when writing business logic.
+### 3. Idempotency & Resiliency
+- Worker jobs MUST be idempotent. Check for existing results before processing.
+- Services should handle transient failures gracefully.
 
 ### 4. Data Validation (Zod)
-- Validate all entry points (API requests, Worker job payloads) using Zod schemas.
-- Schemas and their inferred types should be colocated in the feature's `types.ts` or in `packages/shared/src/types`.
+- Validate ALL entry points (API requests, Worker payloads) using schemas from `@health-vitals/contracts`.
 
-### 5. Error Handling
-- Use the custom `AppError` hierarchy (e.g., `NotFoundError`, `UnauthorizedError`).
-- Never swallow errors; allow the global `errorMiddleware` in the API or the worker's catch block to handle logging and response formatting.
-
-### 6. Environment Management
-- All environment variables are validated in `packages/shared/src/config/env.ts`.
-- **Never** use `process.env` directly in application code; import the `env` object from `@repo/shared/config/env`.
-
-### 7. Testing Strategy
-- Tests are colocated in `__tests__` directories next to the implementation.
-- Use `bun test` for running the suite.
-- Frontend uses Mock Service Worker (MSW) for API interception.
+### 5. Environment Safety
+- NEVER use `process.env` directly in business logic.
+- Import `env` from `@health-vitals/core/config`.
 
 ## 📝 General Rules
-- **ESM Only:** All files use ESM syntax. Use `.ts` or `.tsx` extensions.
-- **Absolute Imports:** Use the `@/` alias for the `src` directory within each package.
-- **Bun First:** Use `bun` for all package management and script execution.
-- **Clean Architecture:** Keep business logic (Services) separate from transport logic (Controllers/Routes).
+- **ESM Only:** All files use ESM syntax.
+- **Absolute Imports:** Use `@/` for local `src` directory.
+- **Bun First:** Use `bun` for package management and script execution.
+- **Clean Architecture:** Keep business logic independent of transport and infrastructure.

@@ -1,10 +1,11 @@
 import { createApp } from "@/app.ts";
 import { logger, db } from "@/container.ts";
+import { env } from "@health-vitals/core/config";
 
 const app = createApp();
-const PORT = process.env.PORT || 3000;
+const PORT = env.PORT || 3000;
 
-const endpoint = process.env.NODE_ENV === "production" ? "https://binderlex.com" : "http://localhost:" + PORT;
+const endpoint = env.NODE_ENV === "production" ? "https://binderlex.com" : "http://localhost:" + PORT;
 
 app.listen(PORT, () => {
   logger.info(`Server running at ${endpoint}`);
