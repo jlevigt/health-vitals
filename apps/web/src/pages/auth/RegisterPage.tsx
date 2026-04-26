@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { api } from "../../api/client";
+import { api } from "@/api/client";
 
 export const RegisterPage: React.FC = () => {
   const [email, setEmail] = useState("");

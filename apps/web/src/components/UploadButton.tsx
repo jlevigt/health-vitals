@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { api } from "../api/client";
+import { api } from "@/api/client";
 import { Upload, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 
 interface UploadButtonProps {

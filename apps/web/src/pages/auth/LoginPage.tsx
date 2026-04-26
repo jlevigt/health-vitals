@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { api } from "../../api/client";
-import { useAuth } from "../../context/AuthContext";
+import { api } from "@/api/client";
+import { useAuth } from "@/context/AuthContext";
 
 export const LoginPage: React.FC = () => {
   const [email, setEmail] = useState("");

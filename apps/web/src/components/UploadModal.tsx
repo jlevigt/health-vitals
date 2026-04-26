@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback } from "react";
 import { Upload, X, FileText, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
-import { filesApi } from "../api/files";
+import { filesApi } from "@/api/files";
 import { clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 

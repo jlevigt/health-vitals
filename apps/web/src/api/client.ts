@@ -16,11 +16,11 @@ interface RequestOptions extends RequestInit {
 
 let isRefreshing = false;
 let failedQueue: Array<{
-  resolve: (value: any) => void;
-  reject: (reason?: any) => void;
+  resolve: (value: string | null) => void;
+  reject: (reason: Error) => void;
 }> = [];
 
-const processQueue = (error: any, token: string | null = null) => {
+const processQueue = (error: Error | null, token: string | null = null) => {
   failedQueue.forEach((prom) => {
     if (error) {
       prom.reject(error);
@@ -97,8 +97,8 @@ async function request<T = any>(path: string, options: RequestOptions = {}): Pro
       // Retry original request
       headers.set("Authorization", `Bearer ${accessToken}`);
       response = await performFetch();
-    } catch (refreshError) {
-      processQueue(refreshError, null);
+    } catch (refreshError: any) {
+      processQueue(refreshError instanceof Error ? refreshError : new Error(String(refreshError)), null);
       localStorage.removeItem("accessToken");
       window.location.href = "/login";
       return Promise.reject(refreshError);
@@ -117,7 +117,8 @@ async function handleResponse<T = any>(response: Response): Promise<{ data: T; s
 
   if (!response.ok) {
     // Mimic Axios error structure for compatibility
-    const error = new Error(data?.message || response.statusText) as any;
+    const message = (typeof data === 'object' && data !== null && 'message' in data) ? (data as any).message : response.statusText;
+    const error = new Error(message) as any;
     error.response = {
       status: response.status,
       data,

@@ -20,8 +20,8 @@ export const filesApi = {
   },
 
   uploadFileToUrl: async (url: string, file: File) => {
-    // We use fetch here because axios might try to be smart with headers or transforms
-    // and S3 signed URLs are very sensitive to that.
+    // We use fetch here because S3 signed URLs are very sensitive to 
+    // automated headers or transforms.
     const response = await fetch(url, {
       method: "PUT",
       body: file,

@@ -1,4 +1,4 @@
-# @health-data/web
+# @health-vitals/web
 
 The client application for the Health Data App. A modern, AI-enhanced dashboard for health metrics visualization.
 

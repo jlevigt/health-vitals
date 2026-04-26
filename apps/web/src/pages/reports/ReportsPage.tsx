@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { api } from "../../api/client";
-import type { Report, Observation } from "../../api/types";
+import { api } from "@/api/client";
+import type { Report, Observation } from "@/api/types";
 import { 
   FileText, 
   ChevronDown, 

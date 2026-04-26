@@ -7,8 +7,8 @@ import {
   AlertCircle,
   File
 } from "lucide-react";
-import { api } from "../../api/client";
-import { UploadModal } from "../../components/UploadModal";
+import { api } from "@/api/client";
+import { UploadModal } from "@/components/UploadModal";
 
 
 
