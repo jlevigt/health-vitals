@@ -5,8 +5,7 @@
     "": {
       "name": "health-vitals",
       "devDependencies": {
-        "@types/amqplib": "0.10.8",
-        "@types/pg": "8.20.0",
+        "@types/bun": "latest",
       },
     },
     "apps/api": {

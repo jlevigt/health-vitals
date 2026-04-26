@@ -12,8 +12,8 @@
     "dev:web": "bun --filter @health-vitals/web run dev",
     "dev:mock": "bun --filter @health-vitals/web run dev:mock",
     "dev": "bun run infra:up && bun run migration:run && (bun run dev:api & bun run dev:worker & bun run dev:web)",
-    "infra:up": "docker compose up -d",
-    "infra:down": "docker compose down",
+    "infra:up": "docker compose -f infra/local/compose.yml up -d",
+    "infra:down": "docker compose -f infra/local/compose.yml down",
     "migration:run": "bun --env-file=.env apps/migrator/src/index.ts",
     "migration:create": "./scripts/migration-create.sh",
     "lint": "echo 'No linting configured yet'",
@@ -21,7 +21,6 @@
     "test": "bun test --env-file=.env apps/*/src packages/*/src"
   },
   "devDependencies": {
-    "@types/amqplib": "0.10.8",
-    "@types/pg": "8.20.0"
+    "@types/bun": "latest"
   }
 }

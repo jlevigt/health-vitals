@@ -9,20 +9,26 @@ COPY package.json bun.lock tsconfig.json ./
 COPY apps/web ./apps/web
 
 # Install dependencies
-RUN bun install 
+RUN bun install
 
 # Build the app
 RUN bun run --cwd apps/web build
 
 # --- Stage 2: Runner ---
-FROM nginx:stable-alpine
+FROM oven/bun:1.3.12-alpine AS runner
+WORKDIR /app
 
 # Copy built files
-COPY --from=build /app/apps/web/dist /usr/share/nginx/html
+COPY --from=build /app/apps/web/dist ./dist
+COPY --from=build /app/apps/web/package.json ./
 
-# Copy nginx config
-COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf
+# Install serve to serve static files
+RUN bun install -g serve
+
+# Security: Run as non-root user
+USER bun
 
 EXPOSE 80
 
-CMD ["nginx", "-g", "daemon off;"]
+# Serve the application
+CMD ["bunx", "serve", "-s", "dist", "-l", "80"]
