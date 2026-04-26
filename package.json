@@ -15,7 +15,10 @@
     "infra:down": "docker compose down",
     "migration:run": "bun --env-file=.env apps/migrator/src/index.ts",
     "migration:create": "bun --env-file=.env packages/ops/scripts/migration-create.ts",
-    "init:s3": "bun --env-file=.env packages/ops/scripts/init.ts"
+    "init:s3": "bun --env-file=.env packages/ops/scripts/init.ts",
+    "lint": "echo 'No linting configured yet'",
+    "typecheck": "bun x tsc -b",
+    "test": "bun test --env-file=.env apps/*/src packages/*/src"
   },
   "devDependencies": {
     "@types/amqplib": "0.10.8",
