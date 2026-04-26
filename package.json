@@ -17,7 +17,8 @@
     "migration:run": "bun --env-file=.env apps/migrator/src/index.ts",
     "migration:create": "./scripts/migration-create.sh",
     "lint": "echo 'No linting configured yet'",
-    "typecheck": "bun --filter @health-vitals/contracts build && bun --filter @health-vitals/core build && bun --filter @health-vitals/infra build && bun --filter @health-vitals/migrator build",
+    "typecheck": "bun run --filter '*' build",
+    "build": "bun run --filter '*' build",
     "test": "bun test --env-file=.env apps/*/src packages/*/src"
   },
   "devDependencies": {
