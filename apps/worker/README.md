@@ -11,6 +11,7 @@ Background processing worker for the Health Data App. Consumes jobs from RabbitM
 ## 🛠️ Usage
 
 Run from the project root:
+
 ```bash
 bun run dev:worker
 ```

@@ -35,16 +35,21 @@ Comprehensive health metrics management and AI-powered lab report extraction.
 ## ⚙️ Quick Start
 
 ### 1. Prerequisites
+
 Ensure you have [Bun](https://bun.sh/) and [Docker](https://www.docker.com/) installed.
 
 ### 2. Installation
+
 Install dependencies for all workspaces:
+
 ```bash
 bun install
 ```
 
 ### 3. Environment Setup
+
 Create a `.env` file in the root:
+
 ```env
 PORT=3000
 DATABASE_URL=postgres://user:pass@localhost:5432/health_db
@@ -54,16 +59,17 @@ GEMINI_API_KEY=your_gemini_api_key (optional)
 ```
 
 ### 4. Running the App
+
 Use the root delegation scripts (managed via Bun):
 
-| Command | Description |
-|---|---|
-| `bun run infra:up` | Start Postgres, RabbitMQ, and MinIO |
-| `bun run migration:run` | Run database migrations |
-| `bun run dev:api` | Start Backend API (Port 3000) |
-| `bun run dev:web` | Start Frontend (Port 5173) |
-| `bun run dev:mock` | Start Frontend with MSW Mocks |
-| `bun run dev:worker` | Start Background Worker |
+| Command                 | Description                         |
+| ----------------------- | ----------------------------------- |
+| `bun run infra:up`      | Start Postgres, RabbitMQ, and MinIO |
+| `bun run migration:run` | Run database migrations             |
+| `bun run dev:api`       | Start Backend API (Port 3000)       |
+| `bun run dev:web`       | Start Frontend (Port 5173)          |
+| `bun run dev:mock`      | Start Frontend with MSW Mocks       |
+| `bun run dev:worker`    | Start Background Worker             |
 
 ## 📖 Component Documentation
 

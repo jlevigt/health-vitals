@@ -2,6 +2,10 @@
 
 This file serves as the primary instructional context for Gemini CLI interactions in the `health-vitals` workspace. It defines the project's architecture, development standards, and operational workflows.
 
+@AGENTS.md
+@.agents/quality.md
+@.agents/patterns.md
+
 ## 🚀 Project Overview
 
 **Health Vitals** is a comprehensive monorepo for managing health metrics and extracting structured clinical data from PDF lab reports using AI.
@@ -33,40 +37,10 @@ This file serves as the primary instructional context for Gemini CLI interaction
 
 ## 🛠️ Operational Workflows
 
-| Task | Command |
-|---|---|
+| Task               | Command                                                       |
+| ------------------ | ------------------------------------------------------------- |
 | **Full Dev Setup** | `bun run dev` (Starts infra, runs migrations, boots all apps) |
-| **Infrastructure** | `bun run infra:up` (Start Docker infrastructure) |
-| **Migrations** | `bun run migration:run` (Apply SQL migrations) |
-| **Testing** | `bun run test` (Run suite across all packages) |
-| **Typecheck** | `bun run typecheck` (Verify TS integrity) |
-
-## 🏗️ Architectural Patterns & Standards
-
-### 1. Strict Layering
-Follow the dependency rule: `contracts` ← `core` ← `infra` ← `apps`.
-- **Contracts**: Zero-dependency types and schemas.
-- **Core**: Domain interfaces and logic. No implementation details (no SDKs).
-- **Infra**: Concrete implementations (PG, RabbitMQ, S3).
-- **Apps**: Composition root. Performs Manual Dependency Injection.
-
-### 2. Manual Dependency Injection
-- Encapsulate business logic in services that accept interfaces (from `core`) in their constructor.
-- Instantiate and wire these in the app's `container.ts`.
-
-### 3. Idempotency & Resiliency
-- Worker jobs MUST be idempotent. Check for existing results before processing.
-- Services should handle transient failures gracefully.
-
-### 4. Data Validation (Zod)
-- Validate ALL entry points (API requests, Worker payloads) using schemas from `@health-vitals/contracts`.
-
-### 5. Environment Safety
-- NEVER use `process.env` directly in business logic.
-- Import `env` from `@health-vitals/core/config`.
-
-## 📝 General Rules
-- **ESM Only:** All files use ESM syntax.
-- **Absolute Imports:** Use `@/` for local `src` directory.
-- **Bun First:** Use `bun` for package management and script execution.
-- **Clean Architecture:** Keep business logic independent of transport and infrastructure.
+| **Infrastructure** | `bun run infra:up` (Start Docker infrastructure)              |
+| **Migrations**     | `bun run migration:run` (Apply SQL migrations)                |
+| **Testing**        | `bun run test` (Run suite across all packages)                |
+| **Typecheck**      | `bun run typecheck` (Verify TS integrity)                     |

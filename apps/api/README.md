@@ -20,14 +20,17 @@ The backend engine for the Health Data App. This service handles data ingestion,
 ## 💻 Development
 
 Run from the project root:
+
 ```bash
 bun run dev:api
 ```
 
 Or locally within this folder:
+
 ```bash
 bun run dev
 ```
 
 ## 📋 Environment
+
 This service consumes the root `.env` file via Bun's automatic environment loading or explicit `--env-file` flag.

@@ -21,6 +21,7 @@ The client application for the Health Data App. A modern, AI-enhanced dashboard 
 ## 💻 Development
 
 Run from the project root:
+
 ```bash
 bun run dev:web    # Connected to local API
 bun run dev:mock   # Using MSW Mock API (Standalone)
