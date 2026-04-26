@@ -1,18 +1,5 @@
 services:
-  migrator:
-    container_name: "migrator"
-    build:
-      context: .
-      dockerfile: ./apps/migrator/Dockerfile
-    env_file:
-      - .env
-    environment:
-      DATABASE_URL: postgres://local_user:local_password@postgres:5432/dev
-      MIGRATIONS_DIR: /app/database/migrations
-    depends_on:
-      postgres:
-        condition: service_healthy
-
+  # --- Infrastructure ---
   postgres:
     container_name: "postgres"
     image: "postgres:18-alpine"
@@ -21,7 +8,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/data/postgres
+      - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
@@ -66,6 +53,65 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
+
+  # --- Operational ---
+  migrator:
+    container_name: "migrator"
+    build:
+      context: .
+      dockerfile: ./apps/migrator/Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # --- Apps ---
+  api:
+    container_name: "api"
+    build:
+      context: .
+      dockerfile: ./apps/api/Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+
+  worker:
+    container_name: "worker"
+    build:
+      context: .
+      dockerfile: ./apps/worker/Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+
+  web:
+    container_name: "web"
+    build:
+      context: .
+      dockerfile: ./apps/web/Dockerfile
+    ports:
+      - "80:80"
+    depends_on:
+      - api
 
 volumes:
   postgres_data:

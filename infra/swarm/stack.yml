@@ -1,0 +1,102 @@
+version: "3.8"
+
+services:
+  # --- Infrastructure ---
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+      restart_policy:
+        condition: on-failure
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  minio:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${STORAGE_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${STORAGE_SECRET_KEY}
+    volumes:
+      - minio_data:/data
+    deploy:
+      restart_policy:
+        condition: on-failure
+
+  # --- Apps ---
+  migrator:
+    image: health-vitals-migrator:latest
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    deploy:
+      restart_policy:
+        condition: none # Run once
+    depends_on:
+      - postgres
+
+  api:
+    image: health-vitals-api:latest
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672/
+      STORAGE_ENDPOINT: http://minio:9000
+      STORAGE_REGION: ${STORAGE_REGION}
+      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY}
+      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY}
+      SECRET_JWT_KEY: ${SECRET_JWT_KEY}
+      NODE_ENV: production
+    deploy:
+      replicas: 2
+      update_config:
+        order: start-first
+      restart_policy:
+        condition: on-failure
+
+  worker:
+    image: health-vitals-worker:latest
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      RABBITMQ_URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@rabbitmq:5672/
+      STORAGE_ENDPOINT: http://minio:9000
+      STORAGE_REGION: ${STORAGE_REGION}
+      STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY}
+      STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY}
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      NODE_ENV: production
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+  web:
+    image: health-vitals-web:latest
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+
+volumes:
+  postgres_data:
+  rabbitmq_data:
+  minio_data:
