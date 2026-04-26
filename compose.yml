@@ -1,4 +1,18 @@
 services:
+  migrator:
+    container_name: "migrator"
+    build:
+      context: .
+      dockerfile: ./apps/migrator/Dockerfile
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgres://local_user:local_password@postgres:5432/dev
+      MIGRATIONS_DIR: /app/database/migrations
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   postgres:
     container_name: "postgres"
     image: "postgres:18-alpine"

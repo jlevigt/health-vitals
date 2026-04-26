@@ -1,13 +1,21 @@
-FROM oven/bun:1.3.6
+FROM oven/bun:1.3.12-alpine
 
 WORKDIR /app
 
-# Copy only API workspace
-COPY apps/api ./apps/api
-COPY packages/shared ./packages/shared
+# Copy root config and lockfile
 COPY package.json bun.lock tsconfig.json ./
 
-# Install ONLY api deps
-RUN bun install --cwd apps/api
+# Copy required packages
+COPY packages/contracts ./packages/contracts
+COPY packages/core ./packages/core
+COPY packages/infra ./packages/infra
+
+# Copy api app
+COPY apps/api ./apps/api
+
+# Install dependencies
+RUN bun install
+
+EXPOSE 3000
 
 CMD ["bun", "run", "--cwd", "apps/api", "src/server.ts"]

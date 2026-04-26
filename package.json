@@ -13,7 +13,7 @@
     "dev:mock": "bun run --cwd ./apps/web dev:mock",
     "infra:up": "docker compose up -d",
     "infra:down": "docker compose down",
-    "migration:run": "bun --env-file=.env packages/ops/scripts/migrate.ts",
+    "migration:run": "bun --env-file=.env apps/migrator/src/index.ts",
     "migration:create": "bun --env-file=.env packages/ops/scripts/migration-create.ts",
     "init:s3": "bun --env-file=.env packages/ops/scripts/init.ts"
   },

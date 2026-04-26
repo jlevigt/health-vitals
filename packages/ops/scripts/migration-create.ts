@@ -53,7 +53,7 @@ COMMIT;
 try {
   fs.writeFileSync(filePath, content);
   console.log("✅ Migration created successfully!");
-  console.log(`📄 File: packages/shared/db/migrations/${filename}`);
+  console.log(`📄 File: database/migrations/${filename}`);
 } catch (error) {
   console.error("❌ Error creating migration file:", error);
   process.exit(1);

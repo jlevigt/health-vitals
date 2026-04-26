@@ -1,13 +1,19 @@
-FROM oven/bun:1.3.6
+FROM oven/bun:1.3.12-alpine
 
 WORKDIR /app
 
-# Copy only worker workspace
-COPY apps/worker ./apps/worker
-COPY packages/shared ./packages/shared
+# Copy root config and lockfile
 COPY package.json bun.lock tsconfig.json ./
 
-# Install ONLY worker deps
-RUN bun install --cwd apps/worker
+# Copy required packages
+COPY packages/contracts ./packages/contracts
+COPY packages/core ./packages/core
+COPY packages/infra ./packages/infra
+
+# Copy worker app
+COPY apps/worker ./apps/worker
+
+# Install dependencies
+RUN bun install
 
 CMD ["bun", "run", "--cwd", "apps/worker", "src/worker.ts"]
