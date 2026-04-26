@@ -1,44 +1,33 @@
-# --- Stage 1: Base (Dependencies) ---
+# --- Stage 1: Base ---
 FROM oven/bun:1.3.12-alpine AS base
 WORKDIR /app
 
-# Copy root config and lockfile
+# --- Stage 2: Production Dependencies (Cached) ---
+FROM base AS prod-deps
 COPY package.json bun.lock tsconfig.json ./
+COPY packages/contracts/package.json ./packages/contracts/
+COPY packages/core/package.json ./packages/core/
+COPY packages/infra/package.json ./packages/infra/
+COPY apps/migrator/package.json ./apps/migrator/
+RUN bun install --production
 
-# Copy required packages
-COPY packages/contracts ./packages/contracts
-COPY packages/core ./packages/core
-COPY packages/infra ./packages/infra
-
-# Copy migrator app
+# --- Stage 3: Development Dependencies & Build ---
+FROM prod-deps AS builder
+RUN bun install 
+COPY packages ./packages
 COPY apps/migrator ./apps/migrator
-
-# Copy migrations folder
 COPY database/migrations ./database/migrations
 
-# Install all dependencies
-RUN bun install 
-
-# --- Stage 2: Pruning ---
-FROM base AS build
-# Prune dev dependencies
-RUN rm -rf node_modules && bun install --production 
-
-# --- Stage 3: Runner ---
-FROM oven/bun:1.3.12-alpine AS runner
+# --- Stage 4: Runner ---
+FROM base AS runner
 WORKDIR /app
+COPY --from=prod-deps /app/node_modules ./node_modules
+COPY --from=prod-deps /app/packages ./packages
+COPY --from=builder /app/apps/migrator ./apps/migrator
+COPY --from=builder /app/database/migrations ./database/migrations
+COPY --from=builder /app/package.json ./
 
-# Copy only what's needed for runtime
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/packages ./packages
-COPY --from=build /app/apps/migrator ./apps/migrator
-COPY --from=build /app/database/migrations ./database/migrations
-COPY --from=build /app/package.json ./
-
-# Set migrations path for the app
 ENV MIGRATIONS_DIR=/app/database/migrations
 
-# Security: Run as non-root user
 USER bun
-
 ENTRYPOINT ["bun", "run", "--cwd", "apps/migrator", "src/index.ts"]

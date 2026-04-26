@@ -1,34 +1,32 @@
-# --- Stage 1: Build ---
-FROM oven/bun:1.3.12-alpine AS build
+# --- Stage 1: Base ---
+FROM oven/bun:1.3.12-alpine AS base
 WORKDIR /app
 
-# Copy root config and lockfile
+# --- Stage 2: Build ---
+FROM base AS builder
 COPY package.json bun.lock tsconfig.json ./
+COPY packages/contracts/package.json ./packages/contracts/
+COPY packages/core/package.json ./packages/core/
+COPY packages/infra/package.json ./packages/infra/
+COPY apps/web/package.json ./apps/web/
 
-# Copy web app
-COPY apps/web ./apps/web
-
-# Install dependencies
+# Install all deps (including dev for build)
 RUN bun install
 
-# Build the app
+# Copy source and build
+COPY packages ./packages
+COPY apps/web ./apps/web
 RUN bun run --cwd apps/web build
 
-# --- Stage 2: Runner ---
-FROM oven/bun:1.3.12-alpine AS runner
+# --- Stage 3: Runner ---
+FROM base AS runner
 WORKDIR /app
-
-# Copy built files
-COPY --from=build /app/apps/web/dist ./dist
-COPY --from=build /app/apps/web/package.json ./
-
-# Install serve to serve static files
+# Install only the serving tool in runner
 RUN bun install -g serve
+# Copy only built assets
+COPY --from=builder /app/apps/web/dist ./dist
+COPY --from=builder /app/apps/web/package.json ./
 
-# Security: Run as non-root user
 USER bun
-
 EXPOSE 80
-
-# Serve the application
 CMD ["bunx", "serve", "-s", "dist", "-l", "80"]
