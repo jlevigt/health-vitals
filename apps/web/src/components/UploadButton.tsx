@@ -28,11 +28,7 @@ export const UploadButton: React.FC<UploadButtonProps> = ({ onUploadSuccess }) =
     setErrorMessage("");
 
     try {
-      await api.post("/reports/upload", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      await api.post("/reports/upload", formData);
       setStatus("success");
       onUploadSuccess();
       setTimeout(() => setStatus("idle"), 3000);
