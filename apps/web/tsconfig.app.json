@@ -12,10 +12,8 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"],
-      "@health-data/shared/*": ["../../packages/shared/src/*"],
-      "@health-data/shared": ["../../packages/shared/src/index.ts"]
-    }
+      "@/*": ["./src/*"]
+    },
   },
   "include": ["src"]
 }

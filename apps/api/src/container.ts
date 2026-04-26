@@ -18,7 +18,7 @@ import {
   Database,
   QueueConnection,
   env,
-} from "@health-data/shared";
+} from "@health-vitals/infra";
 
 // === Logger ===
 export const logger: Logger = createLogger({ name: "api" });
@@ -66,7 +66,7 @@ export async function getQueue(): Promise<QueueConnection> {
 }
 
 // === Mail Provider ===
-import { ResendProvider } from "@health-data/shared";
+import { ResendProvider } from "@health-vitals/infra";
 
 // === Mail Provider ===
 const mailProviderType = env.MAIL_PROVIDER || "nodemailer";

@@ -18,7 +18,7 @@ import {
   GeminiProvider,
   MockLLMProvider,
   env,
-} from "@health-data/shared";
+} from "@health-vitals/infra";
 
 // === Logger ===
 export const logger: Logger = createLogger({ name: "worker" });

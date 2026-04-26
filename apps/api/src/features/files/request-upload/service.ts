@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
-import type { Database, Logger, StorageClient } from "@health-data/shared";
-import { Buckets } from "@health-data/shared";
+import type { Database, Logger, StorageClient } from "@health-vitals/infra";
+import { Buckets } from "@health-vitals/infra";
 import {
   FileUploadItem,
   FileUploadUrlResponse,

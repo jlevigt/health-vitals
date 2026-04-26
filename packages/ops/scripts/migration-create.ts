@@ -27,8 +27,7 @@ const safeName = migrationName
 const filename = `${timestamp}_${safeName}.sql`;
 
 // 3. Define migrations directory path
-const migrationsDir = path.join(__dirname, "../../shared/db/migrations");
-
+const migrationsDir = path.join(__dirname, "../../../database/migrations");
 // Ensure directory exists
 if (!fs.existsSync(migrationsDir)) {
   fs.mkdirSync(migrationsDir, { recursive: true });

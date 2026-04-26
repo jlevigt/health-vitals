@@ -5,7 +5,7 @@
  * using LLM to extract structured health data.
  */
 
-import { Queues, FileProcessJobPayload } from "@health-data/shared";
+import { Queues, FileProcessJobPayload } from "@health-vitals/infra";
 import { db, storage, logger, llmProvider, getQueue, shutdown } from "./container.ts";
 import { processFileJob } from "./jobs/process-file/handler.ts";
 

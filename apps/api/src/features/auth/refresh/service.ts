@@ -1,8 +1,8 @@
 import argon2 from "argon2";
 import jwt from "jsonwebtoken";
 import crypto from "node:crypto";
-import type { Database, Logger } from "@health-data/shared";
-import { AppError } from "@health-data/shared";
+import type { Database, Logger } from "@health-vitals/infra";
+import { AppError } from "@health-vitals/infra";
 import { RefreshDTO } from "./types.ts";
 
 export class RefreshTokenService {

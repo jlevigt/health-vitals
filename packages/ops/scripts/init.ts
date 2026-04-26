@@ -4,7 +4,7 @@ import {
   HeadBucketCommand,
   PutBucketCorsCommand,
 } from "@aws-sdk/client-s3";
-import { Buckets, env } from "@health-data/shared";
+import { Buckets, env } from "@health-vitals/infra";
 
 async function initStorage() {
   const endpoint = env.STORAGE_ENDPOINT;

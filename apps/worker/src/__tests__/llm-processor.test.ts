@@ -6,7 +6,7 @@
 
 import { describe, it, expect, beforeAll, afterAll, mock } from "bun:test";
 import { processWithLlm } from "../jobs/process-file/llm-processor.ts";
-import { FileStatus, type LLMResult } from "@health-data/shared";
+import { FileStatus, type LLMResult } from "@health-vitals/infra";
 import {
   getTestDb,
   closeTestDb,

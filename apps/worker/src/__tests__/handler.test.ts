@@ -6,7 +6,7 @@
 
 import { describe, it, expect, beforeAll, afterAll, mock } from "bun:test";
 import { processFileJob } from "../jobs/process-file/handler.ts";
-import { FileStatus } from "@health-data/shared";
+import { FileStatus } from "@health-vitals/infra";
 import {
   getTestDb,
   closeTestDb,

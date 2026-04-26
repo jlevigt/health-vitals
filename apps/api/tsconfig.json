@@ -1,11 +1,9 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "baseUrl": ".",
+    "moduleResolution": "bundler",
     "paths": {
-      "@/*": ["./src/*"],
-      "@health-data/shared/*": ["../../packages/shared/src/*"],
-      "@health-data/shared": ["../../packages/shared/src/index.ts"]
+      "@/*": ["./src/*"]
     },
     "types": ["bun"]
   },

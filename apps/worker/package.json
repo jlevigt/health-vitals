@@ -7,7 +7,9 @@
     "start": "bun src/worker.ts"
   },
   "dependencies": {
-    "@health-vitals/shared": "workspace:*",
+    "@health-vitals/contracts": "workspace:*",
+    "@health-vitals/core": "workspace:*",
+    "@health-vitals/infra": "workspace:*",
     "@google/genai": "^1.30.0",
     "pdf-parse": "^2.4.5"
   },

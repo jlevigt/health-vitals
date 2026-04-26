@@ -17,10 +17,6 @@
     "noEmit": true,
     "allowJs": true,
     "checkJs": false,
-    "baseUrl": ".",
-    "paths": {
-      "@health-data/shared/*": ["packages/shared/src/*"],
-      "@health-data/shared": ["packages/shared/src/index.ts"]
-    }
+    "paths": {}
   }
 }

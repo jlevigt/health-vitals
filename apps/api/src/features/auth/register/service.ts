@@ -1,7 +1,7 @@
 import argon2 from "argon2";
 import crypto from "node:crypto";
-import type { Database, Logger, MailProvider } from "@health-data/shared";
-import { AppError } from "@health-data/shared";
+import type { Database, Logger, MailProvider } from "@health-vitals/infra";
+import { AppError } from "@health-vitals/infra";
 import { CreateUserDTO } from "./types.ts";
 
 export class CreateUserService {

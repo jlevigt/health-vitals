@@ -1,5 +1,5 @@
-import type { Database } from "@health-data/shared";
-import { AppError } from "@health-data/shared";
+import type { Database } from "@health-vitals/infra";
+import { AppError } from "@health-vitals/infra";
 import { Observation } from "./types.ts";
 
 export class ListReportObservationsService {

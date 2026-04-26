@@ -1,7 +1,7 @@
 // src/shared/middlewares/auth.middleware.ts
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { AppError } from "@health-data/shared/errors";
+import { AppError } from "@health-vitals/core";
 
 export function authMiddleware(req: Request, _res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;

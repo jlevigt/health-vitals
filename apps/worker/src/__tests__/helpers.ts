@@ -16,7 +16,7 @@ import {
   type StorageClient,
   type Logger,
   type LLMProvider,
-} from "@health-data/shared";
+} from "@health-vitals/infra";
 import type { JobContext } from "../jobs/process-file/handler.ts";
 import { randomUUID } from "crypto";
 

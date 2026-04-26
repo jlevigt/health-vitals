@@ -2,8 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Client } from "pg";
-import { env } from "@health-data/shared";
-import { createLogger } from "@health-data/shared/logger";
+import { env } from "@health-vitals/infra";
+import { createLogger } from "@health-vitals/infra/logger";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -40,7 +40,7 @@ async function migrate() {
     const appliedNames = new Set(appliedMigrations.map((row) => row.name));
 
     // 5. Read migration files
-    const migrationsDir = path.join(__dirname, "../../shared/db/migrations");
+    const migrationsDir = path.join(__dirname, "../../../database/migrations");
     
     if (!fs.existsSync(migrationsDir)) {
       fs.mkdirSync(migrationsDir, { recursive: true });

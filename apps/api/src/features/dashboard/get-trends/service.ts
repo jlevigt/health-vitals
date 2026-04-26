@@ -1,4 +1,4 @@
-import type { Database } from "@health-data/shared";
+import type { Database } from "@health-vitals/infra";
 import { DashboardResponse, TrendSeries } from "./types.ts";
 
 export class GetTrendsService {

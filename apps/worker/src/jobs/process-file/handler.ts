@@ -12,9 +12,9 @@
  * 8. Update file status
  */
 
-import type { Database, StorageClient, Logger, LLMProvider } from "@health-data/shared";
-import { Buckets, FileStatus } from "@health-data/shared";
-import type { FileProcessJobPayload } from "@health-data/shared";
+import type { Database, StorageClient, Logger, LLMProvider } from "@health-vitals/infra";
+import { Buckets, FileStatus } from "@health-vitals/infra";
+import type { FileProcessJobPayload } from "@health-vitals/infra";
 import { extractTextFromPdf } from "./pdf-extractor.ts";
 import { processWithLlm } from "./llm-processor.ts";
 

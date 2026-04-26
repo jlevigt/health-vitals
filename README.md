@@ -1,21 +1,26 @@
-# Health Vitals (Monorepo)
+# Health Vitals
 
-A comprehensive solution for managing and visualizing health data. This project uses AI to extract structured data from PDF lab reports and provides a detailed dashboard for health metrics.
+Comprehensive health metrics management and AI-powered lab report extraction.
 
-## 📁 Repository Structure
+## 📂 Repository Structure
 
 ```text
-.
-├── packages/           # Monorepo packages
+/
+├── apps/
 │   ├── api/            # Node.js/Express Backend (@health-vitals/api)
 │   ├── web/            # React/Vite Frontend (@health-vitals/web)
-│   ├── shared/         # Shared logic, DB migrations, types (@health-vitals/shared)
 │   └── worker/         # Background processing worker (@health-vitals/worker)
+├── packages/
+│   ├── contracts/      # Pure types & Zod schemas (@health-vitals/contracts)
+│   ├── core/           # Interfaces & domain logic (@health-vitals/core)
+│   ├── infra/          # Infrastructure implementations (@health-vitals/infra)
+│   └── ops/            # Operational scripts (@health-vitals/ops)
+├── database/           # SQL Migrations
 ├── infra/              # Infrastructure (Docker context, Scripts)
 │   ├── docker-compose.local.yml
 │   └── ...
 ├── .env.local          # Local configuration (gitignored)
-└── .env.production     # Production configuration
+└── .env                # Project configuration
 ```
 
 ## 🛠️ Tech Stack
@@ -39,7 +44,7 @@ bun install
 ```
 
 ### 3. Environment Setup
-Create a `.env.local` file in the root based on your credentials:
+Create a `.env` file in the root:
 ```env
 PORT=3000
 DATABASE_URL=postgres://user:pass@localhost:5432/health_db
@@ -62,10 +67,9 @@ Use the root delegation scripts (managed via Bun):
 
 ## 📖 Component Documentation
 
-- [Backend API Guide](./packages/api/README.md)
-- [Frontend Guide](./packages/web/README.md)
-- [Shared Package](./packages/shared/README.md) (Database & Helpers)
-- [Worker Package](./packages/worker/README.md) (AI Processing)
+- [Backend API Guide](./apps/api/README.md)
+- [Frontend Guide](./apps/web/README.md)
+- [Worker Package](./apps/worker/README.md) (AI Processing)
 
 ## 🏗️ Development Guidelines
 

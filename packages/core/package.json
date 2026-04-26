@@ -1,0 +1,24 @@
+{
+  "name": "@health-vitals/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./config": "./src/config/env.ts",
+    "./errors": "./src/errors/index.ts"
+  },
+  "dependencies": {
+    "@health-vitals/contracts": "workspace:*",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/amqplib": "^0.10.8",
+    "@types/node": "^25.6.0",
+    "@types/pg": "^8.20.0",
+    "typescript": "^5.9.3"
+  }
+}
