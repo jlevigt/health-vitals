@@ -24,9 +24,9 @@ This file serves as the primary instructional context for Gemini CLI interaction
 ├── packages/
 │   ├── contracts/      # Pure types & Zod schemas (@health-vitals/contracts)
 │   ├── core/           # Interfaces & domain logic (@health-vitals/core)
-│   ├── infra/          # Infrastructure implementations (@health-vitals/infra)
-│   └── ops/            # Operational & bootstrap scripts
+│   └── infra/          # Infrastructure implementations (@health-vitals/infra)
 ├── database/           # SQL Migrations
+├── scripts/            # Local developer scripts (Bash)
 ├── infra/              # Docker Swarm & deployment configs
 └── GEMINI.md           # This file (Instructional context)
 ```

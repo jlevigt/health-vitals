@@ -3,10 +3,19 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import crypto from "node:crypto";
 import { Client } from "pg";
+import {
+  S3Client,
+  CreateBucketCommand,
+  HeadBucketCommand,
+  PutBucketCorsCommand,
+} from "@aws-sdk/client-s3";
 import { env } from "@health-vitals/core/config";
 import { createLogger } from "@health-vitals/infra/logger";
+import { Buckets } from "@health-vitals/infra/storage";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const logger = createLogger({ name: "migrator" });
 
 /**
  * Calculate SHA-256 checksum of a string
@@ -15,9 +24,82 @@ function calculateChecksum(content: string): string {
   return crypto.createHash("sha256").update(content).digest("hex");
 }
 
+async function initStorage() {
+  const endpoint = env.STORAGE_ENDPOINT;
+  const region = env.STORAGE_REGION;
+  const accessKeyId = env.STORAGE_ACCESS_KEY;
+  const secretAccessKey = env.STORAGE_SECRET_KEY;
+
+  logger.info(`🔌 Connecting to storage at ${endpoint}...`);
+
+  const s3 = new S3Client({
+    endpoint,
+    region,
+    credentials: {
+      accessKeyId,
+      secretAccessKey,
+    },
+    forcePathStyle: true,
+  });
+
+  const bucketName = Buckets.UPLOADS;
+
+  try {
+    // 1. Check if bucket exists
+    try {
+      await s3.send(new HeadBucketCommand({ Bucket: bucketName }));
+      logger.info(`✅ Bucket '${bucketName}' already exists.`);
+    } catch (error: any) {
+      if (error.name === "NotFound" || error.$metadata?.httpStatusCode === 404) {
+        // 2. Create bucket
+        logger.info(`🛠️ Creating bucket '${bucketName}'...`);
+        await s3.send(new CreateBucketCommand({ Bucket: bucketName }));
+        logger.info(`✅ Bucket '${bucketName}' created.`);
+      } else {
+        throw error;
+      }
+    }
+
+    // 3. Set CORS policy
+    try {
+      logger.info(`🔐 Setting CORS policy for '${bucketName}'...`);
+      await s3.send(
+        new PutBucketCorsCommand({
+          Bucket: bucketName,
+          CORSConfiguration: {
+            CORSRules: [
+              {
+                AllowedHeaders: ["*"],
+                AllowedMethods: ["PUT", "POST", "GET", "HEAD"],
+                AllowedOrigins: ["*"],
+                ExposeHeaders: ["ETag"],
+                MaxAgeSeconds: 3000,
+              },
+            ],
+          },
+        })
+      );
+      logger.info(`✅ CORS policy set.`);
+    } catch (corsError: any) {
+      if (corsError.name === "NotImplemented") {
+        logger.info(
+          `ℹ️ CORS policy not supported by this storage provider (NotImplemented). ` +
+            `Ensure CORS is handled by the server environment (e.g., MINIO_API_CORS_ALLOW_ORIGIN).`
+        );
+      } else {
+        logger.warn(
+          `⚠️ Warning: Failed to set CORS policy. Client uploads might fail if running in browser.\n` +
+            `Message: ${corsError.message}`
+        );
+      }
+    }
+  } catch (error) {
+    logger.error("❌ Error initializing storage:", { error });
+    // We don't exit here to allow migrations to run even if storage init fails
+  }
+}
+
 async function migrate() {
-  const logger = createLogger({ name: "migrator" });
-  
   // Create single connection using DATABASE_URL
   const client = new Client({
     connectionString: env.DATABASE_URL,
@@ -129,4 +211,9 @@ async function migrate() {
   }
 }
 
-migrate();
+async function run() {
+  await initStorage();
+  await migrate();
+}
+
+run();

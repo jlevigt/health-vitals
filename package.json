@@ -15,8 +15,7 @@
     "infra:up": "docker compose up -d",
     "infra:down": "docker compose down",
     "migration:run": "bun --env-file=.env apps/migrator/src/index.ts",
-    "migration:create": "bun --env-file=.env packages/ops/scripts/migration-create.ts",
-    "init:s3": "bun --env-file=.env packages/ops/scripts/init.ts",
+    "migration:create": "./scripts/migration-create.sh",
     "lint": "echo 'No linting configured yet'",
     "typecheck": "bun --filter @health-vitals/contracts build && bun --filter @health-vitals/core build && bun --filter @health-vitals/infra build && bun --filter @health-vitals/migrator build",
     "test": "bun test --env-file=.env apps/*/src packages/*/src"
