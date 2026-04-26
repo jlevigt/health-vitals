@@ -9,7 +9,7 @@ import {
   HeadBucketCommand,
   PutBucketCorsCommand,
 } from "@aws-sdk/client-s3";
-import { env } from "@health-vitals/core/config";
+import { env } from "@/config/env";
 import { createLogger } from "@health-vitals/infra/logger";
 import { Buckets } from "@health-vitals/infra/storage";
 

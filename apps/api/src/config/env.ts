@@ -2,8 +2,8 @@ import { z } from "zod";
 
 const envSchema = z.object({
   // Server Config
-  PORT: z.coerce.number().optional(),
-  NODE_ENV: z.string(),
+  PORT: z.coerce.number().optional().default(3000),
+  NODE_ENV: z.string().default("development"),
   WEB_URL: z.string().optional(),
   
   // Database
@@ -11,9 +11,6 @@ const envSchema = z.object({
 
   // Security
   SECRET_JWT_KEY: z.string(),
-
-  // AI Provider
-  GEMINI_API_KEY: z.string().optional(),
 
   // Mail
   MAIL_HOST: z.string().optional(),
@@ -34,13 +31,10 @@ const envSchema = z.object({
   RABBITMQ_URL: z.string(),
 });
 
-// Validate and export environment variables
-// In Bun, process.env is populated from .env files automatically if using bun run or --env-file
-// We parse process.env
 const parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
-  console.error("❌ Invalid environment variables:", JSON.stringify(parsed.error.issues, null, 2));
+  console.error("❌ Invalid API environment variables:", JSON.stringify(parsed.error.issues, null, 2));
   process.exit(1);
 }
 

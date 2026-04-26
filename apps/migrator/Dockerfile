@@ -1,31 +1,17 @@
 # --- Stage 1: Base ---
 FROM oven/bun:1.3.12-alpine AS base
 WORKDIR /app
+ENV BUN_INSTALL_FROZEN_LOCKFILE=false
 
-# --- Stage 2: Production Dependencies (Cached) ---
-FROM base AS prod-deps
-COPY package.json bun.lock tsconfig.json ./
-COPY packages/contracts/package.json ./packages/contracts/
-COPY packages/core/package.json ./packages/core/
-COPY packages/infra/package.json ./packages/infra/
-COPY apps/migrator/package.json ./apps/migrator/
-RUN bun install --production
+# --- Stage 2: Build ---
+FROM base AS builder
+COPY . .
+RUN bun install
 
-# --- Stage 3: Development Dependencies & Build ---
-FROM prod-deps AS builder
-RUN bun install 
-COPY packages ./packages
-COPY apps/migrator ./apps/migrator
-COPY database/migrations ./database/migrations
-
-# --- Stage 4: Runner ---
+# --- Stage 3: Runner ---
 FROM base AS runner
-WORKDIR /app
-COPY --from=prod-deps /app/node_modules ./node_modules
-COPY --from=prod-deps /app/packages ./packages
-COPY --from=builder /app/apps/migrator ./apps/migrator
-COPY --from=builder /app/database/migrations ./database/migrations
-COPY --from=builder /app/package.json ./
+COPY --from=builder /app ./
+RUN bun install --production
 
 ENV MIGRATIONS_DIR=/app/database/migrations
 

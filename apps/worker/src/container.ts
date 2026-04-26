@@ -17,8 +17,8 @@ import {
   LLMProvider,
   GeminiProvider,
   MockLLMProvider,
-  env,
 } from "@health-vitals/infra";
+import { env } from "@/config/env";
 
 // === Logger ===
 export const logger: Logger = createLogger({ name: "worker" });
@@ -67,7 +67,7 @@ export async function getQueue(): Promise<QueueConnection> {
 
 // === LLM Provider ===
 export const llmProvider: LLMProvider = env.GEMINI_API_KEY
-  ? new GeminiProvider(logger)
+  ? new GeminiProvider(logger, env.GEMINI_API_KEY)
   : new MockLLMProvider();
 
 // === Cleanup ===

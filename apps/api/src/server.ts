@@ -1,6 +1,6 @@
 import { createApp } from "@/app.ts";
 import { logger, db } from "@/container.ts";
-import { env } from "@health-vitals/core/config";
+import { env } from "@/config/env";
 
 const app = createApp();
 const PORT = env.PORT || 3000;

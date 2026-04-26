@@ -5,4 +5,3 @@ dist
 .agents
 .github
 *.log
-bun.lock

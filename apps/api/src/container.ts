@@ -17,8 +17,9 @@ import {
   MockMailProvider,
   Database,
   QueueConnection,
-  env,
+  ResendProvider,
 } from "@health-vitals/infra";
+import { env } from "@/config/env";
 
 // === Logger ===
 export const logger: Logger = createLogger({ name: "api" });
@@ -66,15 +67,12 @@ export async function getQueue(): Promise<QueueConnection> {
 }
 
 // === Mail Provider ===
-import { ResendProvider } from "@health-vitals/infra";
-
-// === Mail Provider ===
 const mailProviderType = env.MAIL_PROVIDER || "nodemailer";
 const resendApiKey = env.RESEND_API_KEY;
 
 let mailer: MailProvider;
 
-if (process.env.NODE_ENV === "test") {
+if (env.NODE_ENV === "test") {
   mailer = new MockMailProvider();
 } else if (mailProviderType === "resend" && resendApiKey) {
   mailer = new ResendProvider(logger, resendApiKey);
