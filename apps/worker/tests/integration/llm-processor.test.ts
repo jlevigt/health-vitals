@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll, mock } from "bun:test";
-import { processWithLlm } from "../consumers/ai-extraction/llm-processor.ts";
+import { processWithLlm } from "../../src/consumers/ai-extraction/llm-processor.ts";
 import { FileStatus, type LLMResult } from "@health-vitals/contracts";
 import {
   getTestDb,

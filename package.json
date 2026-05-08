@@ -15,7 +15,7 @@
     "lint": "echo 'No linting configured yet'",
     "typecheck": "bun run --filter '*' build",
     "build": "bun run --filter '*' build",
-    "test": "bun test --env-file=.env apps/*/src apps/jobs/*/src packages/*/src"
+    "test": "bun test --env-file=.env tests apps/*/tests apps/jobs/*/tests packages/*/tests apps/*/src apps/jobs/*/src packages/*/src"
   },
   "devDependencies": {
     "@types/bun": "^1.3.13"
