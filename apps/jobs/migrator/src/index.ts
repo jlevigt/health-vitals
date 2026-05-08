@@ -9,7 +9,7 @@ import {
   HeadBucketCommand,
   PutBucketCorsCommand,
 } from "@aws-sdk/client-s3";
-import { env } from "@/config/env";
+import { env } from "@health-vitals/platform/config/env";
 import { createLogger } from "@health-vitals/platform/logger";
 import { Buckets } from "@health-vitals/platform/storage";
 
@@ -141,7 +141,7 @@ async function migrate() {
     const appliedMigrations = new Map(appliedRows.map((row) => [row.name, row.checksum]));
 
     // 5. Resolve migration files directory
-    const migrationsDir = process.env.MIGRATIONS_DIR || path.join(__dirname, "../../../database/migrations");
+    const migrationsDir = process.env.MIGRATIONS_DIR || path.join(__dirname, "../../../../database/migrations");
     
     logger.info(`Reading migrations from: ${migrationsDir}`);
 

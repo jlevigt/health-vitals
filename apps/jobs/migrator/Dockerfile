@@ -16,4 +16,4 @@ RUN bun install --production
 ENV MIGRATIONS_DIR=/app/database/migrations
 
 USER bun
-ENTRYPOINT ["bun", "run", "--cwd", "apps/migrator", "src/index.ts"]
+ENTRYPOINT ["bun", "run", "--cwd", "apps/jobs/migrator", "src/index.ts"]

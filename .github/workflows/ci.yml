@@ -88,7 +88,7 @@ jobs:
         run: docker build -t health-vitals-worker -f apps/worker/Dockerfile .
 
       - name: Build Migrator Image
-        run: docker build -t health-vitals-migrator -f apps/migrator/Dockerfile .
+        run: docker build -t health-vitals-migrator -f apps/jobs/migrator/Dockerfile .
 
       - name: Build Web Image
         run: docker build -t health-vitals-web -f apps/web/Dockerfile .

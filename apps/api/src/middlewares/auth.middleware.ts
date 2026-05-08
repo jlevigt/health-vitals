@@ -2,7 +2,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { AppError } from "@health-vitals/platform";
-import { env } from "@/config/env";
+import { env } from "@health-vitals/platform/config/env";
 
 export function authMiddleware(req: Request, _res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;

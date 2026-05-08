@@ -87,7 +87,7 @@ services:
     container_name: migrator
     build:
       context: .
-      dockerfile: ./apps/migrator/Dockerfile
+      dockerfile: ./apps/jobs/migrator/Dockerfile
     <<: *app-defaults
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
