@@ -1,4 +1,4 @@
-import type { Database } from "@health-vitals/infra";
+import type { Database } from "@health-vitals/platform";
 import { Report } from "./types.ts";
 
 export class ListReportsService {

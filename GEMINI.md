@@ -68,10 +68,26 @@ All worker jobs MUST be idempotent.
 - Root `package.json` orchestrates workflows (e.g., `dev`, `typecheck`, `test`).
 - Scripts resolve their own paths internally using `import.meta.url` rather than relying on `--cwd`.
 
-## Git Standards
+# 6. Git & GitHub Standards
 
-Conventional Commits specification (e.g., `feat:`, `fix:`, `refactor:`, `chore:`).
-Atomic Commits:
-Each commit SHOULD represent a single logical change.
-Small, focused commits are preferred over large "catch-all" commits.
-Grammar: Use the imperative mood in the subject line (e.g., "add feature" instead of "added feature").
+- **Branching**: We use Trunk-Based Development. Merge to `main` via short-lived feature branches using **Squash and Merge**.
+- **Conventional Commits**: All commit messages MUST follow the [Conventional Commits](https://www.conventionalcommits.org/) specification. This is enforced by a Git hook.
+- **Atomic PRs**: Each PR SHOULD represent a single logical change and follow the template in `.github/pull_request_template.md`.
+- **Issue Scoping**: Every task must be defined in a GitHub Issue using the approved templates, explicitly defining the "Allowed Scope" and "Risk Classification".
+- **Git Hooks**: Native git hooks are stored in `.githooks/`. Run `bash scripts/setup-hooks.sh` to configure them.
+
+# AI-Agent Operational Guardrails
+
+## 1. Scoped Execution
+
+- Agents must only modify files within the "Allowed Scope" defined in the corresponding GitHub Issue.
+- "Drive-by" refactoring of unrelated files is strictly prohibited.
+
+## 2. Migration Architect Skill
+
+- When proposing or implementing database schema changes, the `migration-architect` skill MUST be used.
+- All migrations must be forward-only and non-destructive.
+
+## 3. PR Reviews
+
+- Agents should use the `migration-architect` skill or a PR-review workflow to verify that all operational safety rules are met before finalizing a task.

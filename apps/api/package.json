@@ -8,8 +8,7 @@
   },
   "dependencies": {
     "@health-vitals/contracts": "workspace:*",
-    "@health-vitals/core": "workspace:*",
-    "@health-vitals/infra": "workspace:*",
+    "@health-vitals/platform": "workspace:*",
     "argon2": "^0.44.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",

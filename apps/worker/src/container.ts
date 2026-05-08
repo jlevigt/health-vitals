@@ -17,7 +17,7 @@ import {
   LLMProvider,
   GeminiProvider,
   MockLLMProvider,
-} from "@health-vitals/infra";
+} from "@health-vitals/platform";
 import { env } from "@/config/env";
 
 // === Logger ===

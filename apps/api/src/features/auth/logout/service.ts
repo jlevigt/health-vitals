@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { Database, Logger } from "@health-vitals/infra";
+import type { Database, Logger } from "@health-vitals/platform";
 
 export const logoutSchema = z.object({
   refreshToken: z.string().min(1),

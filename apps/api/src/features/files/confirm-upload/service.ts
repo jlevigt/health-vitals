@@ -1,6 +1,6 @@
-import type { Database, Logger, QueueChannel } from "@health-vitals/infra";
-import { publishJob, Queues, FileStatus, AppError } from "@health-vitals/infra";
-import type { FileProcessJobPayload } from "@health-vitals/infra";
+import type { Database, Logger, QueueChannel } from "@health-vitals/platform";
+import { FileStatus, type FileProcessJobPayload } from "@health-vitals/contracts";
+import { publishJob, Queues, AppError } from "@health-vitals/platform";
 import { ConfirmUploadResponse } from "../types.ts";
 
 export class ConfirmUploadService {

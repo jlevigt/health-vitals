@@ -1,7 +1,7 @@
 // src/shared/middlewares/auth.middleware.ts
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { AppError } from "@health-vitals/core";
+import { AppError } from "@health-vitals/platform";
 import { env } from "@/config/env";
 
 export function authMiddleware(req: Request, _res: Response, next: NextFunction) {

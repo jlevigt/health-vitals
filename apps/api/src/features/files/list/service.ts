@@ -1,4 +1,4 @@
-import type { Database, Logger } from "@health-vitals/infra";
+import type { Database, Logger } from "@health-vitals/platform";
 import { FileListItem, ListFilesQuery } from "../types.ts";
 
 export class ListFilesService {

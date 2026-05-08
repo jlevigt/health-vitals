@@ -3,7 +3,7 @@ import request from "supertest";
 import { createApp } from "@/app.ts";
 import { db, storage, getQueue } from "@/container.ts";
 import argon2 from "argon2";
-import { FileStatus } from "@health-vitals/infra";
+import { FileStatus } from "@health-vitals/contracts";
 
 const app = createApp();
 

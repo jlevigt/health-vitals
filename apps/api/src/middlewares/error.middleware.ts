@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { ZodError } from "zod"; // <--- Importe o ZodError
-import { AppError } from "@health-vitals/core";
+import { AppError } from "@health-vitals/platform";
 
 export const errorMiddleware = (err: Error, _req:  Request, res: Response, _next: NextFunction) => {
   // 1. Tratamento de Erros de Validação (Zod) -> 400 Bad Request
