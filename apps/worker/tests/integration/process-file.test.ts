@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from "bun:test";
-import { processFileJob } from "../consumers/ai-extraction/handler.ts";
+import { processFileJob } from "../../src/consumers/ai-extraction/handler.ts";
 import { FileStatus } from "@health-vitals/contracts";
 import { Buckets } from "@health-vitals/platform";
 import { readFileSync, existsSync } from "fs";
@@ -25,7 +25,7 @@ import {
   PDF_FIXTURE_PATH,
   type TestUser,
 } from "./helpers.ts";
-import type { JobContext } from "../consumers/ai-extraction/handler.ts";
+import type { JobContext } from "../../src/consumers/ai-extraction/handler.ts";
 
 describe("Process File Integration", () => {
   let testUser: TestUser;
