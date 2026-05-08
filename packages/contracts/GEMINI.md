@@ -4,6 +4,5 @@
 Contains pure TypeScript types, interfaces, and Zod schemas.
 
 ## Rules
-- MUST NOT have any external dependencies (except `zod`).
-- MUST NOT contain business logic or runtime code.
-- All HTTP request/response schemas, DB models, and Queue payload types belong here.
+- **Scope**: All HTTP request/response schemas, DB models, and Queue payload types belong here.
+- **Purely Declarative**: MUST NOT contain business logic or runtime code.
