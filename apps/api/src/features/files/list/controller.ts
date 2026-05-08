@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { ListFilesService } from "./service.ts";
 import { ListFilesQuerySchema } from "../types.ts";
 import { db, logger } from "@/container.ts";
-import { AppError } from "@health-vitals/infra";
+import { AppError } from "@health-vitals/platform";
 
 const service = new ListFilesService(db, logger);
 

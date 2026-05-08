@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { GetTrendsService } from "./service.ts";
-import { AppError } from "@health-vitals/infra";
+import { AppError } from "@health-vitals/platform";
 
 const ALLOWED_CATEGORIES = ['lipid_panel', 'glucose_metabolism', 'renal_function'];
 

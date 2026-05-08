@@ -10,8 +10,8 @@ import {
   PutBucketCorsCommand,
 } from "@aws-sdk/client-s3";
 import { env } from "@/config/env";
-import { createLogger } from "@health-vitals/infra/logger";
-import { Buckets } from "@health-vitals/infra/storage";
+import { createLogger } from "@health-vitals/platform/logger";
+import { Buckets } from "@health-vitals/platform/storage";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 

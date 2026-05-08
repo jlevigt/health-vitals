@@ -12,8 +12,7 @@ Comprehensive health metrics management and AI-powered lab report extraction.
 │   └── worker/         # Background processing worker (@health-vitals/worker)
 ├── packages/
 │   ├── contracts/      # Pure types & Zod schemas (@health-vitals/contracts)
-│   ├── core/           # Interfaces & domain logic (@health-vitals/core)
-│   ├── infra/          # Infrastructure implementations (@health-vitals/infra)
+│   ├── platform/       # Unified platform layer (@health-vitals/platform)
 ├── tests/
 │   └── e2e/            # End-to-end system tests
 ├── database/           # SQL Migrations

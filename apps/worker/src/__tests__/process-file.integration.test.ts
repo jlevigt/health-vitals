@@ -6,7 +6,8 @@
 
 import { describe, it, expect, beforeAll, afterAll } from "bun:test";
 import { processFileJob } from "../jobs/process-file/handler.ts";
-import { FileStatus, Buckets } from "@health-vitals/infra";
+import { FileStatus } from "@health-vitals/contracts";
+import { Buckets } from "@health-vitals/platform";
 import { readFileSync, existsSync } from "fs";
 import {
   getTestDb,

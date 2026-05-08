@@ -7,8 +7,8 @@
  * - Result parsing and database persistence
  */
 
-import type { Database, Logger, LLMProvider, LLMResult } from "@health-vitals/infra";
-import { FileStatus } from "@health-vitals/infra";
+import { FileStatus, type LLMResult } from "@health-vitals/contracts";
+import type { Database, Logger, LLMProvider } from "@health-vitals/platform";
 
 // Rate limits (adjust based on your LLM provider)
 const RATE_LIMITS = {

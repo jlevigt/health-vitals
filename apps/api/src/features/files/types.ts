@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { type FileUploadUrlResponse } from "@health-vitals/contracts";
+export { type FileUploadUrlResponse };
 
 /**
  * Schema for a single file upload request
@@ -18,16 +20,6 @@ export const RequestUploadBodySchema = z.object({
 
 export type RequestUploadBody = z.infer<typeof RequestUploadBodySchema>;
 export type FileUploadItem = z.infer<typeof FileUploadItemSchema>;
-
-/**
- * Response for a single file upload URL
- */
-export interface FileUploadUrlResponse {
-  file_id: string;
-  object_key: string;
-  upload_url: string;
-  expires_at: string;
-}
 
 /**
  * Response for POST /files/uploads

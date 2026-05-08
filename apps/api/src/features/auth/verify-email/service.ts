@@ -1,6 +1,6 @@
 import argon2 from "argon2";
-import type { Database, Logger } from "@health-vitals/infra";
-import { AppError } from "@health-vitals/infra";
+import type { Database, Logger } from "@health-vitals/platform";
+import { AppError } from "@health-vitals/platform";
 import { VerifyEmailDTO } from "./types.ts";
 
 export class VerifyEmailService {

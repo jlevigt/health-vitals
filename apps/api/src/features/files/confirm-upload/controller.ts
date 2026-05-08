@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { ConfirmUploadService } from "./service.ts";
 import { ConfirmUploadBodySchema } from "../types.ts";
 import { db, logger, getQueue } from "@/container.ts";
-import { AppError } from "@health-vitals/infra";
+import { AppError } from "@health-vitals/platform";
 
 const service = new ConfirmUploadService(db, logger, async () => {
   const queue = await getQueue();

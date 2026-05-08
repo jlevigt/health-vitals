@@ -1,5 +1,5 @@
-import type { Database } from "@health-vitals/infra";
-import { AppError } from "@health-vitals/infra";
+import type { Database } from "@health-vitals/platform";
+import { AppError } from "@health-vitals/platform";
 import { Observation } from "./types.ts";
 
 export class ListReportObservationsService {
