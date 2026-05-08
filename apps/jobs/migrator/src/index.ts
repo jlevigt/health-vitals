@@ -141,7 +141,7 @@ async function migrate() {
     const appliedMigrations = new Map(appliedRows.map((row) => [row.name, row.checksum]));
 
     // 5. Resolve migration files directory
-    const migrationsDir = process.env.MIGRATIONS_DIR || path.join(__dirname, "../../../database/migrations");
+    const migrationsDir = process.env.MIGRATIONS_DIR || path.join(__dirname, "../../../../database/migrations");
     
     logger.info(`Reading migrations from: ${migrationsDir}`);
 
