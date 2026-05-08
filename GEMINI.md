@@ -45,17 +45,16 @@ All worker jobs MUST be idempotent.
 
 ## 2. Hard Rules (System-wide)
 
-- **No direct DB access**: Business logic MUST NOT access the database directly. Use the infrastructure layer abstraction provided in `packages/infra`.
+- **No direct DB access**: Business logic MUST NOT access the database directly. Use the infrastructure layer abstraction provided in `packages/platform`.
 - **Validation First**: Every HTTP endpoint and Worker payload MUST be validated using a Zod schema from `packages/contracts`.
 - **No Manual Ops**: Production database migrations and deployments MUST be handled via automated scripts/CI.
-- **Environment Parity**: The application MUST fail fast if any environment variable defined in `packages/core/config/env.ts` is missing.
+- **Environment Parity**: The application MUST fail fast if any environment variable defined in `packages/platform/src/config/env.ts` is missing.
 
 ## 3. Dependency Rules
 
 - `contracts` -> No dependencies.
-- `core` -> Depends on `contracts`.
-- `infra` -> Depends on `core` and `contracts`.
-- `apps` -> Dependency injection root. Wires `infra` implementations into `core` interfaces.
+- `platform` -> Depends on `contracts`.
+- `apps` -> Dependency injection root. Wires `platform` implementations.
 
 ## 4. Deployment Contract
 
