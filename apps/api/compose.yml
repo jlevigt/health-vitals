@@ -1,0 +1,50 @@
+x-app-defaults: &app-defaults
+  env_file:
+    - ../../.env
+  networks:
+    - internal
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: postgres-api
+    <<: *app-defaults
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_api:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq-api
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    <<: *app-defaults
+    volumes:
+      - rabbitmq_data_api:/var/lib/rabbitmq
+
+  minio:
+    image: minio/minio
+    container_name: minio-api
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    <<: *app-defaults
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio_data_api:/data
+
+volumes:
+  postgres_data_api:
+  rabbitmq_data_api:
+  minio_data_api:
+
+networks:
+  internal:
+    driver: bridge

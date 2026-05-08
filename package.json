@@ -7,13 +7,8 @@
     "packages/*"
   ],
   "scripts": {
-    "dev:api": "bun --env-file=.env --watch apps/api/src/server.ts",
-    "dev:worker": "bun --env-file=.env --watch apps/worker/src/worker.ts",
-    "dev:web": "bun run --filter @health-vitals/web dev",
-    "dev:mock": "bun run --filter @health-vitals/web dev:mock",
-    "dev": "bun run infra:up && sleep 5 && (bun run dev:api & bun run dev:worker & bun run dev:web)",
-    "infra:up": "docker compose --env-file .env -f infra/local/compose.yml up -d",
-    "infra:down": "docker compose --env-file .env -f infra/local/compose.yml down",
+    "infra:up": "docker compose up -d",
+    "infra:down": "docker compose down",
     "migration:run": "bun --env-file=.env apps/migrator/src/index.ts",
     "migration:create": "./scripts/migration-create.sh",
     "lint": "echo 'No linting configured yet'",

@@ -5,7 +5,7 @@ ENV BUN_INSTALL_FROZEN_LOCKFILE=false
 
 # --- Stage 2: Dependencies ---
 FROM base AS deps
-COPY package.json tsconfig.json ./
+COPY package.json bun.lock tsconfig.json ./
 COPY packages/contracts/package.json ./packages/contracts/
 COPY packages/core/package.json ./packages/core/
 COPY packages/infra/package.json ./packages/infra/

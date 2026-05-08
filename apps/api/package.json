@@ -1,5 +1,7 @@
 {
   "scripts": {
+    "infra:up": "docker compose up -d",
+    "infra:down": "docker compose down",
     "dev": "bun --env-file=../../.env --watch src/server.ts",
     "build": "tsc",
     "start": "bun src/server.ts"

@@ -14,13 +14,12 @@ Comprehensive health metrics management and AI-powered lab report extraction.
 │   ├── contracts/      # Pure types & Zod schemas (@health-vitals/contracts)
 │   ├── core/           # Interfaces & domain logic (@health-vitals/core)
 │   ├── infra/          # Infrastructure implementations (@health-vitals/infra)
-│   └── ops/            # Operational scripts (@health-vitals/ops)
+├── tests/
+│   └── e2e/            # End-to-end system tests
 ├── database/           # SQL Migrations
-├── infra/              # Infrastructure (Docker context, Scripts)
-│   ├── docker-compose.local.yml
-│   └── ...
-├── .env.local          # Local configuration (gitignored)
-└── .env                # Project configuration
+├── compose.yml         # Root Docker Compose for full stack
+├── .env                # Project configuration
+└── README.md
 ```
 
 ## 🛠️ Tech Stack
@@ -40,46 +39,50 @@ Ensure you have [Bun](https://bun.sh/) and [Docker](https://www.docker.com/) ins
 
 ### 2. Installation
 
-Install dependencies for all workspaces:
-
 ```bash
 bun install
 ```
 
-### 3. Environment Setup
+### 3. Running the Full Stack (Recommended for Dev)
 
-Create a `.env` file in the root:
+This starts the infrastructure, runs migrations, and starts all applications:
 
-```env
-PORT=3000
-DATABASE_URL=postgres://user:pass@localhost:5432/health_db
-SECRET_JWT_KEY=your_secret_key
-GEMINI_API_KEY=your_gemini_api_key (optional)
-# RabbitMQ & S3 config if needed
+```bash
+# Start everything from root
+bun run dev
 ```
 
-### 4. Running the App
+### 4. Running the Full Stack in Docker (Production-like)
 
-Use the root delegation scripts (managed via Bun):
+```bash
+docker compose up --build
+```
 
-| Command                 | Description                         |
-| ----------------------- | ----------------------------------- |
-| `bun run infra:up`      | Start Postgres, RabbitMQ, and MinIO |
-| `bun run migration:run` | Run database migrations             |
-| `bun run dev:api`       | Start Backend API (Port 3000)       |
-| `bun run dev:web`       | Start Frontend (Port 5173)          |
-| `bun run dev:mock`      | Start Frontend with MSW Mocks       |
-| `bun run dev:worker`    | Start Background Worker             |
+### 5. Running a Single Service (Isolated Dev)
+
+If you only want to work on the API:
+
+```bash
+cd apps/api
+bun run infra:up  # Starts only Postgres/Rabbit/Minio for API
+bun run dev       # Starts the API server
+```
+
+## 🧪 Testing Strategy
+
+We follow a **Test Pyramid** approach:
+
+- **Unit Tests:** Located in `__tests__/unit/` or next to source files. Run with `bun test`.
+- **Integration Tests:** Located in `__tests__/integration/`. Uses **Supertest** for fast API testing.
+- **E2E Tests:** Located in `tests/e2e/`. Uses **Playwright** for browser/system testing against a running instance.
+
+Run all tests from root:
+```bash
+bun test
+```
 
 ## 📖 Component Documentation
 
 - [Backend API Guide](./apps/api/README.md)
 - [Frontend Guide](./apps/web/README.md)
 - [Worker Package](./apps/worker/README.md) (AI Processing)
-
-## 🏗️ Development Guidelines
-
-- **TypeScript**: All packages use TypeScript with strict mode.
-- **ESM**: Every package uses `"type": "module"`.
-- **Absolute Imports**: Use `@/` to refer to the `src/` directory of the current package.
-- **Bun**: Prefer `bun` for running all tasks.

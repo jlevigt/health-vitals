@@ -1,5 +1,7 @@
 {
   "scripts": {
+    "infra:up": "docker compose up -d",
+    "infra:down": "docker compose down",
     "dev": "bun --env-file=../../.env --watch src/worker.ts",
     "test": "bun test --env-file=../../.env",
     "test:llm": "RUN_LLM_TESTS=true bun test --env-file=../../.env src/__tests__/process-file.integration.test.ts",
