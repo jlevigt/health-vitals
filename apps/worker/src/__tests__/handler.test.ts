@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll, mock } from "bun:test";
-import { processFileJob } from "../jobs/process-file/handler.ts";
+import { processFileJob } from "../consumers/ai-extraction/handler.ts";
 import { FileStatus } from "@health-vitals/contracts";
 import {
   getTestDb,
@@ -19,7 +19,7 @@ import {
   getFileStatus,
   type TestUser,
 } from "./helpers.ts";
-import type { JobContext } from "../jobs/process-file/handler.ts";
+import type { JobContext } from "../consumers/ai-extraction/handler.ts";
 
 describe("Process File Handler", () => {
   let testUser: TestUser;

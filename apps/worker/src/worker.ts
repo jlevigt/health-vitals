@@ -8,7 +8,7 @@
 import { type FileProcessJobPayload } from "@health-vitals/contracts";
 import { Queues } from "@health-vitals/platform";
 import { db, storage, logger, llmProvider, getQueue, shutdown } from "./container.ts";
-import { processFileJob } from "./jobs/process-file/handler.ts";
+import { processFileJob } from "./consumers/ai-extraction/handler.ts";
 
 const PREFETCH_COUNT = 1; // Process one job at a time for rate limiting
 

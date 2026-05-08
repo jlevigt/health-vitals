@@ -47,7 +47,7 @@
         "typescript": "^6.0.3",
       },
     },
-    "apps/migrator": {
+    "apps/jobs/migrator": {
       "name": "@health-vitals/migrator",
       "version": "0.1.0",
       "dependencies": {
@@ -236,7 +236,7 @@
 
     "@health-vitals/contracts": ["@health-vitals/contracts@workspace:packages/contracts"],
 
-    "@health-vitals/migrator": ["@health-vitals/migrator@workspace:apps/migrator"],
+    "@health-vitals/migrator": ["@health-vitals/migrator@workspace:apps/jobs/migrator"],
 
     "@health-vitals/platform": ["@health-vitals/platform@workspace:packages/platform"],
 

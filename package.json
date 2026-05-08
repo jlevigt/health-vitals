@@ -4,17 +4,18 @@
   "type": "module",
   "workspaces": [
     "apps/*",
+    "apps/jobs/*",
     "packages/*"
   ],
   "scripts": {
     "infra:up": "docker compose up -d",
     "infra:down": "docker compose down",
-    "migration:run": "bun --env-file=.env apps/migrator/src/index.ts",
+    "migration:run": "bun --env-file=.env apps/jobs/migrator/src/index.ts",
     "migration:create": "./scripts/migration-create.sh",
     "lint": "echo 'No linting configured yet'",
     "typecheck": "bun run --filter '*' build",
     "build": "bun run --filter '*' build",
-    "test": "bun test --env-file=.env apps/*/src packages/*/src"
+    "test": "bun test --env-file=.env apps/*/src apps/jobs/*/src packages/*/src"
   },
   "devDependencies": {
     "@types/bun": "^1.3.13"

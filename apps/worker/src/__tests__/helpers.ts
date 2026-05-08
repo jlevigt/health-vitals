@@ -17,7 +17,7 @@ import {
   type Logger,
   type LLMProvider,
 } from "@health-vitals/platform";
-import type { JobContext } from "../jobs/process-file/handler.ts";
+import type { JobContext } from "../consumers/ai-extraction/handler.ts";
 import { randomUUID } from "crypto";
 
 // === Database ===

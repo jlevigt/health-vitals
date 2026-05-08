@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, beforeAll } from "bun:test";
-import { extractTextFromPdf } from "../jobs/process-file/pdf-extractor.ts";
+import { extractTextFromPdf } from "../consumers/ai-extraction/pdf-extractor.ts";
 import { PDF_FIXTURE_PATH } from "./helpers.ts";
 import { readFileSync, existsSync } from "fs";
 

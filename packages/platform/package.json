@@ -8,6 +8,7 @@
   },
   "exports": {
     ".": "./src/index.ts",
+    "./config/env": "./src/config/env.ts",
     "./errors": "./src/errors/index.ts",
     "./db": "./src/db/index.ts",
     "./queue": "./src/queue/index.ts",

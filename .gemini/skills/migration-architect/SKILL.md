@@ -27,4 +27,4 @@ You are an expert in safe, high-availability database migrations. Your goal is t
 ## Reference
 
 *   Migrations folder: `database/migrations/`
-*   Migrator app: `apps/migrator/`
+*   Migrator app: `apps/jobs/migrator/`

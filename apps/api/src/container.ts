@@ -19,7 +19,7 @@ import {
   QueueConnection,
   ResendProvider,
 } from "@health-vitals/platform";
-import { env } from "@/config/env";
+import { env } from "@health-vitals/platform/config/env";
 
 // === Logger ===
 export const logger: Logger = createLogger({ name: "api" });
