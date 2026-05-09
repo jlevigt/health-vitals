@@ -1,5 +1,5 @@
+import { type DashboardResponse, type TrendSeries } from "@health-vitals/contracts";
 import type { Database } from "@health-vitals/platform";
-import type { DashboardResponse, TrendSeries } from "./types.ts";
 
 export class GetTrendsService {
   constructor(private db: Database) {}

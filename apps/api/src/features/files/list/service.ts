@@ -1,5 +1,8 @@
+import {
+  type ListFilesQuery,
+  type ListFilesResponse,
+} from "@health-vitals/contracts";
 import type { Database, Logger } from "@health-vitals/platform";
-import type { FileListItem, ListFilesQuery } from "../types.ts";
 
 export class ListFilesService {
   constructor(
@@ -7,7 +10,8 @@ export class ListFilesService {
     private logger: Logger,
   ) {}
 
-  async execute(userId: string, query: ListFilesQuery): Promise<FileListItem[]> {
+  async execute(userId: string, query: ListFilesQuery): Promise<ListFilesResponse> {
+
     this.logger.debug(`Listing files for user ${userId}`, { query });
 
     let sql = `
@@ -26,12 +30,14 @@ export class ListFilesService {
 
     const result = await this.db.query(sql, params);
 
-    return result.rows.map((row) => ({
-      id: row.id,
-      filename: row.original_filename,
-      status: row.status,
-      created_at: row.created_at.toISOString(),
-      processed_at: row.processed_at?.toISOString() ?? null,
-    }));
+    return {
+      files: result.rows.map((row) => ({
+        id: row.id,
+        filename: row.original_filename,
+        status: row.status,
+        created_at: row.created_at.toISOString(),
+        processed_at: row.processed_at?.toISOString() ?? null,
+      })),
+    };
   }
 }

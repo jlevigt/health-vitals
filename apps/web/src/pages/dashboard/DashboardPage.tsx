@@ -4,7 +4,7 @@ import type React from "react";
 import { useCallback, useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { api } from "@/api/client";
-import type { DashboardResponse, TrendSeries } from "@/api/types";
+import { type DashboardResponse, type TrendSeries } from "@health-vitals/contracts";
 import { TrendChart } from "@/components/TrendChart";
 
 function cn(...inputs: ClassValue[]) {

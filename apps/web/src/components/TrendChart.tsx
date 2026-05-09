@@ -9,7 +9,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import type { TrendPoint, TrendSeries } from "@/api/types";
+import { type TrendPoint, type TrendSeries } from "@health-vitals/contracts";
 
 interface TrendChartProps {
   series: TrendSeries;
@@ -21,16 +21,23 @@ export const TrendChart: React.FC<TrendChartProps> = ({ series }) => {
   // Format canonical name for display
   const displayName = canonical_name
     .split("_")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
 
   // Get reference range from the first point (assuming it's consistent for the series)
   const refLow = points[0]?.reference_low;
   const refHigh = points[0]?.reference_high;
 
-  const CustomDot = (props: any) => {
+  interface DotProps {
+    cx?: number;
+    cy?: number;
+    payload?: TrendPoint;
+  }
+
+  const CustomDot = (props: DotProps) => {
     const { cx, cy, payload } = props;
-    const { value, reference_low, reference_high } = payload as TrendPoint;
+    if (!payload || cx === undefined || cy === undefined) return null;
+    const { value, reference_low, reference_high } = payload;
 
     let color = "#79747E"; // Default gray
     if (reference_low !== null && reference_high !== null) {
@@ -44,9 +51,10 @@ export const TrendChart: React.FC<TrendChartProps> = ({ series }) => {
     return <circle cx={cx} cy={cy} r={4} fill={color} stroke="none" />;
   };
 
-  const ActiveDot = (props: any) => {
+  const ActiveDot = (props: DotProps) => {
     const { cx, cy, payload } = props;
-    const { value, reference_low, reference_high } = payload as TrendPoint;
+    if (!payload || cx === undefined || cy === undefined) return null;
+    const { value, reference_low, reference_high } = payload;
 
     let color = "#79747E";
     if (reference_low !== null && reference_high !== null) {

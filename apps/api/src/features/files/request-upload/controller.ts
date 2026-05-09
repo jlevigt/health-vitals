@@ -1,7 +1,7 @@
 import { AppError } from "@health-vitals/platform";
 import type { NextFunction, Request, Response } from "express";
 import { db, logger, storage } from "@/container.ts";
-import { RequestUploadBodySchema } from "../types.ts";
+import { RequestUploadBodySchema } from "@health-vitals/contracts";
 import { RequestUploadService } from "./service.ts";
 
 const service = new RequestUploadService(db, storage, logger);

@@ -67,6 +67,7 @@
       "name": "@health-vitals/web",
       "version": "0.1.0",
       "dependencies": {
+        "@health-vitals/contracts": "workspace:*",
         "clsx": "^2.1.1",
         "gsap": "^3.14.2",
         "lucide-react": "^1.11.0",

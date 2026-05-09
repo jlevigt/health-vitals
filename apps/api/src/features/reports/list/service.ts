@@ -1,10 +1,10 @@
+import { type ListReportsResponse } from "@health-vitals/contracts";
 import type { Database } from "@health-vitals/platform";
-import type { Report } from "./types.ts";
 
 export class ListReportsService {
   constructor(private db: Database) {}
 
-  async execute(userId: string): Promise<Report[]> {
+  async execute(userId: string): Promise<ListReportsResponse> {
     const query = `
       SELECT 
         r.id,

@@ -1,11 +1,11 @@
+import { type ListObservationsResponse } from "@health-vitals/contracts";
 import type { Database } from "@health-vitals/platform";
 import { AppError } from "@health-vitals/platform";
-import type { Observation } from "./types.ts";
 
 export class ListReportObservationsService {
   constructor(private db: Database) {}
 
-  async execute(userId: string, reportId: string): Promise<Observation[]> {
+  async execute(userId: string, reportId: string): Promise<ListObservationsResponse> {
     // 1. Verify report ownership via file relationship
     const reportRes = await this.db.query(
       `SELECT r.id FROM reports r
@@ -48,9 +48,11 @@ export class ListReportObservationsService {
         id: row.id,
         name: row.raw_name || row.canonical_name,
         value: row.raw_value,
-        unit: row.raw_unit || row.base_unit || "",
-        status: "final",
+        unit: row.raw_unit || row.base_unit || null,
+        category: row.category || "other",
         interpretation,
+        reference_low: low,
+        reference_high: high,
       };
     });
   }

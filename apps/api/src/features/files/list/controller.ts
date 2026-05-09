@@ -1,7 +1,7 @@
 import { AppError } from "@health-vitals/platform";
 import type { NextFunction, Request, Response } from "express";
 import { db, logger } from "@/container.ts";
-import { ListFilesQuerySchema } from "../types.ts";
+import { ListFilesQuerySchema } from "@health-vitals/contracts";
 import { ListFilesService } from "./service.ts";
 
 const service = new ListFilesService(db, logger);
