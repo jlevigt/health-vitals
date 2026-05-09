@@ -14,6 +14,7 @@ export interface QueueChannel {
   ack(msg: ConsumeMessage): void;
   nack(msg: ConsumeMessage, allUpTo?: boolean, requeue?: boolean): void;
   prefetch(count: number): Promise<void>;
+  checkConnection(): Promise<boolean>;
   close(): Promise<void>;
 }
 

@@ -132,12 +132,9 @@ describe("Process File Integration", () => {
         logger: realLogger,
         llmProvider: createRealLlmProvider(realLogger),
       };
-      const startTime = Date.now();
 
       // Process the file with real LLM
       await processFileJob(payload, context);
-
-      const _duration = Date.now() - startTime;
 
       // Verify file status is SUCCEEDED
       const status = await getFileStatus(db, file.id);
@@ -152,11 +149,10 @@ describe("Process File Integration", () => {
       expect(observations.length).toBeGreaterThan(0);
 
       for (const obs of observations) {
-        const defResult = await db.query(
+        await db.query(
           "SELECT canonical_name, category_id FROM observation_definitions WHERE id = $1",
           [obs.observation_id],
         );
-        const _def = defResult.rows[0];
       }
     }, 120000); // 120 second timeout for real LLM call
   });

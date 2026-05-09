@@ -105,6 +105,15 @@ export function createStorageClient(config: StorageConfig): StorageClient {
       });
       return getSignedUrl(s3, command, { expiresIn });
     },
+
+    async checkConnection(): Promise<boolean> {
+      try {
+        await s3.send(new ListObjectsV2Command({ Bucket: Buckets.UPLOADS, MaxKeys: 1 }));
+        return true;
+      } catch (err) {
+        return false;
+      }
+    },
   };
 }
 

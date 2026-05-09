@@ -13,6 +13,7 @@ export interface StorageClient {
     contentType?: string,
   ): Promise<string>;
   getSignedDownloadUrl(bucket: string, key: string, expiresIn?: number): Promise<string>;
+  checkConnection(): Promise<boolean>;
 }
 
 export interface StorageConfig {

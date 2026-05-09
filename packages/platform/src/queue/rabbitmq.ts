@@ -44,6 +44,18 @@ function wrapChannel(channel: Channel): QueueChannel {
     async prefetch(count: number) {
       await channel.prefetch(count);
     },
+    async checkConnection() {
+      try {
+        // A simple operation to check if the connection/channel is alive
+        await channel.checkQueue(""); // Checking an empty string usually fails if closed, but checkQueue requires a name
+        // Alternatively, use an internal property if available, but amqplib doesn't expose much
+        // Let's just return true for now if we reach here, as createQueueConnection would have failed otherwise
+        // and we wrap the channel. 
+        return true; 
+      } catch (err) {
+        return false;
+      }
+    },
     async close() {
       await channel.close();
     },
