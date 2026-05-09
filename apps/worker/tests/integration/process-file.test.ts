@@ -1,49 +1,48 @@
 /**
  * Process File Integration Tests
- * 
+ *
  * End-to-end tests using real PDF fixture with Mock and Real LLM providers.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from "bun:test";
-import { processFileJob } from "../../src/consumers/ai-extraction/handler.ts";
+import { afterAll, beforeAll, describe, expect, it } from "bun:test";
+import { existsSync, readFileSync } from "node:fs";
 import { FileStatus } from "@health-vitals/contracts";
 import { Buckets } from "@health-vitals/platform";
-import { readFileSync, existsSync } from "fs";
+import type { JobContext } from "../../src/consumers/ai-extraction/handler.ts";
+import { processFileJob } from "../../src/consumers/ai-extraction/handler.ts";
 import {
-  getTestDb,
-  closeTestDb,
-  getTestStorage,
-  createMockLogger,
-  createMockLlmProvider,
-  createRealLlmProvider,
-  createTestUser,
-  createTestFile,
   cleanupTestUser,
+  closeTestDb,
+  createMockLlmProvider,
+  createMockLogger,
+  createRealLlmProvider,
+  createTestFile,
+  createTestUser,
   getFileStatus,
-  getReportByFileId,
   getObservationsByReportId,
+  getReportByFileId,
+  getTestDb,
+  getTestStorage,
   PDF_FIXTURE_PATH,
   type TestUser,
 } from "./helpers.ts";
-import type { JobContext } from "../../src/consumers/ai-extraction/handler.ts";
 
 describe("Process File Integration", () => {
   let testUser: TestUser;
   let pdfBuffer: Buffer;
   let fixtureExists: boolean;
-  
+
   const db = getTestDb();
   const storage = getTestStorage();
   const mockLogger = createMockLogger();
 
   beforeAll(async () => {
     testUser = await createTestUser(db);
-    
+
     fixtureExists = existsSync(PDF_FIXTURE_PATH);
     if (fixtureExists) {
       pdfBuffer = readFileSync(PDF_FIXTURE_PATH);
     } else {
-      console.warn("⚠️ PDF fixture not found at:", PDF_FIXTURE_PATH);
     }
   });
 
@@ -55,7 +54,6 @@ describe("Process File Integration", () => {
   describe("With Mock LLM Provider", () => {
     it("should process real PDF end-to-end with mock LLM", async () => {
       if (!fixtureExists) {
-        console.log("⚠️ Skipping: PDF fixture not found");
         return;
       }
 
@@ -96,10 +94,6 @@ describe("Process File Integration", () => {
       // Verify observations were created (from MockLLMProvider)
       const observations = await getObservationsByReportId(db, report.id);
       expect(observations.length).toBeGreaterThan(0);
-
-      console.log("✅ Mock LLM integration test passed");
-      console.log("   Report ID:", report.id);
-      console.log("   Observations:", observations.length);
     });
   });
 
@@ -108,12 +102,10 @@ describe("Process File Integration", () => {
 
     it("should process real PDF with actual Gemini API", async () => {
       if (!shouldRunRealLlm) {
-        console.log("⚠️ Skipping real LLM test. Set RUN_LLM_TESTS=true and GEMINI_API_KEY to run.");
         return;
       }
 
       if (!fixtureExists) {
-        console.log("⚠️ Skipping: PDF fixture not found");
         return;
       }
 
@@ -140,14 +132,12 @@ describe("Process File Integration", () => {
         logger: realLogger,
         llmProvider: createRealLlmProvider(realLogger),
       };
-
-      console.log("\n🧠 Running real LLM test (this may take 10-30 seconds)...");
       const startTime = Date.now();
 
       // Process the file with real LLM
       await processFileJob(payload, context);
 
-      const duration = Date.now() - startTime;
+      const _duration = Date.now() - startTime;
 
       // Verify file status is SUCCEEDED
       const status = await getFileStatus(db, file.id);
@@ -161,21 +151,12 @@ describe("Process File Integration", () => {
       const observations = await getObservationsByReportId(db, report.id);
       expect(observations.length).toBeGreaterThan(0);
 
-      // Log results for manual inspection
-      console.log("\n✅ Real LLM integration test passed!");
-      console.log(`   Duration: ${duration}ms`);
-      console.log(`   Lab Name: ${report.lab_name}`);
-      console.log(`   Collection Date: ${report.collection_date}`);
-      console.log(`   Observations extracted: ${observations.length}`);
-      console.log("\n📊 Extracted observations:");
-      
       for (const obs of observations) {
         const defResult = await db.query(
           "SELECT canonical_name, category_id FROM observation_definitions WHERE id = $1",
-          [obs.observation_id]
+          [obs.observation_id],
         );
-        const def = defResult.rows[0];
-        console.log(`   - ${def?.canonical_name}: ${obs.raw_value} ${obs.raw_unit ?? ""}`);
+        const _def = defResult.rows[0];
       }
     }, 120000); // 120 second timeout for real LLM call
   });

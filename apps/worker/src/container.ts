@@ -1,22 +1,22 @@
 /**
  * Worker Dependency Container
- * 
+ *
  * Central location for all infrastructure dependencies.
  * All job handlers should receive dependencies from here.
  */
 
-import { 
-  Logger, 
-  createLogger,
+import {
   createDbPool,
-  createStorageClient,
+  createLogger,
   createQueueConnection,
-  Database,
-  StorageClient,
-  QueueConnection,
-  LLMProvider,
+  createStorageClient,
+  type Database,
   GeminiProvider,
+  type LLMProvider,
+  type Logger,
   MockLLMProvider,
+  type QueueConnection,
+  type StorageClient,
 } from "@health-vitals/platform";
 import { env } from "@health-vitals/platform/config/env";
 
@@ -41,7 +41,9 @@ export const storage: StorageClient = createStorageClient({
 let _queue: QueueConnection | null = null;
 
 export async function getQueue(): Promise<QueueConnection> {
-  if (_queue) return _queue;
+  if (_queue) {
+    return _queue;
+  }
 
   const maxRetries = 10;
   const retryDelay = 5000;
@@ -57,11 +59,11 @@ export async function getQueue(): Promise<QueueConnection> {
         logger.error("Failed to connect to RabbitMQ after maximum retries", { error });
         process.exit(1);
       }
-      logger.warn(`Failed to connect to RabbitMQ, retrying in ${retryDelay/1000}s...`);
-      await new Promise(resolve => setTimeout(resolve, retryDelay));
+      logger.warn(`Failed to connect to RabbitMQ, retrying in ${retryDelay / 1000}s...`);
+      await new Promise((resolve) => setTimeout(resolve, retryDelay));
     }
   }
-  
+
   throw new Error("Failed to connect to RabbitMQ");
 }
 
@@ -73,7 +75,7 @@ export const llmProvider: LLMProvider = env.GEMINI_API_KEY
 // === Cleanup ===
 export async function shutdown(): Promise<void> {
   logger.info("Shutting down worker...");
-  
+
   try {
     if (_queue) {
       await _queue.close();

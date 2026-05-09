@@ -1,5 +1,5 @@
 import type { Database } from "@health-vitals/platform";
-import { DashboardResponse, TrendSeries } from "./types.ts";
+import type { DashboardResponse, TrendSeries } from "./types.ts";
 
 export class GetTrendsService {
   constructor(private db: Database) {}
@@ -32,21 +32,22 @@ export class GetTrendsService {
       if (!seriesMap.has(row.canonical_name)) {
         seriesMap.set(row.canonical_name, {
           canonical_name: row.canonical_name,
-          unit: row.unit || '',
+          unit: row.unit || "",
           points: [],
         });
       }
 
       const series = seriesMap.get(row.canonical_name)!;
-      
+
       if (!series.unit && row.unit) {
-          series.unit = row.unit;
+        series.unit = row.unit;
       }
 
       series.points.push({
-        date: row.collection_date instanceof Date 
-          ? row.collection_date.toISOString().split('T')[0] 
-          : row.collection_date,
+        date:
+          row.collection_date instanceof Date
+            ? row.collection_date.toISOString().split("T")[0]
+            : row.collection_date,
         value: parseFloat(row.normalized_value),
         reference_low: row.reference_low ? parseFloat(row.reference_low) : null,
         reference_high: row.reference_high ? parseFloat(row.reference_high) : null,

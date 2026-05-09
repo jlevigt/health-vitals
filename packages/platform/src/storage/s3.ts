@@ -1,9 +1,9 @@
 import {
-  S3Client,
-  PutObjectCommand,
-  GetObjectCommand,
   DeleteObjectCommand,
+  GetObjectCommand,
   ListObjectsV2Command,
+  PutObjectCommand,
+  S3Client,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import type { StorageClient, StorageConfig } from "./interface.ts";
@@ -29,7 +29,7 @@ export function createStorageClient(config: StorageConfig): StorageClient {
       bucket: string,
       key: string,
       body: Buffer,
-      contentType = "application/octet-stream"
+      contentType = "application/octet-stream",
     ): Promise<void> {
       await s3.send(
         new PutObjectCommand({
@@ -37,7 +37,7 @@ export function createStorageClient(config: StorageConfig): StorageClient {
           Key: key,
           Body: body,
           ContentType: contentType,
-        })
+        }),
       );
     },
 
@@ -46,7 +46,7 @@ export function createStorageClient(config: StorageConfig): StorageClient {
         new GetObjectCommand({
           Bucket: bucket,
           Key: key,
-        })
+        }),
       );
 
       if (!response.Body) {
@@ -66,7 +66,7 @@ export function createStorageClient(config: StorageConfig): StorageClient {
         new DeleteObjectCommand({
           Bucket: bucket,
           Key: key,
-        })
+        }),
       );
     },
 
@@ -75,7 +75,7 @@ export function createStorageClient(config: StorageConfig): StorageClient {
         new ListObjectsV2Command({
           Bucket: bucket,
           Prefix: prefix,
-        })
+        }),
       );
 
       return (response.Contents ?? [])
@@ -87,22 +87,18 @@ export function createStorageClient(config: StorageConfig): StorageClient {
       bucket: string,
       key: string,
       expiresIn = 3600,
-      contentType = "application/pdf"
+      contentType = "application/pdf",
     ): Promise<string> {
       const command = new PutObjectCommand({
         Bucket: bucket,
         Key: key,
         ContentType: contentType,
-        ChecksumAlgorithm: undefined
+        ChecksumAlgorithm: undefined,
       });
       return getSignedUrl(s3, command, { expiresIn });
     },
 
-    async getSignedDownloadUrl(
-      bucket: string,
-      key: string,
-      expiresIn = 3600
-    ): Promise<string> {
+    async getSignedDownloadUrl(bucket: string, key: string, expiresIn = 3600): Promise<string> {
       const command = new GetObjectCommand({
         Bucket: bucket,
         Key: key,

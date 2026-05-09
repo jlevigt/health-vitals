@@ -31,13 +31,18 @@ const processQueue = (error: Error | null, token: string | null = null) => {
   failedQueue = [];
 };
 
-async function request<T = any>(path: string, options: RequestOptions = {}): Promise<{ data: T; status: number; headers: Headers }> {
+async function request<T = any>(
+  path: string,
+  options: RequestOptions = {},
+): Promise<{ data: T; status: number; headers: Headers }> {
   const { params, data, ...fetchOptions } = options;
-  
+
   // Construct URL
   const url = new URL(`${API_BASE_URL}${path}`);
   if (params) {
-    Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+    for (const key of Object.keys(params)) {
+      url.searchParams.append(key, params[key]);
+    }
   }
 
   // Set default headers
@@ -57,10 +62,11 @@ async function request<T = any>(path: string, options: RequestOptions = {}): Pro
     }
   }
 
-  const performFetch = () => fetch(url.toString(), {
-    ...fetchOptions,
-    headers,
-  });
+  const performFetch = () =>
+    fetch(url.toString(), {
+      ...fetchOptions,
+      headers,
+    });
 
   let response = await performFetch();
 
@@ -72,7 +78,7 @@ async function request<T = any>(path: string, options: RequestOptions = {}): Pro
       })
         .then((token) => {
           headers.set("Authorization", `Bearer ${token}`);
-          return performFetch().then(res => handleResponse<T>(res));
+          return performFetch().then((res) => handleResponse<T>(res));
         })
         .catch((err) => Promise.reject(err));
     }
@@ -91,14 +97,17 @@ async function request<T = any>(path: string, options: RequestOptions = {}): Pro
 
       const { accessToken } = await refreshResponse.json();
       localStorage.setItem("accessToken", accessToken);
-      
+
       processQueue(null, accessToken);
-      
+
       // Retry original request
       headers.set("Authorization", `Bearer ${accessToken}`);
       response = await performFetch();
     } catch (refreshError: any) {
-      processQueue(refreshError instanceof Error ? refreshError : new Error(String(refreshError)), null);
+      processQueue(
+        refreshError instanceof Error ? refreshError : new Error(String(refreshError)),
+        null,
+      );
       localStorage.removeItem("accessToken");
       window.location.href = "/login";
       return Promise.reject(refreshError);
@@ -110,14 +119,19 @@ async function request<T = any>(path: string, options: RequestOptions = {}): Pro
   return handleResponse<T>(response);
 }
 
-async function handleResponse<T = any>(response: Response): Promise<{ data: T; status: number; headers: Headers }> {
+async function handleResponse<T = any>(
+  response: Response,
+): Promise<{ data: T; status: number; headers: Headers }> {
   const contentType = response.headers.get("content-type");
-  const isJson = contentType && contentType.includes("application/json");
+  const isJson = contentType?.includes("application/json");
   const data = isJson ? await response.json() : await response.text();
 
   if (!response.ok) {
     // Mimic Axios error structure for compatibility
-    const message = (typeof data === 'object' && data !== null && 'message' in data) ? (data as any).message : response.statusText;
+    const message =
+      typeof data === "object" && data !== null && "message" in data
+        ? (data as any).message
+        : response.statusText;
     const error = new Error(message) as any;
     error.response = {
       status: response.status,
@@ -130,8 +144,12 @@ async function handleResponse<T = any>(response: Response): Promise<{ data: T; s
 }
 
 export const api = {
-  get: <T = any>(path: string, options?: RequestOptions) => request<T>(path, { ...options, method: "GET" }),
-  post: <T = any>(path: string, data?: any, options?: RequestOptions) => request<T>(path, { ...options, method: "POST", data }),
-  put: <T = any>(path: string, data?: any, options?: RequestOptions) => request<T>(path, { ...options, method: "PUT", data }),
-  delete: <T = any>(path: string, options?: RequestOptions) => request<T>(path, { ...options, method: "DELETE" }),
+  get: <T = any>(path: string, options?: RequestOptions) =>
+    request<T>(path, { ...options, method: "GET" }),
+  post: <T = any>(path: string, data?: any, options?: RequestOptions) =>
+    request<T>(path, { ...options, method: "POST", data }),
+  put: <T = any>(path: string, data?: any, options?: RequestOptions) =>
+    request<T>(path, { ...options, method: "PUT", data }),
+  delete: <T = any>(path: string, options?: RequestOptions) =>
+    request<T>(path, { ...options, method: "DELETE" }),
 };

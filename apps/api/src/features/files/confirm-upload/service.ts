@@ -1,20 +1,20 @@
+import { type FileProcessJobPayload, FileStatus } from "@health-vitals/contracts";
 import type { Database, Logger, QueueChannel } from "@health-vitals/platform";
-import { FileStatus, type FileProcessJobPayload } from "@health-vitals/contracts";
-import { publishJob, Queues, AppError } from "@health-vitals/platform";
-import { ConfirmUploadResponse } from "../types.ts";
+import { AppError, publishJob, Queues } from "@health-vitals/platform";
+import type { ConfirmUploadResponse } from "../types.ts";
 
 export class ConfirmUploadService {
   constructor(
     private db: Database,
     private logger: Logger,
-    private getQueueChannel: () => Promise<QueueChannel>
+    private getQueueChannel: () => Promise<QueueChannel>,
   ) {}
 
   async execute(
     userId: string,
     fileId: string,
     _etag?: string,
-    _checksum?: string
+    _checksum?: string,
   ): Promise<ConfirmUploadResponse> {
     this.logger.info(`Confirming upload for file ${fileId}`, { userId, fileId });
 
@@ -29,7 +29,7 @@ export class ConfirmUploadService {
          FROM files
          WHERE id = $1
          FOR UPDATE`,
-        [fileId]
+        [fileId],
       );
 
       if (fileResult.rows.length === 0) {
@@ -45,10 +45,7 @@ export class ConfirmUploadService {
 
       // Validate state transition
       if (file.status !== FileStatus.CREATED) {
-        throw new AppError(
-          `Cannot confirm upload: file is in '${file.status}' state`,
-          400
-        );
+        throw new AppError(`Cannot confirm upload: file is in '${file.status}' state`, 400);
       }
 
       // Transition to QUEUED
@@ -57,7 +54,7 @@ export class ConfirmUploadService {
         `UPDATE files
          SET status = $1, enqueued_at = $2
          WHERE id = $3`,
-        [FileStatus.QUEUED, now, fileId]
+        [FileStatus.QUEUED, now, fileId],
       );
 
       await client.query("COMMIT");

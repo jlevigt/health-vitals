@@ -1,9 +1,9 @@
 // Re-exports for clean imports
-export { 
-  AppError, 
-  NotFoundError, 
-  ValidationError, 
-  UnauthorizedError, 
+export {
+  AppError,
+  ConflictError,
   ForbiddenError,
-  ConflictError 
+  NotFoundError,
+  UnauthorizedError,
+  ValidationError,
 } from "./app.error.ts";

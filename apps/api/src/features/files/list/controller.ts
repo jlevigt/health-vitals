@@ -1,16 +1,12 @@
-import { Request, Response, NextFunction } from "express";
-import { ListFilesService } from "./service.ts";
-import { ListFilesQuerySchema } from "../types.ts";
-import { db, logger } from "@/container.ts";
 import { AppError } from "@health-vitals/platform";
+import type { NextFunction, Request, Response } from "express";
+import { db, logger } from "@/container.ts";
+import { ListFilesQuerySchema } from "../types.ts";
+import { ListFilesService } from "./service.ts";
 
 const service = new ListFilesService(db, logger);
 
-export async function listFilesController(
-  req: Request,
-  res: Response,
-  next: NextFunction
-) {
+export async function listFilesController(req: Request, res: Response, next: NextFunction) {
   try {
     const userId = req.user?.id;
     if (!userId) {
@@ -19,10 +15,7 @@ export async function listFilesController(
 
     const parseResult = ListFilesQuerySchema.safeParse(req.query);
     if (!parseResult.success) {
-      throw new AppError(
-        `Invalid query parameters: ${parseResult.error.message}`,
-        400
-      );
+      throw new AppError(`Invalid query parameters: ${parseResult.error.message}`, 400);
     }
 
     const result = await service.execute(userId, parseResult.data);

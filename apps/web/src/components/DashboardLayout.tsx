@@ -1,8 +1,8 @@
-import React from 'react';
-import { Activity, LogOut, ChevronRight } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { type ClassValue, clsx } from "clsx";
+import { Activity, ChevronRight, LogOut } from "lucide-react";
+import type React from "react";
+import { twMerge } from "tailwind-merge";
+import { useAuth } from "../context/AuthContext";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -16,16 +16,16 @@ interface DashboardLayoutProps {
 }
 
 const CATEGORIES = [
-  { id: 'lipid_panel', label: 'Lipid Panel' },
-  { id: 'glucose_metabolism', label: 'Glucose Metabolism' },
-  { id: 'renal_function', label: 'Renal Function' },
+  { id: "lipid_panel", label: "Lipid Panel" },
+  { id: "glucose_metabolism", label: "Glucose Metabolism" },
+  { id: "renal_function", label: "Renal Function" },
 ];
 
-export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ 
-  children, 
-  activeCategory, 
+export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
+  children,
+  activeCategory,
   onCategoryChange,
-  loading 
+  loading,
 }) => {
   const { user, logout } = useAuth();
 
@@ -37,7 +37,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           <Activity className="w-6 h-6" />
           <span className="text-lg font-bold tracking-tight text-on-surface">Health Trends</span>
         </div>
-        
+
         <div className="flex items-center gap-6">
           <div className="hidden md:flex gap-1 bg-secondary-container p-1 rounded-full">
             {CATEGORIES.map((cat) => (
@@ -46,16 +46,16 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                 onClick={() => onCategoryChange(cat.id)}
                 className={cn(
                   "px-4 py-1.5 rounded-full text-xs font-semibold transition-all",
-                  activeCategory === cat.id 
-                    ? "bg-primary text-on-primary shadow-sm" 
-                    : "text-on-secondary-container hover:bg-black/5"
+                  activeCategory === cat.id
+                    ? "bg-primary text-on-primary shadow-sm"
+                    : "text-on-secondary-container hover:bg-black/5",
                 )}
               >
                 {cat.label}
               </button>
             ))}
           </div>
-          
+
           <div className="flex items-center gap-4 pl-4 border-l border-outline-variant">
             <span className="text-xs text-on-surface-variant font-medium hidden sm:block">
               {user?.email}
@@ -77,7 +77,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
           <span>Dashboards</span>
           <ChevronRight className="w-3 h-3" />
           <span className="text-primary font-bold">
-            {CATEGORIES.find(c => c.id === activeCategory)?.label}
+            {CATEGORIES.find((c) => c.id === activeCategory)?.label}
           </span>
         </div>
 
@@ -86,15 +86,19 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
             <div className="absolute inset-0 flex items-center justify-center bg-surface/50 backdrop-blur-sm z-20">
               <div className="flex flex-col items-center gap-2">
                 <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-                <span className="text-sm font-medium text-on-surface-variant">Updating Trends...</span>
+                <span className="text-sm font-medium text-on-surface-variant">
+                  Updating Trends...
+                </span>
               </div>
             </div>
           ) : null}
-          
-          <div className={cn(
-            "h-full overflow-y-auto no-scrollbar pb-4",
-            loading && "opacity-50 grayscale-[0.5]"
-          )}>
+
+          <div
+            className={cn(
+              "h-full overflow-y-auto no-scrollbar pb-4",
+              loading && "opacity-50 grayscale-[0.5]",
+            )}
+          >
             {children}
           </div>
         </div>

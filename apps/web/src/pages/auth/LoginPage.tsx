@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import type React from "react";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { api } from "@/api/client";
 import { useAuth } from "@/context/AuthContext";
 
@@ -38,27 +39,31 @@ export const LoginPage: React.FC = () => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-on-surface ml-1 mb-1">Email</label>
-            <input
-              type="email"
-              required
-              className="w-full px-4 py-3 rounded-xl border border-outline focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-              placeholder="name@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+            <label className="block text-sm font-medium text-on-surface ml-1 mb-1">
+              Email
+              <input
+                type="email"
+                required
+                className="w-full px-4 py-3 rounded-xl border border-outline focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all mt-1"
+                placeholder="name@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </label>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-on-surface ml-1 mb-1">Password</label>
-            <input
-              type="password"
-              required
-              className="w-full px-4 py-3 rounded-xl border border-outline focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+            <label className="block text-sm font-medium text-on-surface ml-1 mb-1">
+              Password
+              <input
+                type="password"
+                required
+                className="w-full px-4 py-3 rounded-xl border border-outline focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all mt-1"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </label>
           </div>
 
           {error && <p className="text-error text-sm text-center">{error}</p>}

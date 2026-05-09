@@ -1,11 +1,7 @@
-import { v4 as uuidv4 } from "uuid";
 import type { Database, Logger, StorageClient } from "@health-vitals/platform";
 import { Buckets } from "@health-vitals/platform";
-import {
-  FileUploadItem,
-  FileUploadUrlResponse,
-  RequestUploadResponse,
-} from "../types.ts";
+import { v4 as uuidv4 } from "uuid";
+import type { FileUploadItem, FileUploadUrlResponse, RequestUploadResponse } from "../types.ts";
 
 const SIGNED_URL_EXPIRES_IN = 3600; // 1 hour
 
@@ -13,13 +9,10 @@ export class RequestUploadService {
   constructor(
     private db: Database,
     private storage: StorageClient,
-    private logger: Logger
+    private logger: Logger,
   ) {}
 
-  async execute(
-    userId: string,
-    files: FileUploadItem[]
-  ): Promise<RequestUploadResponse> {
+  async execute(userId: string, files: FileUploadItem[]): Promise<RequestUploadResponse> {
     this.logger.info(`Requesting upload URLs for ${files.length} files`, {
       userId,
     });
@@ -39,13 +32,7 @@ export class RequestUploadService {
         await client.query(
           `INSERT INTO files (id, user_id, original_filename, object_key, size_bytes, status)
            VALUES ($1, $2, $3, $4, $5, 'CREATED')`,
-          [
-            fileId,
-            userId,
-            file.original_filename,
-            objectKey,
-            file.size_bytes,
-          ]
+          [fileId, userId, file.original_filename, objectKey, file.size_bytes],
         );
 
         // Generate signed upload URL
@@ -53,7 +40,7 @@ export class RequestUploadService {
           Buckets.UPLOADS,
           objectKey,
           SIGNED_URL_EXPIRES_IN,
-          file.content_type
+          file.content_type,
         );
 
         results.push({

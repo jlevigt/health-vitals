@@ -1,14 +1,15 @@
-import React, { useEffect, useState, useRef } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
-import { api } from "@/api/client"; 
-import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import { CheckCircle2, Loader2, XCircle } from "lucide-react";
+import type React from "react";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { api } from "@/api/client";
 
 export const VerifyEmailPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [status, setStatus] = useState<"verifying" | "success" | "error">("verifying");
   const [message, setMessage] = useState("Verifying your email...");
-  
+
   // Prevent double-execution in React Strict Mode
   const verifiedRef = useRef(false);
 
@@ -22,7 +23,9 @@ export const VerifyEmailPage: React.FC = () => {
       return;
     }
 
-    if (verifiedRef.current) return;
+    if (verifiedRef.current) {
+      return;
+    }
     verifiedRef.current = true;
 
     const verify = async () => {
@@ -30,7 +33,7 @@ export const VerifyEmailPage: React.FC = () => {
         await api.post("/auth/verify-email", { token, email });
         setStatus("success");
         setMessage("Email verified successfully! Redirecting to login...");
-        
+
         setTimeout(() => {
           navigate("/login");
         }, 3000);
@@ -46,7 +49,6 @@ export const VerifyEmailPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-surface flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-2xl p-8 shadow-sm border border-outline-variant/30 text-center space-y-6">
-        
         {status === "verifying" && (
           <>
             <div className="flex justify-center">
@@ -74,7 +76,7 @@ export const VerifyEmailPage: React.FC = () => {
             </div>
             <h1 className="text-2xl font-bold text-on-surface">Verification Failed</h1>
             <p className="text-on-surface-variant">{message}</p>
-            <button 
+            <button
               onClick={() => navigate("/login")}
               className="mt-4 px-6 py-2 bg-primary text-on-primary rounded-full font-bold hover:shadow-md transition-all"
             >

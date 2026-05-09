@@ -1,8 +1,9 @@
-import React, { useState, useRef, useCallback } from "react";
-import { Upload, X, FileText, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
-import { filesApi } from "@/api/files";
 import { clsx } from "clsx";
+import { AlertCircle, CheckCircle2, FileText, Loader2, Upload, X } from "lucide-react";
+import type React from "react";
+import { useCallback, useRef, useState } from "react";
 import { twMerge } from "tailwind-merge";
+import { filesApi } from "@/api/files";
 
 function cn(...inputs: (string | undefined | null | false)[]) {
   return twMerge(clsx(inputs));
@@ -14,11 +15,7 @@ interface UploadModalProps {
   onUploadComplete: () => void;
 }
 
-export const UploadModal: React.FC<UploadModalProps> = ({
-  isOpen,
-  onClose,
-  onUploadComplete,
-}) => {
+export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUploadComplete }) => {
   const [files, setFiles] = useState<File[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -36,7 +33,9 @@ export const UploadModal: React.FC<UploadModalProps> = ({
   }, []);
 
   const handleClose = () => {
-    if (uploading) return;
+    if (uploading) {
+      return;
+    }
     resetState();
     onClose();
   };
@@ -54,11 +53,13 @@ export const UploadModal: React.FC<UploadModalProps> = ({
   const onDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const droppedFiles = Array.from(e.dataTransfer.files).filter(f => f.type === "application/pdf");
+      const droppedFiles = Array.from(e.dataTransfer.files).filter(
+        (f) => f.type === "application/pdf",
+      );
       if (droppedFiles.length > 0) {
-        setFiles(prev => [...prev, ...droppedFiles]);
+        setFiles((prev) => [...prev, ...droppedFiles]);
         setError(null);
       } else {
         setError("Only PDF files are allowed.");
@@ -68,27 +69,29 @@ export const UploadModal: React.FC<UploadModalProps> = ({
 
   const onFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const selectedFiles = Array.from(e.target.files).filter(f => f.type === "application/pdf");
+      const selectedFiles = Array.from(e.target.files).filter((f) => f.type === "application/pdf");
       if (selectedFiles.length > 0) {
-        setFiles(prev => [...prev, ...selectedFiles]);
+        setFiles((prev) => [...prev, ...selectedFiles]);
         setError(null);
       } else {
         setError("Only PDF files are allowed.");
       }
-      
+
       // Reset input value so same files can be selected again if needed
       if (fileInputRef.current) {
-         fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
     }
   };
 
   const removeFile = (index: number) => {
-    setFiles(prev => prev.filter((_, i) => i !== index));
+    setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleUpload = async () => {
-    if (files.length === 0) return;
+    if (files.length === 0) {
+      return;
+    }
 
     setUploading(true);
     setError(null);
@@ -97,11 +100,11 @@ export const UploadModal: React.FC<UploadModalProps> = ({
     try {
       // 1. Get Upload URLs for ALL files at once
       const { files: uploadConfigs } = await filesApi.getUploadUrls(
-        files.map(f => ({
+        files.map((f) => ({
           original_filename: f.name,
           size_bytes: f.size,
-          content_type: f.type
-        }))
+          content_type: f.type,
+        })),
       );
 
       // 2. Upload each file sequentially (or parallel limited)
@@ -124,24 +127,25 @@ export const UploadModal: React.FC<UploadModalProps> = ({
         handleClose();
       }, 1500);
     } catch (err: any) {
-      console.error("Upload failed:", err);
       setError(err.message || "Failed to upload files. Please try again.");
       setUploading(false);
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen) {
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div 
+      <div
         className="w-full max-w-lg bg-white rounded-2xl shadow-xl overflow-hidden animate-in zoom-in-95 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
           <h3 className="text-lg font-semibold text-gray-900">Upload Reports</h3>
-          <button 
+          <button
             onClick={handleClose}
             className="p-1 rounded-full hover:bg-gray-100 text-gray-500 transition-colors"
             disabled={uploading}
@@ -162,28 +166,30 @@ export const UploadModal: React.FC<UploadModalProps> = ({
             </div>
           ) : (
             <>
-               <div
+              <div
                 onDragOver={onDragOver}
                 onDragLeave={onDragLeave}
                 onDrop={onDrop}
                 onClick={() => !uploading && fileInputRef.current?.click()}
                 className={cn(
                   "border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-200",
-                  isDragOver ? "border-primary bg-primary/5 scale-[1.02]" : "border-gray-300 hover:border-primary hover:bg-gray-50",
+                  isDragOver
+                    ? "border-primary bg-primary/5 scale-[1.02]"
+                    : "border-gray-300 hover:border-primary hover:bg-gray-50",
                   uploading && "opacity-50 pointer-events-none",
                 )}
               >
-                <input 
-                  type="file" 
+                <input
+                  type="file"
                   ref={fileInputRef}
-                  className="hidden" 
+                  className="hidden"
                   accept="application/pdf"
                   onChange={onFileSelect}
                   multiple
                 />
-                
+
                 <div className="w-12 h-12 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center mb-4 group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                    <Upload className="w-6 h-6" />
+                  <Upload className="w-6 h-6" />
                 </div>
                 <p className="font-medium text-gray-900 mb-1">Click to upload or drag and drop</p>
                 <p className="text-sm text-gray-500">PDF files only (max 10MB)</p>
@@ -191,30 +197,33 @@ export const UploadModal: React.FC<UploadModalProps> = ({
 
               {/* Selected Files List */}
               {files.length > 0 && (
-                  <div className="mt-4 max-h-40 overflow-y-auto space-y-2 pr-1">
-                      {files.map((file, idx) => (
-                          <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg border border-gray-100 text-sm animate-in slide-in-from-bottom-1">
-                              <div className="flex items-center gap-2 truncate">
-                                  <FileText className="w-4 h-4 text-primary shrink-0" />
-                                  <span className="truncate max-w-[200px] text-gray-700">{file.name}</span>
-                              </div>
-                              {!uploading && (
-                                <button 
-                                    onClick={() => removeFile(idx)}
-                                    className="p-1 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded"
-                                >
-                                    <X className="w-4 h-4" />
-                                </button>
-                              )}
-                              {uploading && idx < currentFileIndex && (
-                                  <CheckCircle2 className="w-4 h-4 text-green-500" />
-                              )}
-                              {uploading && idx >= currentFileIndex && (
-                                  <div className="w-4 h-4 border-2 border-gray-200 border-t-primary rounded-full animate-spin" />
-                              )}
-                          </div>
-                      ))}
-                  </div>
+                <div className="mt-4 max-h-40 overflow-y-auto space-y-2 pr-1">
+                  {files.map((file, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between p-2 bg-gray-50 rounded-lg border border-gray-100 text-sm animate-in slide-in-from-bottom-1"
+                    >
+                      <div className="flex items-center gap-2 truncate">
+                        <FileText className="w-4 h-4 text-primary shrink-0" />
+                        <span className="truncate max-w-[200px] text-gray-700">{file.name}</span>
+                      </div>
+                      {!uploading && (
+                        <button
+                          onClick={() => removeFile(idx)}
+                          className="p-1 hover:bg-red-50 text-gray-400 hover:text-red-500 rounded"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      )}
+                      {uploading && idx < currentFileIndex && (
+                        <CheckCircle2 className="w-4 h-4 text-green-500" />
+                      )}
+                      {uploading && idx >= currentFileIndex && (
+                        <div className="w-4 h-4 border-2 border-gray-200 border-t-primary rounded-full animate-spin" />
+                      )}
+                    </div>
+                  ))}
+                </div>
               )}
 
               {error && (
@@ -248,7 +257,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({
                   Uploading ({currentFileIndex}/{files.length})
                 </>
               ) : (
-                `Upload ${files.length > 0 ? files.length : ''} File${files.length !== 1 ? 's' : ''}`
+                `Upload ${files.length > 0 ? files.length : ""} File${files.length !== 1 ? "s" : ""}`
               )}
             </button>
           </div>

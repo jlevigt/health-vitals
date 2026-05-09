@@ -20,7 +20,7 @@ export const filesApi = {
   },
 
   uploadFileToUrl: async (url: string, file: File) => {
-    // We use fetch here because S3 signed URLs are very sensitive to 
+    // We use fetch here because S3 signed URLs are very sensitive to
     // automated headers or transforms.
     const response = await fetch(url, {
       method: "PUT",
@@ -37,7 +37,10 @@ export const filesApi = {
 
   completeUpload: async (fileId: string) => {
     // API returns { file_id: string; status: string }
-    const response = await api.post<{ file_id: string; status: string }>(`/files/${fileId}/upload-complete`, {});
+    const response = await api.post<{ file_id: string; status: string }>(
+      `/files/${fileId}/upload-complete`,
+      {},
+    );
     return response.data;
   },
 };

@@ -1,4 +1,4 @@
-import { describe, it, expect } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import { env } from "../src/config/env.ts";
 
 describe("Platform Env", () => {

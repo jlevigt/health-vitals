@@ -1,5 +1,5 @@
 import type { Database } from "@health-vitals/platform";
-import { Report } from "./types.ts";
+import type { Report } from "./types.ts";
 
 export class ListReportsService {
   constructor(private db: Database) {}
@@ -23,12 +23,13 @@ export class ListReportsService {
 
     const result = await this.db.query(query, [userId]);
 
-    return result.rows.map(row => ({
+    return result.rows.map((row) => ({
       id: row.id,
       file_id: row.file_id,
       fileName: row.file_name,
-      date: row.collection_date instanceof Date 
-          ? row.collection_date.toISOString().split('T')[0] 
+      date:
+        row.collection_date instanceof Date
+          ? row.collection_date.toISOString().split("T")[0]
           : row.collection_date,
       lab_name: row.lab_name,
       observationsCount: parseInt(row.observations_count, 10),

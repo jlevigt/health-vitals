@@ -1,16 +1,13 @@
 import type { Database, Logger } from "@health-vitals/platform";
-import { FileListItem, ListFilesQuery } from "../types.ts";
+import type { FileListItem, ListFilesQuery } from "../types.ts";
 
 export class ListFilesService {
   constructor(
     private db: Database,
-    private logger: Logger
+    private logger: Logger,
   ) {}
 
-  async execute(
-    userId: string,
-    query: ListFilesQuery
-  ): Promise<FileListItem[]> {
+  async execute(userId: string, query: ListFilesQuery): Promise<FileListItem[]> {
     this.logger.debug(`Listing files for user ${userId}`, { query });
 
     let sql = `

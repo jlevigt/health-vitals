@@ -1,14 +1,14 @@
 /**
  * Worker Entry Point
- * 
+ *
  * Consumes file processing jobs from RabbitMQ and processes PDF files
  * using LLM to extract structured health data.
  */
 
-import { type FileProcessJobPayload } from "@health-vitals/contracts";
+import type { FileProcessJobPayload } from "@health-vitals/contracts";
 import { Queues } from "@health-vitals/platform";
-import { db, storage, logger, llmProvider, getQueue, shutdown } from "./container.ts";
 import { processFileJob } from "./consumers/ai-extraction/handler.ts";
+import { db, getQueue, llmProvider, logger, shutdown, storage } from "./container.ts";
 
 const PREFETCH_COUNT = 1; // Process one job at a time for rate limiting
 
@@ -20,10 +20,10 @@ async function main() {
     await db.query("SELECT 1");
     logger.info("Database connection established");
   } catch (error: any) {
-    logger.error("Failed to connect to database", { 
+    logger.error("Failed to connect to database", {
       message: error.message,
-      stack: error.stack, 
-      code: error.code 
+      stack: error.stack,
+      code: error.code,
     });
     process.exit(1);
   }
@@ -45,7 +45,9 @@ async function main() {
 
   // Consume messages
   await channel.consume(Queues.FILE_PROCESSING, async (msg) => {
-    if (!msg) return;
+    if (!msg) {
+      return;
+    }
 
     const startTime = Date.now();
     let payload: FileProcessJobPayload;
@@ -88,7 +90,7 @@ async function main() {
     try {
       await shutdown();
       process.exit(0);
-    } catch (error) {
+    } catch (_error) {
       process.exit(1);
     }
   };
@@ -97,7 +99,6 @@ async function main() {
   process.on("SIGTERM", handleShutdown);
 }
 
-main().catch((error) => {
-  console.error("Fatal error:", error);
+main().catch((_error) => {
   process.exit(1);
 });

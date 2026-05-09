@@ -1,25 +1,25 @@
 /**
  * Process File Handler Unit Tests
- * 
+ *
  * Tests for the job handler's state machine and error handling.
  */
 
-import { describe, it, expect, beforeAll, afterAll, mock } from "bun:test";
-import { processFileJob } from "../../src/consumers/ai-extraction/handler.ts";
+import { afterAll, beforeAll, describe, expect, it, mock } from "bun:test";
 import { FileStatus } from "@health-vitals/contracts";
+import type { JobContext } from "../../src/consumers/ai-extraction/handler.ts";
+import { processFileJob } from "../../src/consumers/ai-extraction/handler.ts";
 import {
-  getTestDb,
-  closeTestDb,
-  getTestStorage,
-  createMockLogger,
-  createMockLlmProvider,
-  createTestUser,
-  createTestFile,
   cleanupTestUser,
+  closeTestDb,
+  createMockLlmProvider,
+  createMockLogger,
+  createTestFile,
+  createTestUser,
   getFileStatus,
+  getTestDb,
+  getTestStorage,
   type TestUser,
 } from "./helpers.ts";
-import type { JobContext } from "../../src/consumers/ai-extraction/handler.ts";
 
 describe("Process File Handler", () => {
   let testUser: TestUser;
@@ -74,9 +74,7 @@ describe("Process File Handler", () => {
         enqueued_at: new Date().toISOString(),
       };
 
-      await expect(processFileJob(payload, createContext())).rejects.toThrow(
-        "File not found"
-      );
+      await expect(processFileJob(payload, createContext())).rejects.toThrow("File not found");
     });
   });
 
@@ -106,9 +104,7 @@ describe("Process File Handler", () => {
         llmProvider,
       };
 
-      await expect(processFileJob(payload, context)).rejects.toThrow(
-        "Storage unavailable"
-      );
+      await expect(processFileJob(payload, context)).rejects.toThrow("Storage unavailable");
 
       // Status should be FAILED_RETRYABLE
       const status = await getFileStatus(db, file.id);
@@ -147,7 +143,7 @@ describe("Process File Handler", () => {
       // Status should be failed (either FAILED_RETRYABLE or FAILED_TERMINAL)
       const status = await getFileStatus(db, file.id);
       expect(status).toBeTruthy();
-      expect(status!.startsWith("FAILED")).toBe(true);
+      expect(status?.startsWith("FAILED")).toBe(true);
     });
   });
 

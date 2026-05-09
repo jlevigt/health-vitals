@@ -1,15 +1,15 @@
-import React from 'react';
+import type React from "react";
 import {
-  LineChart,
+  CartesianGrid,
   Line,
+  LineChart,
+  ReferenceArea,
+  ResponsiveContainer,
+  Tooltip,
   XAxis,
   YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  ReferenceArea,
-} from 'recharts';
-import type { TrendSeries, TrendPoint } from '@/api/types';
+} from "recharts";
+import type { TrendPoint, TrendSeries } from "@/api/types";
 
 interface TrendChartProps {
   series: TrendSeries;
@@ -20,9 +20,9 @@ export const TrendChart: React.FC<TrendChartProps> = ({ series }) => {
 
   // Format canonical name for display
   const displayName = canonical_name
-    .split('_')
+    .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+    .join(" ");
 
   // Get reference range from the first point (assuming it's consistent for the series)
   const refLow = points[0]?.reference_low;
@@ -32,12 +32,12 @@ export const TrendChart: React.FC<TrendChartProps> = ({ series }) => {
     const { cx, cy, payload } = props;
     const { value, reference_low, reference_high } = payload as TrendPoint;
 
-    let color = '#79747E'; // Default gray
+    let color = "#79747E"; // Default gray
     if (reference_low !== null && reference_high !== null) {
       if (value < reference_low || value > reference_high) {
-        color = '#B3261E'; // Material Red 40 (Error)
+        color = "#B3261E"; // Material Red 40 (Error)
       } else {
-        color = '#146C2E'; // Forest Green (Success-ish)
+        color = "#146C2E"; // Forest Green (Success-ish)
       }
     }
 
@@ -48,12 +48,12 @@ export const TrendChart: React.FC<TrendChartProps> = ({ series }) => {
     const { cx, cy, payload } = props;
     const { value, reference_low, reference_high } = payload as TrendPoint;
 
-    let color = '#79747E';
+    let color = "#79747E";
     if (reference_low !== null && reference_high !== null) {
       if (value < reference_low || value > reference_high) {
-        color = '#B3261E';
+        color = "#B3261E";
       } else {
-        color = '#146C2E';
+        color = "#146C2E";
       }
     }
 
@@ -66,48 +66,48 @@ export const TrendChart: React.FC<TrendChartProps> = ({ series }) => {
         <h3 className="text-sm font-bold text-on-surface truncate">{displayName}</h3>
         <span className="text-[10px] font-medium text-on-surface-variant uppercase">{unit}</span>
       </div>
-      
+
       <div className="flex-1 w-full min-h-[120px]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={points} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E7E0EC" />
-            <XAxis 
-              dataKey="date" 
+            <XAxis
+              dataKey="date"
               axisLine={false}
               tickLine={false}
-              tick={{ fill: '#49454F', fontSize: 9 }}
-              tickFormatter={(date) => date.split('-').slice(1).join('/')} // MM/DD
+              tick={{ fill: "#49454F", fontSize: 9 }}
+              tickFormatter={(date) => date.split("-").slice(1).join("/")} // MM/DD
               dy={5}
             />
-            <YAxis 
+            <YAxis
               axisLine={false}
               tickLine={false}
-              tick={{ fill: '#49454F', fontSize: 9 }}
-              domain={['auto', 'auto']}
+              tick={{ fill: "#49454F", fontSize: 9 }}
+              domain={["auto", "auto"]}
             />
-            <Tooltip 
-              contentStyle={{ 
-                borderRadius: '8px', 
-                border: 'none', 
-                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-                fontSize: '11px',
-                padding: '8px'
+            <Tooltip
+              contentStyle={{
+                borderRadius: "8px",
+                border: "none",
+                boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                fontSize: "11px",
+                padding: "8px",
               }}
-              labelStyle={{ fontWeight: 'bold', marginBottom: '4px' }}
+              labelStyle={{ fontWeight: "bold", marginBottom: "4px" }}
             />
             {refLow !== null && refHigh !== null && (
-              <ReferenceArea 
-                y1={refLow} 
-                y2={refHigh} 
-                fill="#F3F4F6" 
-                fillOpacity={0.5} 
+              <ReferenceArea
+                y1={refLow}
+                y2={refHigh}
+                fill="#F3F4F6"
+                fillOpacity={0.5}
                 stroke="none"
               />
             )}
-            <Line 
-              type="monotone" 
-              dataKey="value" 
-              stroke="#79747E" 
+            <Line
+              type="monotone"
+              dataKey="value"
+              stroke="#79747E"
               strokeWidth={1.5}
               dot={<CustomDot />}
               activeDot={<ActiveDot />}

@@ -1,6 +1,6 @@
-import { Request, Response } from "express";
-import { ListReportsService } from "./service.ts";
 import { AppError } from "@health-vitals/platform";
+import type { Request, Response } from "express";
+import type { ListReportsService } from "./service.ts";
 
 export class ListReportsController {
   constructor(private service: ListReportsService) {}

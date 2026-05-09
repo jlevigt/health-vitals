@@ -2,7 +2,7 @@ import { z } from "zod";
 
 /**
  * Unified Environment Schema
- * 
+ *
  * This schema contains all environment variables used across the monorepo.
  * Apps fail fast if required core variables are missing.
  * App-specific variables are optional at the schema level to allow for lean deployments,
@@ -12,7 +12,7 @@ const envSchema = z.object({
   // --- Core / Common ---
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   DATABASE_URL: z.string().describe("PostgreSQL connection string"),
-  
+
   // --- Storage ---
   STORAGE_ENDPOINT: z.string(),
   STORAGE_REGION: z.string(),
@@ -27,7 +27,7 @@ const envSchema = z.object({
   PORT: z.coerce.number().optional().default(3000),
   WEB_URL: z.string().optional(),
   SECRET_JWT_KEY: z.string().optional(),
-  
+
   // --- Mail ---
   MAIL_HOST: z.string().optional(),
   MAIL_PORT: z.coerce.number().optional(),
@@ -44,8 +44,6 @@ const envSchema = z.object({
 const parsed = envSchema.safeParse(process.env);
 
 if (!parsed.success) {
-  console.error("❌ Invalid environment variables:");
-  console.error(JSON.stringify(parsed.error.issues, null, 2));
   process.exit(1);
 }
 

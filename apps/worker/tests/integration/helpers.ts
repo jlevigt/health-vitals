@@ -1,24 +1,24 @@
 /**
  * Test Helpers for Worker Tests
- * 
+ *
  * Shared utilities for setting up test data, mocking dependencies,
  * and cleaning up after tests.
  */
 
-import { 
-  createDbPool, 
-  createStorageClient,
+import { randomUUID } from "node:crypto";
+import {
+  createDbPool,
   createLogger,
-  FileStatus,
-  MockLLMProvider,
-  GeminiProvider,
+  createStorageClient,
   type Database,
-  type StorageClient,
-  type Logger,
+  FileStatus,
+  GeminiProvider,
   type LLMProvider,
+  type Logger,
+  MockLLMProvider,
+  type StorageClient,
 } from "@health-vitals/platform";
 import type { JobContext } from "../../src/consumers/ai-extraction/handler.ts";
-import { randomUUID } from "crypto";
 
 // === Database ===
 let _testDb: Database | null = null;
@@ -26,7 +26,9 @@ let _testDb: Database | null = null;
 export function getTestDb(): Database {
   if (!_testDb) {
     _testDb = createDbPool({
-      connectionString: process.env.DATABASE_URL || `postgresql://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASSWORD}@${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT}/${process.env.POSTGRES_DB}`,
+      connectionString:
+        process.env.DATABASE_URL ||
+        `postgresql://${process.env.POSTGRES_USER}:${process.env.POSTGRES_PASSWORD}@${process.env.POSTGRES_HOST}:${process.env.POSTGRES_PORT}/${process.env.POSTGRES_DB}`,
     });
   }
   return _testDb;
@@ -72,17 +74,14 @@ export function createRealLlmProvider(logger: Logger): LLMProvider {
 }
 
 // === Job Context Factory ===
-export function createTestJobContext(options?: {
-  useMockLlm?: boolean;
-}): JobContext {
+export function createTestJobContext(options?: { useMockLlm?: boolean }): JobContext {
   const logger = createMockLogger();
   return {
     db: getTestDb(),
     storage: getTestStorage(),
     logger,
-    llmProvider: options?.useMockLlm !== false 
-      ? createMockLlmProvider() 
-      : createRealLlmProvider(logger),
+    llmProvider:
+      options?.useMockLlm !== false ? createMockLlmProvider() : createRealLlmProvider(logger),
   };
 }
 
@@ -98,7 +97,7 @@ export async function createTestUser(db: Database): Promise<TestUser> {
     `INSERT INTO users (email, password_hash, is_active) 
      VALUES ($1, 'test_hash', true) 
      RETURNING id`,
-    [email]
+    [email],
   );
   return { id: result.rows[0].id, email };
 }
@@ -110,12 +109,12 @@ export interface TestFile {
 }
 
 export async function createTestFile(
-  db: Database, 
+  db: Database,
   userId: string,
   options?: {
-    status?: typeof FileStatus[keyof typeof FileStatus];
+    status?: (typeof FileStatus)[keyof typeof FileStatus];
     filename?: string;
-  }
+  },
 ): Promise<TestFile> {
   const filename = options?.filename ?? "test_report.pdf";
   const objectKey = `uploads/${userId}/${Date.now()}_${filename}`;
@@ -125,7 +124,7 @@ export async function createTestFile(
     `INSERT INTO files (user_id, original_filename, object_key, size_bytes, status)
      VALUES ($1, $2, $3, 1024, $4)
      RETURNING id`,
-    [userId, filename, objectKey, status]
+    [userId, filename, objectKey, status],
   );
 
   return {
@@ -147,36 +146,27 @@ export async function cleanupTestFile(db: Database, fileId: string): Promise<voi
 
 // === Assertions Helpers ===
 export async function getFileStatus(db: Database, fileId: string): Promise<string | null> {
-  const result = await db.query(
-    "SELECT status FROM files WHERE id = $1",
-    [fileId]
-  );
+  const result = await db.query("SELECT status FROM files WHERE id = $1", [fileId]);
   return result.rows[0]?.status ?? null;
 }
 
 export async function getReportByFileId(db: Database, fileId: string): Promise<any | null> {
-  const result = await db.query(
-    "SELECT * FROM reports WHERE file_id = $1",
-    [fileId]
-  );
+  const result = await db.query("SELECT * FROM reports WHERE file_id = $1", [fileId]);
   return result.rows[0] ?? null;
 }
 
 export async function getObservationsByReportId(db: Database, reportId: string): Promise<any[]> {
-  const result = await db.query(
-    "SELECT * FROM observations WHERE report_id = $1",
-    [reportId]
-  );
+  const result = await db.query("SELECT * FROM observations WHERE report_id = $1", [reportId]);
   return result.rows;
 }
 
 // === PDF Fixture Path ===
 // Note: This assumes tests are run from packages/worker directory
-import { resolve, dirname } from "path";
-import { fileURLToPath } from "url";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 export const PDF_FIXTURE_PATH = resolve(
   __dirname,
-  "./fixtures/Resultado_LABORATORIO CLEMENTINO FRAGA_70005839058701.pdf"
+  "./fixtures/Resultado_LABORATORIO CLEMENTINO FRAGA_70005839058701.pdf",
 );

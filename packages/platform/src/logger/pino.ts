@@ -1,5 +1,5 @@
+import type { LoggerOptions, Logger as PinoLogger } from "pino";
 import pino from "pino";
-import type { Logger as PinoLogger, LoggerOptions } from "pino";
 import type { Logger, LoggerConfig } from "./interface.ts";
 
 /**

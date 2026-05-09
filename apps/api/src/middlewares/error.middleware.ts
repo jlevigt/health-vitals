@@ -1,8 +1,8 @@
-import { Request, Response, NextFunction } from "express";
-import { ZodError } from "zod"; // <--- Importe o ZodError
 import { AppError } from "@health-vitals/platform";
+import type { NextFunction, Request, Response } from "express";
+import { ZodError } from "zod"; // <--- Importe o ZodError
 
-export const errorMiddleware = (err: Error, _req:  Request, res: Response, _next: NextFunction) => {
+export const errorMiddleware = (err: Error, _req: Request, res: Response, _next: NextFunction) => {
   // 1. Tratamento de Erros de Validação (Zod) -> 400 Bad Request
   if (err instanceof ZodError) {
     return res.status(400).json({
@@ -22,9 +22,6 @@ export const errorMiddleware = (err: Error, _req:  Request, res: Response, _next
       message: err.message,
     });
   }
-
-  // 3. Erros Inesperados -> 500 Internal Server Error
-  console.error(err); // Importante: Logar o erro real no servidor para debug
 
   return res.status(500).json({
     message: "Internal server error",

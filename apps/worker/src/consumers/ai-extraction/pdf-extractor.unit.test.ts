@@ -1,13 +1,13 @@
 /**
  * PDF Extractor Unit Tests
- * 
+ *
  * Tests for the PDF text extraction functionality.
  */
 
-import { describe, it, expect, beforeAll } from "bun:test";
-import { extractTextFromPdf } from "./pdf-extractor.ts";
+import { beforeAll, describe, expect, it } from "bun:test";
+import { existsSync, readFileSync } from "node:fs";
 import { PDF_FIXTURE_PATH } from "../../../tests/integration/helpers.ts";
-import { readFileSync, existsSync } from "fs";
+import { extractTextFromPdf } from "./pdf-extractor.ts";
 
 describe("PDF Extractor", () => {
   let pdfBuffer: Buffer;
@@ -23,7 +23,6 @@ describe("PDF Extractor", () => {
   describe("extractTextFromPdf", () => {
     it("should extract text from a valid PDF", async () => {
       if (!fixtureExists) {
-        console.log("⚠️ Skipping: PDF fixture not found at:", PDF_FIXTURE_PATH);
         return;
       }
 
@@ -32,9 +31,6 @@ describe("PDF Extractor", () => {
       expect(text).toBeDefined();
       expect(typeof text).toBe("string");
       expect(text.length).toBeGreaterThan(50); // Should have meaningful content
-      
-      // Log a preview for debugging
-      console.log("📄 Extracted text preview:", text.slice(0, 200));
     });
 
     it("should throw error for corrupted buffer", async () => {

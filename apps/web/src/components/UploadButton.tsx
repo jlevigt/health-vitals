@@ -1,6 +1,7 @@
-import React, { useRef, useState } from "react";
+import { AlertCircle, CheckCircle, Loader2, Upload } from "lucide-react";
+import type React from "react";
+import { useRef, useState } from "react";
 import { api } from "@/api/client";
-import { Upload, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 
 interface UploadButtonProps {
   onUploadSuccess: () => void;
@@ -13,7 +14,9 @@ export const UploadButton: React.FC<UploadButtonProps> = ({ onUploadSuccess }) =
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      return;
+    }
 
     if (file.type !== "application/pdf") {
       setStatus("error");
@@ -36,7 +39,9 @@ export const UploadButton: React.FC<UploadButtonProps> = ({ onUploadSuccess }) =
       setStatus("error");
       setErrorMessage(err.response?.data?.message || "Failed to upload file");
     } finally {
-      if (fileInputRef.current) fileInputRef.current.value = "";
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 
@@ -49,7 +54,7 @@ export const UploadButton: React.FC<UploadButtonProps> = ({ onUploadSuccess }) =
         accept=".pdf"
         className="hidden"
       />
-      
+
       <button
         onClick={() => fileInputRef.current?.click()}
         disabled={status === "uploading"}
@@ -57,10 +62,10 @@ export const UploadButton: React.FC<UploadButtonProps> = ({ onUploadSuccess }) =
           status === "uploading"
             ? "bg-secondary-container text-on-secondary-container cursor-not-allowed"
             : status === "success"
-            ? "bg-green-500 text-white"
-            : status === "error"
-            ? "bg-error text-on-error"
-            : "bg-primary text-on-primary hover:bg-opacity-90"
+              ? "bg-green-500 text-white"
+              : status === "error"
+                ? "bg-error text-on-error"
+                : "bg-primary text-on-primary hover:bg-opacity-90"
         }`}
       >
         {status === "uploading" ? (
@@ -72,7 +77,13 @@ export const UploadButton: React.FC<UploadButtonProps> = ({ onUploadSuccess }) =
         ) : (
           <Upload className="w-5 h-5" />
         )}
-        {status === "uploading" ? "Processing..." : status === "success" ? "Done!" : status === "error" ? "Retry" : "Upload Exam"}
+        {status === "uploading"
+          ? "Processing..."
+          : status === "success"
+            ? "Done!"
+            : status === "error"
+              ? "Retry"
+              : "Upload Exam"}
       </button>
 
       {status === "error" && errorMessage && (

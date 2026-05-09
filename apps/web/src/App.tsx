@@ -1,13 +1,13 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "@/context/AuthContext";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { MainLayout } from "@/components/MainLayout";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { AuthProvider } from "@/context/AuthContext";
 import { LoginPage } from "@/pages/auth/LoginPage";
 import { RegisterPage } from "@/pages/auth/RegisterPage";
 import { VerifyEmailPage } from "@/pages/auth/VerifyEmailPage";
-import { MainLayout } from "@/components/MainLayout";
 import { DashboardPage } from "@/pages/dashboard/DashboardPage";
-import { ReportsPage } from "@/pages/reports/ReportsPage";
 import { FilesPage } from "@/pages/files/FilesPage";
+import { ReportsPage } from "@/pages/reports/ReportsPage";
 
 function App() {
   return (
@@ -17,7 +17,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/verify-email" element={<VerifyEmailPage />} />
-          
+
           <Route element={<ProtectedRoute />}>
             <Route element={<MainLayout />}>
               <Route path="/dashboard" element={<DashboardPage />} />

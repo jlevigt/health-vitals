@@ -1,8 +1,9 @@
 // src/shared/middlewares/auth.middleware.ts
-import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
+
 import { AppError } from "@health-vitals/platform";
 import { env } from "@health-vitals/platform/config/env";
+import type { NextFunction, Request, Response } from "express";
+import jwt from "jsonwebtoken";
 
 export function authMiddleware(req: Request, _res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
@@ -26,7 +27,7 @@ export function authMiddleware(req: Request, _res: Response, next: NextFunction)
     };
 
     return next();
-  } catch (err) {
+  } catch (_err) {
     throw new AppError("Invalid token", 401);
   }
 }

@@ -1,6 +1,6 @@
 import morgan from "morgan";
-import { pinoHttp } from "pino-http";
 import pino from "pino";
+import { pinoHttp } from "pino-http";
 
 // Create pino instance for HTTP logging
 const pinoInstance = pino({
@@ -8,6 +8,5 @@ const pinoInstance = pino({
   level: process.env.LOG_LEVEL ?? "info",
 });
 
-export const httpLogger = process.env.NODE_ENV === "production"
-  ? pinoHttp({ logger: pinoInstance })
-  : morgan("dev");
+export const httpLogger =
+  process.env.NODE_ENV === "production" ? pinoHttp({ logger: pinoInstance }) : morgan("dev");

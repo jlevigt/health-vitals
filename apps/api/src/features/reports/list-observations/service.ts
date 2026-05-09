@@ -1,6 +1,6 @@
 import type { Database } from "@health-vitals/platform";
 import { AppError } from "@health-vitals/platform";
-import { Observation } from "./types.ts";
+import type { Observation } from "./types.ts";
 
 export class ListReportObservationsService {
   constructor(private db: Database) {}
@@ -11,7 +11,7 @@ export class ListReportObservationsService {
       `SELECT r.id FROM reports r
        JOIN files f ON r.file_id = f.id
        WHERE r.id = $1 AND f.user_id = $2`,
-      [reportId, userId]
+      [reportId, userId],
     );
 
     if (reportRes.rowCount === 0) {
@@ -28,7 +28,7 @@ export class ListReportObservationsService {
        LEFT JOIN observation_categories oc ON od.category_id = oc.id
        WHERE o.report_id = $1
        ORDER BY oc.code, od.canonical_name`,
-      [reportId]
+      [reportId],
     );
 
     return obsRes.rows.map((row) => {
@@ -37,8 +37,12 @@ export class ListReportObservationsService {
       const low = row.reference_low ? parseFloat(row.reference_low) : null;
       const high = row.reference_high ? parseFloat(row.reference_high) : null;
 
-      if (val !== null && low !== null && val < low) interpretation = "Low";
-      if (val !== null && high !== null && val > high) interpretation = "High";
+      if (val !== null && low !== null && val < low) {
+        interpretation = "Low";
+      }
+      if (val !== null && high !== null && val > high) {
+        interpretation = "High";
+      }
 
       return {
         id: row.id,

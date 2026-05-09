@@ -1,12 +1,10 @@
 import amqp, { type Channel, type ConsumeMessage } from "amqplib";
-import type { QueueConnection, QueueChannel } from "./interface.ts";
+import type { QueueChannel, QueueConnection } from "./interface.ts";
 
 /**
  * Create a connection to RabbitMQ
  */
-export async function createQueueConnection(
-  url: string
-): Promise<QueueConnection> {
+export async function createQueueConnection(url: string): Promise<QueueConnection> {
   const connection = await amqp.connect(url);
   const channel = await connection.createChannel();
 
@@ -27,7 +25,11 @@ function wrapChannel(channel: Channel): QueueChannel {
     async assertQueue(queue: string, options?: { durable?: boolean }) {
       await channel.assertQueue(queue, options);
     },
-    sendToQueue(queue: string, content: Buffer, options?: { persistent?: boolean; contentType?: string }) {
+    sendToQueue(
+      queue: string,
+      content: Buffer,
+      options?: { persistent?: boolean; contentType?: string },
+    ) {
       return channel.sendToQueue(queue, content, options);
     },
     async consume(queue: string, callback: (msg: ConsumeMessage | null) => void) {
@@ -55,7 +57,7 @@ export async function publishJob<T extends object>(
   channel: QueueChannel,
   queue: string,
   job: T,
-  options?: { persistent?: boolean }
+  options?: { persistent?: boolean },
 ): Promise<boolean> {
   await channel.assertQueue(queue, { durable: true });
 

@@ -1,23 +1,23 @@
 /**
  * API Dependency Container
- * 
+ *
  * Central location for all infrastructure dependencies.
  * All feature routes should import infrastructure from here.
  */
 
-import { 
-  Logger, 
-  createLogger,
+import {
   createDbPool,
+  createLogger,
   createQueueConnection,
   createStorageClient,
-  StorageClient,
-  MailProvider,
-  NodeMailerProvider,
+  type Database,
+  type Logger,
+  type MailProvider,
   MockMailProvider,
-  Database,
-  QueueConnection,
+  NodeMailerProvider,
+  type QueueConnection,
   ResendProvider,
+  type StorageClient,
 } from "@health-vitals/platform";
 import { env } from "@health-vitals/platform/config/env";
 
@@ -58,9 +58,9 @@ export async function getQueue(): Promise<QueueConnection> {
       _queue = await createQueueConnection(env.RABBITMQ_URL);
       logger.info("RabbitMQ connection established");
     } catch (error) {
-       logger.error("Failed to connect to RabbitMQ", { error });
-       // API cannot function without queue for async tasks, fail fast or let it throw
-       throw error;
+      logger.error("Failed to connect to RabbitMQ", { error });
+      // API cannot function without queue for async tasks, fail fast or let it throw
+      throw error;
     }
   }
   return _queue;

@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import type React from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { api } from "@/api/client";
 
 interface User {
@@ -31,9 +32,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           // Ideally retrieve user info from token or API.
           const storedUser = localStorage.getItem("user");
           if (storedUser) {
-             setUser(JSON.parse(storedUser));
+            setUser(JSON.parse(storedUser));
           }
-        } catch (e) {
+        } catch (_e) {
           localStorage.removeItem("accessToken");
           localStorage.removeItem("user");
         }
@@ -53,8 +54,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = async () => {
     try {
       await api.post("/auth/logout");
-    } catch (e) {
-      console.error("Logout failed", e);
+    } catch (_e) {
     } finally {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("user");
@@ -63,9 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={{ user, loading, login, logout }}>{children}</AuthContext.Provider>
   );
 };
 

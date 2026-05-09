@@ -1,8 +1,8 @@
-import { Request, Response } from "express";
-import { GetTrendsService } from "./service.ts";
 import { AppError } from "@health-vitals/platform";
+import type { Request, Response } from "express";
+import type { GetTrendsService } from "./service.ts";
 
-const ALLOWED_CATEGORIES = ['lipid_panel', 'glucose_metabolism', 'renal_function'];
+const ALLOWED_CATEGORIES = ["lipid_panel", "glucose_metabolism", "renal_function"];
 
 export class GetTrendsController {
   constructor(private service: GetTrendsService) {}
@@ -16,7 +16,7 @@ export class GetTrendsController {
     }
 
     if (!category || !ALLOWED_CATEGORIES.includes(category)) {
-      throw new AppError("Invalid category", 400); 
+      throw new AppError("Invalid category", 400);
     }
 
     const result = await this.service.execute(userId, category);

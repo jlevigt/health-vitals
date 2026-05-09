@@ -1,6 +1,6 @@
 /**
  * Process File Job Handler
- * 
+ *
  * Main job handler implementing the worker lifecycle:
  * 1. Lock and validate file state
  * 2. Transition to PROCESSING
@@ -12,11 +12,11 @@
  * 8. Update file status
  */
 
-import { FileStatus, type FileProcessJobPayload } from "@health-vitals/contracts";
-import type { Database, StorageClient, Logger, LLMProvider } from "@health-vitals/platform";
+import { type FileProcessJobPayload, FileStatus } from "@health-vitals/contracts";
+import type { Database, LLMProvider, Logger, StorageClient } from "@health-vitals/platform";
 import { Buckets } from "@health-vitals/platform";
-import { extractTextFromPdf } from "./pdf-extractor.ts";
 import { processWithLlm } from "./llm-processor.ts";
+import { extractTextFromPdf } from "./pdf-extractor.ts";
 
 export interface JobContext {
   db: Database;
@@ -27,7 +27,7 @@ export interface JobContext {
 
 export async function processFileJob(
   payload: FileProcessJobPayload,
-  ctx: JobContext
+  ctx: JobContext,
 ): Promise<void> {
   const { file_id, object_key, user_id } = payload;
   const { db, storage, logger, llmProvider } = ctx;
@@ -43,7 +43,7 @@ export async function processFileJob(
        FROM files
        WHERE id = $1
        FOR UPDATE`,
-      [file_id]
+      [file_id],
     );
 
     if (fileResult.rows.length === 0) {
@@ -62,10 +62,10 @@ export async function processFileJob(
     }
 
     // Step 2: Transition to PROCESSING
-    await client.query(
-      `UPDATE files SET status = $1 WHERE id = $2`,
-      [FileStatus.PROCESSING, file_id]
-    );
+    await client.query(`UPDATE files SET status = $1 WHERE id = $2`, [
+      FileStatus.PROCESSING,
+      file_id,
+    ]);
     await client.query("COMMIT");
 
     logger.info("File locked and transitioned to PROCESSING", {
@@ -90,7 +90,7 @@ export async function processFileJob(
     let extractedText: string;
     try {
       extractedText = await extractTextFromPdf(fileBuffer);
-      
+
       if (!extractedText || extractedText.trim().length < 50) {
         await setFileFailed(db, file_id, FileStatus.FAILED_TERMINAL, "EMPTY_TEXT");
         throw new Error("No meaningful text extracted from PDF");
@@ -107,20 +107,21 @@ export async function processFileJob(
       await setFileFailed(db, file_id, FileStatus.FAILED_RETRYABLE, "PDF_PARSE_ERROR");
       throw parseError;
     }
-
-    // Step 5-7: LLM processing with rate limiting and result persistence
-    try {
-      await processWithLlm(db, file_id, user_id, extractedText, file.original_filename, logger, llmProvider);
-    } catch (llmError) {
-      // processWithLlm handles setting file status on failure
-      throw llmError;
-    }
+    await processWithLlm(
+      db,
+      file_id,
+      user_id,
+      extractedText,
+      file.original_filename,
+      logger,
+      llmProvider,
+    );
 
     // Step 8: Update file status to SUCCEEDED
-    await db.query(
-      `UPDATE files SET status = $1, processed_at = now() WHERE id = $2`,
-      [FileStatus.SUCCEEDED, file_id]
-    );
+    await db.query(`UPDATE files SET status = $1, processed_at = now() WHERE id = $2`, [
+      FileStatus.SUCCEEDED,
+      file_id,
+    ]);
 
     logger.info("File processing completed successfully", { fileId: file_id });
   } catch (error) {
@@ -139,11 +140,11 @@ export async function processFileJob(
 async function setFileFailed(
   db: Database,
   fileId: string,
-  status: typeof FileStatus[keyof typeof FileStatus],
-  errorCode: string
+  status: (typeof FileStatus)[keyof typeof FileStatus],
+  errorCode: string,
 ): Promise<void> {
   await db.query(
     `UPDATE files SET status = $1, error_code = $2, processed_at = now() WHERE id = $3`,
-    [status, errorCode, fileId]
+    [status, errorCode, fileId],
   );
 }

@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
-import type { MailProvider } from "./interface.ts";
 import type { Logger } from "../logger/interface.ts";
+import type { MailProvider } from "./interface.ts";
 
 /**
  * NodeMailer provider configured for local testing with Ethereal Email.

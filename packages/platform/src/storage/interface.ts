@@ -2,12 +2,7 @@
  * Storage client interface for dependency injection
  */
 export interface StorageClient {
-  uploadFile(
-    bucket: string,
-    key: string,
-    body: Buffer,
-    contentType?: string
-  ): Promise<void>;
+  uploadFile(bucket: string, key: string, body: Buffer, contentType?: string): Promise<void>;
   getFile(bucket: string, key: string): Promise<Buffer>;
   deleteFile(bucket: string, key: string): Promise<void>;
   listFiles(bucket: string, prefix?: string): Promise<string[]>;
@@ -15,13 +10,9 @@ export interface StorageClient {
     bucket: string,
     key: string,
     expiresIn?: number,
-    contentType?: string
+    contentType?: string,
   ): Promise<string>;
-  getSignedDownloadUrl(
-    bucket: string,
-    key: string,
-    expiresIn?: number
-  ): Promise<string>;
+  getSignedDownloadUrl(bucket: string, key: string, expiresIn?: number): Promise<string>;
 }
 
 export interface StorageConfig {

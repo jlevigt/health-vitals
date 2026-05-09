@@ -1,13 +1,17 @@
+import type { FileUploadUrlResponse } from "@health-vitals/contracts";
 import { z } from "zod";
-import { type FileUploadUrlResponse } from "@health-vitals/contracts";
-export { type FileUploadUrlResponse };
+
+export type { FileUploadUrlResponse };
 
 /**
  * Schema for a single file upload request
  */
 export const FileUploadItemSchema = z.object({
   original_filename: z.string().min(1).max(255),
-  size_bytes: z.number().positive().max(50 * 1024 * 1024), // Max 50MB
+  size_bytes: z
+    .number()
+    .positive()
+    .max(50 * 1024 * 1024), // Max 50MB
   content_type: z.string().default("application/pdf"),
 });
 
@@ -50,14 +54,9 @@ export interface ConfirmUploadResponse {
  * Query params for GET /files
  */
 export const ListFilesQuerySchema = z.object({
-  status: z.enum([
-    "CREATED",
-    "QUEUED", 
-    "PROCESSING",
-    "SUCCEEDED",
-    "FAILED_RETRYABLE",
-    "FAILED_TERMINAL",
-  ]).optional(),
+  status: z
+    .enum(["CREATED", "QUEUED", "PROCESSING", "SUCCEEDED", "FAILED_RETRYABLE", "FAILED_TERMINAL"])
+    .optional(),
 });
 
 export type ListFilesQuery = z.infer<typeof ListFilesQuerySchema>;

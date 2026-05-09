@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { db } from "@/container.ts";
 import { authMiddleware } from "@/middlewares/auth.middleware.ts";
-import { ListReportsService } from "./service.ts";
 import { ListReportsController } from "./controller.ts";
+import { ListReportsService } from "./service.ts";
 
 const router = Router();
 

@@ -5,7 +5,11 @@ import type { ConsumeMessage } from "amqplib";
  */
 export interface QueueChannel {
   assertQueue(queue: string, options?: { durable?: boolean }): Promise<void>;
-  sendToQueue(queue: string, content: Buffer, options?: { persistent?: boolean; contentType?: string }): boolean;
+  sendToQueue(
+    queue: string,
+    content: Buffer,
+    options?: { persistent?: boolean; contentType?: string },
+  ): boolean;
   consume(queue: string, callback: (msg: ConsumeMessage | null) => void): Promise<void>;
   ack(msg: ConsumeMessage): void;
   nack(msg: ConsumeMessage, allUpTo?: boolean, requeue?: boolean): void;

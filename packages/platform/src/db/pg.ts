@@ -1,5 +1,5 @@
-import { Pool } from "pg";
 import type { PoolClient } from "pg";
+import { Pool } from "pg";
 import type { Database, DbConfig } from "./interface.ts";
 
 /**
@@ -23,7 +23,7 @@ export function createDbPool(config: DbConfig): Database {
  */
 export async function withTransaction<T>(
   db: Database,
-  fn: (client: PoolClient) => Promise<T>
+  fn: (client: PoolClient) => Promise<T>,
 ): Promise<T> {
   const client = await db.connect();
   try {
@@ -39,5 +39,5 @@ export async function withTransaction<T>(
   }
 }
 
-export { Pool };
 export type { PoolClient };
+export { Pool };
