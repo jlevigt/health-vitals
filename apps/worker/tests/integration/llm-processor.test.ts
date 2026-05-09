@@ -1,22 +1,22 @@
 /**
  * LLM Processor Unit Tests
- * 
+ *
  * Tests for LLM processing, rate limiting, and database persistence.
  */
 
-import { describe, it, expect, beforeAll, afterAll, mock } from "bun:test";
+import { afterAll, beforeAll, describe, expect, it, mock } from "bun:test";
+import { FileStatus, type LLMProviderResponse, type LLMResult } from "@health-vitals/contracts";
 import { processWithLlm } from "../../src/consumers/ai-extraction/llm-processor.ts";
-import { FileStatus, type LLMResult } from "@health-vitals/contracts";
 import {
-  getTestDb,
+  cleanupTestUser,
   closeTestDb,
   createMockLogger,
-  createTestUser,
   createTestFile,
-  cleanupTestUser,
+  createTestUser,
   getFileStatus,
-  getReportByFileId,
   getObservationsByReportId,
+  getReportByFileId,
+  getTestDb,
   type TestUser,
 } from "./helpers.ts";
 
@@ -58,8 +58,18 @@ describe("LLM Processor", () => {
         ],
       };
 
+      const mockResponse: LLMProviderResponse = {
+        data: mockLlmResult,
+        model: "test-model",
+        usage: {
+          prompt_tokens: 100,
+          completion_tokens: 50,
+          total_tokens: 150,
+        },
+      };
+
       const mockProvider = {
-        processDocument: mock(() => Promise.resolve(mockLlmResult)),
+        processDocument: mock(() => Promise.resolve(mockResponse)),
       };
 
       await processWithLlm(
@@ -69,7 +79,7 @@ describe("LLM Processor", () => {
         "Sample extracted text from PDF",
         file.original_filename,
         logger,
-        mockProvider
+        mockProvider,
       );
 
       // Verify report was created
@@ -89,13 +99,20 @@ describe("LLM Processor", () => {
         status: FileStatus.PROCESSING,
       });
 
+      const mockResponse: LLMProviderResponse = {
+        data: {
+          collection_date: "2025-01-15",
+          observations: [],
+        },
+        usage: {
+          prompt_tokens: 10,
+          completion_tokens: 5,
+          total_tokens: 15,
+        },
+      };
+
       const mockProvider = {
-        processDocument: mock(() =>
-          Promise.resolve({
-            collection_date: "2025-01-15",
-            observations: [],
-          })
-        ),
+        processDocument: mock(() => Promise.resolve(mockResponse)),
       };
 
       await processWithLlm(
@@ -105,14 +122,11 @@ describe("LLM Processor", () => {
         "Sample text",
         "test.pdf",
         logger,
-        mockProvider
+        mockProvider,
       );
 
       // Verify llm_requests entry
-      const result = await db.query(
-        "SELECT * FROM llm_requests WHERE file_id = $1",
-        [file.id]
-      );
+      const result = await db.query("SELECT * FROM llm_requests WHERE file_id = $1", [file.id]);
       expect(result.rows.length).toBe(1);
       expect(result.rows[0].provider).toBe("gemini");
       expect(result.rows[0].finished_at).not.toBeNull();
@@ -124,21 +138,11 @@ describe("LLM Processor", () => {
       });
 
       const mockProvider = {
-        processDocument: mock(() =>
-          Promise.reject(new Error("LLM API error"))
-        ),
+        processDocument: mock(() => Promise.reject(new Error("LLM API error"))),
       };
 
       await expect(
-        processWithLlm(
-          db,
-          file.id,
-          testUser.id,
-          "Sample text",
-          "test.pdf",
-          logger,
-          mockProvider
-        )
+        processWithLlm(db, file.id, testUser.id, "Sample text", "test.pdf", logger, mockProvider),
       ).rejects.toThrow("LLM API error");
 
       // Verify status was set to FAILED_RETRYABLE
@@ -152,9 +156,7 @@ describe("LLM Processor", () => {
       });
 
       const mockProvider = {
-        processDocument: mock(() =>
-          Promise.reject(new Error("Connection timeout"))
-        ),
+        processDocument: mock(() => Promise.reject(new Error("Connection timeout"))),
       };
 
       try {
@@ -165,17 +167,14 @@ describe("LLM Processor", () => {
           "Sample text",
           "test.pdf",
           logger,
-          mockProvider
+          mockProvider,
         );
       } catch {
         // Expected
       }
 
       // Verify error was recorded
-      const result = await db.query(
-        "SELECT * FROM llm_requests WHERE file_id = $1",
-        [file.id]
-      );
+      const result = await db.query("SELECT * FROM llm_requests WHERE file_id = $1", [file.id]);
       expect(result.rows[0].error_code).toBe("LLM_ERROR");
       expect(result.rows[0].error_message).toContain("Connection timeout");
     });

@@ -1,20 +1,20 @@
 /**
  * LLM Processor
- * 
+ *
  * Handles LLM API calls with:
  * - Rate limit checking before calls
  * - Request tracking for observability
  * - Result parsing and database persistence
  */
 
-import { FileStatus, type LLMResult } from "@health-vitals/contracts";
-import type { Database, Logger, LLMProvider } from "@health-vitals/platform";
+import { FileStatus, type LLMProviderResponse } from "@health-vitals/contracts";
+import type { Database, LLMProvider, Logger } from "@health-vitals/platform";
 
 // Rate limits (adjust based on your LLM provider)
 const RATE_LIMITS = {
-  RPM: 5,      // Requests per minute
-  RPD: 20,    // Requests per day
-  TPM: 250000,  // Tokens per minute
+  RPM: 5, // Requests per minute
+  RPD: 20, // Requests per day
+  TPM: 250000, // Tokens per minute
 };
 
 export async function processWithLlm(
@@ -24,63 +24,74 @@ export async function processWithLlm(
   extractedText: string,
   filename: string,
   logger: Logger,
-  llmProvider: LLMProvider
+  llmProvider: LLMProvider,
 ): Promise<void> {
   // Check rate limits
   const canProceed = await checkRateLimits(db, logger);
   if (!canProceed) {
     // Set file back to QUEUED for retry
-    await db.query(
-      `UPDATE files SET status = $1 WHERE id = $2`,
-      [FileStatus.QUEUED, fileId]
-    );
+    await db.query(`UPDATE files SET status = $1 WHERE id = $2`, [FileStatus.QUEUED, fileId]);
     throw new Error("Rate limit exceeded, job requeued");
   }
 
   // Record LLM request start
-  const provider = "gemini";
-  const model = "gemini-2.5-flash";
-  
+  const initialProvider = "gemini";
+  const initialModel = "gemini-2.0-flash";
+
   const llmRequestResult = await db.query(
     `INSERT INTO llm_requests (file_id, provider, model, started_at)
      VALUES ($1, $2, $3, now())
      RETURNING id`,
-    [fileId, provider, model]
+    [fileId, initialProvider, initialModel],
   );
   const llmRequestId = llmRequestResult.rows[0].id;
 
   const startTime = Date.now();
-  let response: LLMResult;
+  let providerResponse: LLMProviderResponse;
 
   try {
-    response = await llmProvider.processDocument(extractedText, filename);
+    providerResponse = await llmProvider.processDocument(extractedText, filename);
   } catch (llmError) {
     const latency = Date.now() - startTime;
-    
+
     // Update LLM request with error
     await db.query(
       `UPDATE llm_requests 
        SET finished_at = now(), latency_ms = $1, error_code = $2, error_message = $3
        WHERE id = $4`,
-      [latency, "LLM_ERROR", (llmError as Error).message, llmRequestId]
+      [latency, "LLM_ERROR", (llmError as Error).message, llmRequestId],
     );
 
-    await db.query(
-      `UPDATE files SET status = $1, error_code = $2 WHERE id = $3`,
-      [FileStatus.FAILED_RETRYABLE, "LLM_ERROR", fileId]
-    );
+    await db.query(`UPDATE files SET status = $1, error_code = $2 WHERE id = $3`, [
+      FileStatus.FAILED_RETRYABLE,
+      "LLM_ERROR",
+      fileId,
+    ]);
 
     throw llmError;
   }
 
   const latency = Date.now() - startTime;
+  const { data: response, usage, model } = providerResponse;
 
-  // Update LLM request with success
+  // Update LLM request with success and metrics
   await db.query(
     `UPDATE llm_requests 
-     SET finished_at = now(), latency_ms = $1
-     WHERE id = $2`,
-    [latency, llmRequestId]
+     SET finished_at = now(), 
+         latency_ms = $1, 
+         prompt_tokens = $2, 
+         completion_tokens = $3, 
+         total_tokens = $4,
+         model = COALESCE($5, model)
+     WHERE id = $6`,
+    [
+      latency,
+      usage?.prompt_tokens ?? null,
+      usage?.completion_tokens ?? null,
+      usage?.total_tokens ?? null,
+      model ?? null,
+      llmRequestId,
+    ],
   );
 
   // Persist results in a transaction
@@ -93,7 +104,7 @@ export async function processWithLlm(
       `INSERT INTO reports (file_id, collection_date, lab_name)
        VALUES ($1, $2, $3)
        RETURNING id`,
-      [fileId, response.collection_date, response.lab_name]
+      [fileId, response.collection_date, response.lab_name],
     );
     const reportId = reportResult.rows[0].id;
 
@@ -102,7 +113,7 @@ export async function processWithLlm(
       // Find or create observation definition
       const defResult = await client.query(
         `SELECT id FROM observation_definitions WHERE canonical_name = $1`,
-        [obs.canonical_name]
+        [obs.canonical_name],
       );
 
       let observationDefId: string;
@@ -115,7 +126,7 @@ export async function processWithLlm(
            VALUES ($1, $2)
            ON CONFLICT (code) DO UPDATE SET code = EXCLUDED.code
            RETURNING id`,
-          [obs.category, obs.category.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())]
+          [obs.category, obs.category.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase())],
         );
         const categoryId = categoryResult.rows[0].id;
 
@@ -124,7 +135,7 @@ export async function processWithLlm(
           `INSERT INTO observation_definitions (category_id, canonical_name, base_unit)
            VALUES ($1, $2, $3)
            RETURNING id`,
-          [categoryId, obs.canonical_name, obs.base_unit || 'unknown']
+          [categoryId, obs.canonical_name, obs.base_unit || "unknown"],
         );
         observationDefId = newDefResult.rows[0].id;
       }
@@ -143,7 +154,7 @@ export async function processWithLlm(
           obs.normalized_value ?? null,
           obs.reference_low ?? null,
           obs.reference_high ?? null,
-        ]
+        ],
       );
     }
 
@@ -156,11 +167,12 @@ export async function processWithLlm(
     });
   } catch (dbError) {
     await client.query("ROLLBACK");
-    
-    await db.query(
-      `UPDATE files SET status = $1, error_code = $2 WHERE id = $3`,
-      [FileStatus.FAILED_RETRYABLE, "DB_ERROR", fileId]
-    );
+
+    await db.query(`UPDATE files SET status = $1, error_code = $2 WHERE id = $3`, [
+      FileStatus.FAILED_RETRYABLE,
+      "DB_ERROR",
+      fileId,
+    ]);
 
     throw dbError;
   } finally {
@@ -173,9 +185,9 @@ async function checkRateLimits(db: Database, logger: Logger): Promise<boolean> {
   const rpmResult = await db.query(
     `SELECT COUNT(*) as count
      FROM llm_requests
-     WHERE started_at > now() - interval '1 minute'`
+     WHERE started_at > now() - interval '1 minute'`,
   );
-  const rpm = parseInt(rpmResult.rows[0].count);
+  const rpm = parseInt(rpmResult.rows[0].count, 10);
 
   if (rpm >= RATE_LIMITS.RPM) {
     logger.warn("Rate limit exceeded (RPM)", { current: rpm, limit: RATE_LIMITS.RPM });
@@ -186,9 +198,9 @@ async function checkRateLimits(db: Database, logger: Logger): Promise<boolean> {
   const rpdResult = await db.query(
     `SELECT COUNT(*) as count
      FROM llm_requests
-     WHERE started_at >= date_trunc('day', now())`
+     WHERE started_at >= date_trunc('day', now())`,
   );
-  const rpd = parseInt(rpdResult.rows[0].count);
+  const rpd = parseInt(rpdResult.rows[0].count, 10);
 
   if (rpd >= RATE_LIMITS.RPD) {
     logger.warn("Rate limit exceeded (RPD)", { current: rpd, limit: RATE_LIMITS.RPD });

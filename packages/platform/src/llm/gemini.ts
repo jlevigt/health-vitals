@@ -1,7 +1,8 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import type { LLMProvider, LLMResult } from "./interface.ts";
+import type { LLMProviderResponse, LLMResult } from "@health-vitals/contracts";
 import { AppError } from "../errors/index.ts";
 import type { Logger } from "../logger/interface.ts";
+import type { LLMProvider } from "./interface.ts";
 
 /**
  * Gemini LLM provider for health report parsing
@@ -9,6 +10,7 @@ import type { Logger } from "../logger/interface.ts";
 export class GeminiProvider implements LLMProvider {
   private ai: GoogleGenAI;
   private logger: Logger;
+  private readonly MODEL_NAME = "gemini-2.0-flash";
 
   constructor(logger: Logger, apiKey?: string) {
     this.logger = logger;
@@ -19,7 +21,7 @@ export class GeminiProvider implements LLMProvider {
     this.ai = new GoogleGenAI({ apiKey: key });
   }
 
-  async processDocument(extractedText: string, fileName: string): Promise<LLMResult> {
+  async processDocument(extractedText: string, fileName: string): Promise<LLMProviderResponse> {
     const prompt =
       `Analyze the entire following lab report text and the provided file name. Return a SINGLE JSON object that represents the whole document. ` +
       `Do not create multiple objects or an array. The object MUST contain a 'collection_date' in YYYY-MM-DD format. ` +
@@ -43,16 +45,19 @@ export class GeminiProvider implements LLMProvider {
 
     try {
       const response = await this.ai.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: this.MODEL_NAME,
         contents: [{ role: "user", parts: [{ text: prompt }] }],
         config: {
           responseMimeType: "application/json",
         },
-        // @ts-ignore - responseSchema types not fully exposed
+        // @ts-expect-error - responseSchema types not fully exposed
         responseSchema: {
           type: Type.OBJECT,
           properties: {
-            collection_date: { type: Type.STRING, description: "Date of the exam collection (e.g., YYYY-MM-DD)." },
+            collection_date: {
+              type: Type.STRING,
+              description: "Date of the exam collection (e.g., YYYY-MM-DD).",
+            },
             lab_name: { type: Type.STRING, description: "Name of the laboratory." },
             observations: {
               type: Type.ARRAY,
@@ -60,17 +65,50 @@ export class GeminiProvider implements LLMProvider {
               items: {
                 type: Type.OBJECT,
                 properties: {
-                  category: { type: Type.STRING, enum: ['lipid_panel', 'glucose_metabolism', 'blood_pressure', 'hematology', 'hormones', 'renal_function', 'liver_function', 'other'] },
+                  category: {
+                    type: Type.STRING,
+                    enum: [
+                      "lipid_panel",
+                      "glucose_metabolism",
+                      "blood_pressure",
+                      "hematology",
+                      "hormones",
+                      "renal_function",
+                      "liver_function",
+                      "other",
+                    ],
+                  },
                   canonical_name: { type: Type.STRING },
-                  raw_name: { type: Type.STRING, description: "Name of the measurement as written in the report." },
+                  raw_name: {
+                    type: Type.STRING,
+                    description: "Name of the measurement as written in the report.",
+                  },
                   loinc_code: { type: Type.STRING, description: "LOINC code, if available." },
-                  raw_value: { type: Type.STRING, description: "Value of the measurement, can be numeric or text." },
-                  raw_unit: { type: Type.STRING, description: "Unit of the measurement, if available." },
+                  raw_value: {
+                    type: Type.STRING,
+                    description: "Value of the measurement, can be numeric or text.",
+                  },
+                  raw_unit: {
+                    type: Type.STRING,
+                    description: "Unit of the measurement, if available.",
+                  },
                   normalized_value: { type: Type.NUMBER },
-                  base_unit: { type: Type.STRING, enum: ['mg_dl', 'mmol_l', 'percent', 'ui_l', 'ng_ml', 'unknown'] },
-                  material: { type: Type.STRING, description: "Specimen material (e.g., Blood, Serum)." },
-                  reference_low: { type: Type.NUMBER, description: "Lower bound of the reference range." },
-                  reference_high: { type: Type.NUMBER, description: "Upper bound of the reference range." },
+                  base_unit: {
+                    type: Type.STRING,
+                    enum: ["mg_dl", "mmol_l", "percent", "ui_l", "ng_ml", "unknown"],
+                  },
+                  material: {
+                    type: Type.STRING,
+                    description: "Specimen material (e.g., Blood, Serum).",
+                  },
+                  reference_low: {
+                    type: Type.NUMBER,
+                    description: "Lower bound of the reference range.",
+                  },
+                  reference_high: {
+                    type: Type.NUMBER,
+                    description: "Upper bound of the reference range.",
+                  },
                 },
                 required: ["category", "canonical_name", "raw_name", "raw_value"],
               },
@@ -79,6 +117,14 @@ export class GeminiProvider implements LLMProvider {
           required: ["collection_date", "observations"],
         },
       });
+
+      const usage = response.usageMetadata
+        ? {
+            prompt_tokens: response.usageMetadata.promptTokenCount ?? 0,
+            completion_tokens: response.usageMetadata.candidatesTokenCount ?? 0,
+            total_tokens: response.usageMetadata.totalTokenCount ?? 0,
+          }
+        : undefined;
 
       const jsonText = response.candidates?.[0]?.content?.parts?.[0]?.text;
 
@@ -90,38 +136,45 @@ export class GeminiProvider implements LLMProvider {
       let parsedJson: any;
       try {
         parsedJson = JSON.parse(jsonText);
-      } catch (parseError: any) {
+      } catch (_parseError: any) {
         this.logger.error("Failed to parse Gemini JSON response", { jsonText });
         throw new AppError("LLM returned malformed JSON.", 502);
       }
 
+      let finalData: LLMResult;
+
       // Resilience: If the LLM returns an array, merge it into a single object.
       if (Array.isArray(parsedJson)) {
-        this.logger.error("LLM returned an array, merging into a single result.", { count: parsedJson.length });
+        this.logger.error("LLM returned an array, merging into a single result.", {
+          count: parsedJson.length,
+        });
         if (parsedJson.length === 0) {
           throw new AppError("LLM returned an empty array.", 502);
         }
 
         const firstItem = parsedJson[0];
-        const allObservations = parsedJson.flatMap((item) => item.observations || item.measurements || []);
+        const allObservations = parsedJson.flatMap(
+          (item) => item.observations || item.measurements || [],
+        );
 
-        const mergedResult: LLMResult = {
+        finalData = {
           collection_date: firstItem.collection_date || new Date().toISOString().split("T")[0],
           lab_name: firstItem.lab_name || undefined,
           observations: allObservations,
         };
-
-        if (!mergedResult.collection_date) {
-          throw new AppError("LLM failed to return a collection_date for the merged report.", 502);
-        }
-        return mergedResult;
+      } else {
+        finalData = parsedJson as LLMResult;
       }
 
-      if (!parsedJson.collection_date) {
+      if (!finalData.collection_date) {
         throw new AppError("LLM failed to return a collection_date.", 502);
       }
 
-      return parsedJson as LLMResult;
+      return {
+        data: finalData,
+        usage,
+        model: this.MODEL_NAME,
+      };
     } catch (error: any) {
       if (error instanceof AppError) {
         throw error;
