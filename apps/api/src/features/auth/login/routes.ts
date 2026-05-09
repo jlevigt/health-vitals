@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db, logger } from "@/container.ts";
-import { AuthenticateUserService } from "./service.ts";
 import { AuthenticateUserController } from "./controller.ts";
+import { AuthenticateUserService } from "./service.ts";
 
 const router = Router();
 

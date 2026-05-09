@@ -1,7 +1,8 @@
 // src/features/users/authenticate-user/authenticate-user.controller.ts
-import { Request, Response } from "express";
-import { AuthenticateUserService } from "./service.ts";
-import { authenticateUserSchema } from "./types.ts";
+
+import { authenticateUserSchema } from "@health-vitals/contracts";
+import type { Request, Response } from "express";
+import type { AuthenticateUserService } from "./service.ts";
 
 export class AuthenticateUserController {
   constructor(private service: AuthenticateUserService) {}
@@ -20,9 +21,9 @@ export class AuthenticateUserController {
     });
 
     // Return accessToken in response body
-    return res.status(200).json({ 
+    return res.status(200).json({
       user,
-      accessToken
+      accessToken,
     });
   };
 }

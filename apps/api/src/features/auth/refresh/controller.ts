@@ -1,19 +1,21 @@
-import { Request, Response } from "express";
-import { RefreshTokenService } from "./service.ts";
+import type { Request, Response } from "express";
+import type { RefreshTokenService } from "./service.ts";
 
 export class RefreshTokenController {
   constructor(private service: RefreshTokenService) {}
 
   handle = async (req: Request, res: Response) => {
     const refreshToken = req.cookies.refreshToken;
-    
+
     // Validate existence before service call
     if (!refreshToken) {
-       return res.status(401).json({ message: "Refresh token not found" });
+      return res.status(401).json({ message: "Refresh token not found" });
     }
 
-    const { accessToken, refreshToken: newRefreshToken } = await this.service.execute({ refreshToken });
-    
+    const { accessToken, refreshToken: newRefreshToken } = await this.service.execute({
+      refreshToken,
+    });
+
     // Set new refreshToken in HttpOnly cookie
     res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
@@ -24,8 +26,8 @@ export class RefreshTokenController {
     });
 
     // Return accessToken in response body
-    return res.status(200).json({ 
-      accessToken
+    return res.status(200).json({
+      accessToken,
     });
   };
 }

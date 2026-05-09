@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db, logger, mailProvider } from "@/container.ts";
-import { CreateUserService } from "./service.ts";
 import { CreateUserController } from "./controller.ts";
+import { CreateUserService } from "./service.ts";
 
 const router = Router();
 

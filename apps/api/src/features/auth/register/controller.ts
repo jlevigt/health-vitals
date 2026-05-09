@@ -1,6 +1,6 @@
-import { Request, Response } from "express";
-import { CreateUserService } from "@/features/auth/register/service.ts";
-import { createUserSchema } from "@/features/auth/register/types.ts";
+import { createUserSchema } from "@health-vitals/contracts";
+import type { Request, Response } from "express";
+import type { CreateUserService } from "@/features/auth/register/service.ts";
 
 export class CreateUserController {
   constructor(private service: CreateUserService) {}
