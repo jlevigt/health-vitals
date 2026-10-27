@@ -1,3 +1,9 @@
+import {
+  DEFAULT_EXAM_EXTRACTION_MODEL,
+  ExamExtractionModelSchema,
+  LLMProviderType,
+  LLMProviderTypeSchema,
+} from "@health-vitals/contracts";
 import { z } from "zod";
 
 /**
@@ -37,7 +43,11 @@ const envSchema = z.object({
   RESEND_API_KEY: z.string().optional(),
 
   // --- Worker / AI Specific ---
+  LLM_PROVIDER: LLMProviderTypeSchema.optional().default(LLMProviderType.GOOGLE),
   GEMINI_API_KEY: z.string().optional(),
+  GEMINI_MODEL: ExamExtractionModelSchema.optional().default(DEFAULT_EXAM_EXTRACTION_MODEL),
+  OLLAMA_BASE_URL: z.string().url().optional().default("http://127.0.0.1:11434"),
+  OLLAMA_MODEL: z.string().optional().default("llama3.2"),
 });
 
 // Use a safe parse to provide clean error messages

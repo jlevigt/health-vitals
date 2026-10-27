@@ -1,16 +1,27 @@
-import type { LLMProviderResponse } from "@health-vitals/contracts";
+import {
+  type LLMProviderResponse,
+  LLMProviderType,
+  type ModelQuota,
+} from "@health-vitals/contracts";
 import type { LLMProvider } from "./interface.ts";
 
 /**
  * Mock LLM provider for testing and development without API key
  */
 export class MockLLMProvider implements LLMProvider {
+  public readonly provider = LLMProviderType.MOCK;
+  public readonly model = "mock-model";
+
+  getQuota(): ModelQuota | null {
+    return null;
+  }
+
   async processDocument(_extractedText: string, fileName: string): Promise<LLMProviderResponse> {
     // Simulate API response time
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     return {
-      model: "mock-model",
+      model: this.model,
       usage: {
         prompt_tokens: 100,
         completion_tokens: 50,
