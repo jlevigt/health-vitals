@@ -8,16 +8,17 @@
 import { randomUUID } from "node:crypto";
 import {
   createDbPool,
+  createLLMProvider,
   createLogger,
   createStorageClient,
   type Database,
   FileStatus,
-  GeminiProvider,
   type LLMProvider,
   type Logger,
   MockLLMProvider,
   type StorageClient,
 } from "@health-vitals/platform";
+import { env } from "@health-vitals/platform/config/env";
 import type { JobContext } from "../../src/consumers/ai-extraction/handler.ts";
 
 // === Database ===
@@ -67,10 +68,16 @@ export function createMockLlmProvider(): LLMProvider {
 }
 
 export function createRealLlmProvider(logger: Logger): LLMProvider {
-  if (!process.env.GEMINI_API_KEY) {
-    throw new Error("GEMINI_API_KEY not set for real LLM test");
-  }
-  return new GeminiProvider(logger);
+  return createLLMProvider(
+    {
+      provider: env.LLM_PROVIDER,
+      geminiApiKey: env.GEMINI_API_KEY,
+      geminiModel: env.GEMINI_MODEL,
+      ollamaBaseUrl: env.OLLAMA_BASE_URL,
+      ollamaModel: env.OLLAMA_MODEL,
+    },
+    logger,
+  );
 }
 
 // === Job Context Factory ===

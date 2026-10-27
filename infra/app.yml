@@ -51,7 +51,9 @@ services:
       STORAGE_REGION: ${STORAGE_REGION}
       STORAGE_ACCESS_KEY: ${STORAGE_ACCESS_KEY}
       STORAGE_SECRET_KEY: ${STORAGE_SECRET_KEY}
+      LLM_PROVIDER: ${LLM_PROVIDER:-google}
       GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.5-flash-lite}
       SECRET_JWT_KEY: "not-in-use-secret-jwt-key"
       
 

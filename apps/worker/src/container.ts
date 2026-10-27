@@ -7,14 +7,13 @@
 
 import {
   createDbPool,
+  createLLMProvider,
   createLogger,
   createQueueConnection,
   createStorageClient,
   type Database,
-  GeminiProvider,
   type LLMProvider,
   type Logger,
-  MockLLMProvider,
   type QueueConnection,
   type StorageClient,
 } from "@health-vitals/platform";
@@ -68,9 +67,16 @@ export async function getQueue(): Promise<QueueConnection> {
 }
 
 // === LLM Provider ===
-export const llmProvider: LLMProvider = env.GEMINI_API_KEY
-  ? new GeminiProvider(logger, env.GEMINI_API_KEY)
-  : new MockLLMProvider();
+export const llmProvider: LLMProvider = createLLMProvider(
+  {
+    provider: env.LLM_PROVIDER,
+    geminiApiKey: env.GEMINI_API_KEY,
+    geminiModel: env.GEMINI_MODEL,
+    ollamaBaseUrl: env.OLLAMA_BASE_URL,
+    ollamaModel: env.OLLAMA_MODEL,
+  },
+  logger,
+);
 
 // === Cleanup ===
 export async function shutdown(): Promise<void> {
