@@ -1,9 +1,24 @@
-import type { LLMProviderResponse } from "@health-vitals/contracts";
+import type { LLMProviderResponse, LLMProviderType, ModelQuota } from "@health-vitals/contracts";
 
 /**
  * LLM provider interface for dependency injection
  */
 export interface LLMProvider {
+  /**
+   * Provider type identifier ("google" | "local" | "mock")
+   */
+  readonly provider: LLMProviderType;
+
+  /**
+   * Active model identifier
+   */
+  readonly model: string;
+
+  /**
+   * Returns rate limit quota for the active model, or null if rate limiting is bypassed
+   */
+  getQuota(): ModelQuota | null;
+
   /**
    * Process a document and extract structured health data
    * @param extractedText The text extracted from the PDF

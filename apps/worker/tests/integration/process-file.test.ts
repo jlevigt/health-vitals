@@ -98,9 +98,11 @@ describe("Process File Integration", () => {
   });
 
   describe("With Real LLM Provider", () => {
-    const shouldRunRealLlm = process.env.RUN_LLM_TESTS === "true" && process.env.GEMINI_API_KEY;
+    const shouldRunRealLlm =
+      process.env.RUN_LLM_TESTS === "true" &&
+      (process.env.LLM_PROVIDER === "local" || Boolean(process.env.GEMINI_API_KEY));
 
-    it("should process real PDF with actual Gemini API", async () => {
+    it("should process real PDF with active LLM provider (Gemini or Ollama)", async () => {
       if (!shouldRunRealLlm) {
         return;
       }

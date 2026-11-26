@@ -2,20 +2,19 @@
  * LLM Processor
  *
  * Handles LLM API calls with:
- * - Rate limit checking before calls
+ * - Dynamic model-scoped rate limit checking before calls
  * - Request tracking for observability
  * - Result parsing and database persistence
  */
 
-import { FileStatus, type LLMProviderResponse } from "@health-vitals/contracts";
+import {
+  FileStatus,
+  type LLMProviderResponse,
+  type LLMProviderType,
+  type LLMResult,
+  type ModelQuota,
+} from "@health-vitals/contracts";
 import type { Database, LLMProvider, Logger } from "@health-vitals/platform";
-
-// Rate limits (adjust based on your LLM provider)
-const RATE_LIMITS = {
-  RPM: 5, // Requests per minute
-  RPD: 20, // Requests per day
-  TPM: 250000, // Tokens per minute
-};
 
 export async function processWithLlm(
   db: Database,
@@ -26,23 +25,25 @@ export async function processWithLlm(
   logger: Logger,
   llmProvider: LLMProvider,
 ): Promise<void> {
-  // Check rate limits
-  const canProceed = await checkRateLimits(db, logger);
-  if (!canProceed) {
-    // Set file back to QUEUED for retry
-    await db.query(`UPDATE files SET status = $1 WHERE id = $2`, [FileStatus.QUEUED, fileId]);
-    throw new Error("Rate limit exceeded, job requeued");
+  const { provider, model } = llmProvider;
+  const quota = llmProvider.getQuota();
+
+  // Check rate limits if provider/model enforces a quota (bypassed for mock and local Ollama)
+  if (quota !== null) {
+    const canProceed = await checkRateLimits(db, provider, model, quota, logger);
+    if (!canProceed) {
+      // Set file back to QUEUED for retry
+      await db.query(`UPDATE files SET status = $1 WHERE id = $2`, [FileStatus.QUEUED, fileId]);
+      throw new Error("Rate limit exceeded, job requeued");
+    }
   }
 
   // Record LLM request start
-  const initialProvider = "gemini";
-  const initialModel = "gemini-2.0-flash";
-
   const llmRequestResult = await db.query(
     `INSERT INTO llm_requests (file_id, provider, model, started_at)
      VALUES ($1, $2, $3, now())
      RETURNING id`,
-    [fileId, initialProvider, initialModel],
+    [fileId, provider, model],
   );
   const llmRequestId = llmRequestResult.rows[0].id;
 
@@ -72,7 +73,7 @@ export async function processWithLlm(
   }
 
   const latency = Date.now() - startTime;
-  const { data: response, usage, model } = providerResponse;
+  const { data: response, usage, model: responseModel } = providerResponse;
 
   // Update LLM request with success and metrics
   await db.query(
@@ -89,12 +90,20 @@ export async function processWithLlm(
       usage?.prompt_tokens ?? null,
       usage?.completion_tokens ?? null,
       usage?.total_tokens ?? null,
-      model ?? null,
+      responseModel ?? null,
       llmRequestId,
     ],
   );
 
-  // Persist results in a transaction
+  await persistReportAndObservations(db, fileId, response, logger);
+}
+
+async function persistReportAndObservations(
+  db: Database,
+  fileId: string,
+  response: LLMResult,
+  logger: Logger,
+): Promise<void> {
   const client = await db.connect();
   try {
     await client.query("BEGIN");
@@ -180,30 +189,70 @@ export async function processWithLlm(
   }
 }
 
-async function checkRateLimits(db: Database, logger: Logger): Promise<boolean> {
-  // Check requests per minute
+async function checkRateLimits(
+  db: Database,
+  provider: LLMProviderType,
+  model: string,
+  quota: ModelQuota,
+  logger: Logger,
+): Promise<boolean> {
+  // Check requests per minute (RPM)
   const rpmResult = await db.query(
     `SELECT COUNT(*) as count
      FROM llm_requests
-     WHERE started_at > now() - interval '1 minute'`,
+     WHERE provider = $1 AND model = $2
+       AND started_at > now() - interval '1 minute'`,
+    [provider, model],
   );
   const rpm = parseInt(rpmResult.rows[0].count, 10);
 
-  if (rpm >= RATE_LIMITS.RPM) {
-    logger.warn("Rate limit exceeded (RPM)", { current: rpm, limit: RATE_LIMITS.RPM });
+  if (rpm >= quota.rpm) {
+    logger.warn("Rate limit exceeded (RPM)", {
+      provider,
+      model,
+      current: rpm,
+      limit: quota.rpm,
+    });
     return false;
   }
 
-  // Check requests per day
+  // Check requests per day (RPD)
   const rpdResult = await db.query(
     `SELECT COUNT(*) as count
      FROM llm_requests
-     WHERE started_at >= date_trunc('day', now())`,
+     WHERE provider = $1 AND model = $2
+       AND started_at >= date_trunc('day', now())`,
+    [provider, model],
   );
   const rpd = parseInt(rpdResult.rows[0].count, 10);
 
-  if (rpd >= RATE_LIMITS.RPD) {
-    logger.warn("Rate limit exceeded (RPD)", { current: rpd, limit: RATE_LIMITS.RPD });
+  if (rpd >= quota.rpd) {
+    logger.warn("Rate limit exceeded (RPD)", {
+      provider,
+      model,
+      current: rpd,
+      limit: quota.rpd,
+    });
+    return false;
+  }
+
+  // Check tokens per minute (TPM)
+  const tpmResult = await db.query(
+    `SELECT COALESCE(SUM(total_tokens), 0) as tokens
+     FROM llm_requests
+     WHERE provider = $1 AND model = $2
+       AND started_at > now() - interval '1 minute'`,
+    [provider, model],
+  );
+  const tpm = parseInt(tpmResult.rows[0].tokens, 10);
+
+  if (tpm >= quota.tpm) {
+    logger.warn("Rate limit exceeded (TPM)", {
+      provider,
+      model,
+      current: tpm,
+      limit: quota.tpm,
+    });
     return false;
   }
 
