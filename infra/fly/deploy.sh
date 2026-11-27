@@ -56,6 +56,7 @@ fly secrets set --app health-vitals-api --stage \
   SECRET_JWT_KEY="${SECRET_JWT_KEY}" \
   WEB_URL="${WEB_URL:-https://binderlex.com}" \
   MAIL_PROVIDER="${MAIL_PROVIDER:-resend}" \
+  MAIL_FROM="${MAIL_FROM:-HealthVitals <noreply@binderlex.com>}" \
   RESEND_API_KEY="${RESEND_API_KEY:-}"
 
 echo "🔐 Syncing secrets to health-vitals-worker..."
