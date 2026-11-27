@@ -1,0 +1,16 @@
+# Fly.io configuration for Health Vitals Worker
+# Deploy from repo root:
+#   fly deploy --config infra/fly/worker.toml --dockerfile apps/worker/Dockerfile .
+
+app = "health-vitals-worker"
+primary_region = "iad"
+
+[env]
+  NODE_ENV = "production"
+  STORAGE_BUCKET = "health-vitals-uploads"
+  LLM_PROVIDER = "google"
+  GEMINI_MODEL = "gemini-3.5-flash-lite"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
