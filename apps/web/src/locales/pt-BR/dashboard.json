@@ -1,0 +1,59 @@
+{
+  "title": "Painel de Saúde",
+  "subtitle": "Acompanhe a evolução dos seus biomarcadores ao longo do tempo.",
+  "loading": "Atualizando tendências...",
+  "categories": {
+    "lipid_panel": "Perfil Lipídico",
+    "glucose_metabolism": "Metabolismo da Glicose",
+    "renal_function": "Função Renal"
+  },
+  "summary": {
+    "trackedBiomarkers": "Biomarcadores monitorados",
+    "inRange": "Na faixa ideal",
+    "outOfRange": "Fora da faixa",
+    "needsAttention": "Requer atenção"
+  },
+  "chart": {
+    "referenceRange": "Faixa de referência",
+    "latestValue": "Último resultado",
+    "noReference": "Sem faixa de referência",
+    "status": {
+      "normal": "Normal",
+      "high": "Elevado",
+      "low": "Baixo",
+      "neutral": "Sem referência"
+    }
+  },
+  "empty": {
+    "title": "Nenhuma tendência encontrada",
+    "subtitle": "Envie seu primeiro laudo laboratorial em PDF para começar a acompanhar seus biomarcadores.",
+    "uploadCta": "Enviar arquivo"
+  },
+  "error": {
+    "title": "Dados indisponíveis",
+    "message": "Não foi possível carregar suas tendências de saúde. Tente novamente mais tarde.",
+    "retryCta": "Tentar novamente"
+  },
+  "biomarkers": {
+    "total_cholesterol": "Colesterol Total",
+    "ldl_cholesterol": "Colesterol LDL",
+    "hdl_cholesterol": "Colesterol HDL",
+    "vldl_cholesterol": "Colesterol VLDL",
+    "non_hdl_cholesterol": "Colesterol Não-HDL",
+    "triglycerides": "Triglicerídeos",
+    "fasting_glucose": "Glicemia em Jejum",
+    "glucose": "Glicose",
+    "hba1c": "Hemoglobina Glicada (HbA1c)",
+    "insulin": "Insulina",
+    "homa_ir": "Índice HOMA-IR",
+    "estimated_average_glucose": "Glicemia Média Estimada",
+    "creatinine": "Creatinina",
+    "urea": "Ureia",
+    "uric_acid": "Ácido Úrico",
+    "egfr": "TFG Estimada (eGFR)",
+    "estimated_gfr": "TFG Estimada",
+    "albumin": "Albumina",
+    "sodium": "Sódio",
+    "potassium": "Potássio"
+  }
+}

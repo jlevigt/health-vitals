@@ -1,0 +1,43 @@
+{
+  "brand": {
+    "name": "HealthVitals",
+    "tagline": "Inteligência clínica para seus exames laboratoriais"
+  },
+  "nav": {
+    "dashboard": "Painel",
+    "files": "Arquivos",
+    "reports": "Laudos",
+    "openMenu": "Abrir menu de navegação",
+    "closeMenu": "Fechar menu de navegação"
+  },
+  "userMenu": {
+    "user": "Usuário",
+    "signOut": "Sair",
+    "account": "Conta",
+    "openMenu": "Abrir menu do usuário"
+  },
+  "pagination": {
+    "previous": "Anterior",
+    "next": "Próxima",
+    "pageOf": "Página {{current}} de {{total}}"
+  },
+  "actions": {
+    "retry": "Tentar novamente",
+    "refresh": "Atualizar",
+    "cancel": "Cancelar",
+    "close": "Fechar"
+  },
+  "languageSwitcher": {
+    "ariaLabel": "Selecionar idioma",
+    "ptShort": "PT",
+    "enShort": "EN",
+    "ptFull": "Português (Brasil)",
+    "enFull": "English (US)"
+  },
+  "status": {
+    "loading": "Carregando..."
+  },
+  "footer": {
+    "createdBy": "Desenvolvido por"
+  }
+}
