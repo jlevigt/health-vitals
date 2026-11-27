@@ -40,6 +40,7 @@ const envSchema = z.object({
   MAIL_USER: z.string().optional(),
   MAIL_PASS: z.string().optional(),
   MAIL_PROVIDER: z.string().optional(),
+  MAIL_FROM: z.string().optional().default("HealthVitals <noreply@binderlex.com>"),
   RESEND_API_KEY: z.string().optional(),
 
   // --- Worker / AI Specific ---
