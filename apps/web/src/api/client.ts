@@ -64,14 +64,23 @@ async function request<T = any>(
 
   const performFetch = () =>
     fetch(url.toString(), {
+      credentials: "include",
       ...fetchOptions,
       headers,
     });
 
   let response = await performFetch();
 
+  // Skip token-refresh & redirect on public auth endpoints (e.g. invalid login credentials)
+  const isPublicAuthPath =
+    path.startsWith("/auth/login") ||
+    path.startsWith("/auth/register") ||
+    path.startsWith("/auth/verify-email") ||
+    path.startsWith("/auth/refresh") ||
+    path.startsWith("/auth/password");
+
   // Handle 401 Unauthorized (Token Refresh)
-  if (response.status === 401 && !path.includes("/auth/refresh")) {
+  if (response.status === 401 && !isPublicAuthPath) {
     if (isRefreshing) {
       return new Promise((resolve, reject) => {
         failedQueue.push({ resolve, reject });
@@ -88,6 +97,7 @@ async function request<T = any>(
     try {
       const refreshResponse = await fetch(`${API_BASE_URL}/auth/refresh`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
       });
 
@@ -103,14 +113,16 @@ async function request<T = any>(
       // Retry original request
       headers.set("Authorization", `Bearer ${accessToken}`);
       response = await performFetch();
-    } catch (refreshError: any) {
-      processQueue(
-        refreshError instanceof Error ? refreshError : new Error(String(refreshError)),
-        null,
-      );
+    } catch (refreshError: unknown) {
+      const err =
+        refreshError instanceof Error ? refreshError : new Error(String(refreshError));
+      processQueue(err, null);
       localStorage.removeItem("accessToken");
-      window.location.href = "/login";
-      return Promise.reject(refreshError);
+      localStorage.removeItem("user");
+      if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+        window.location.href = "/login";
+      }
+      return Promise.reject(err);
     } finally {
       isRefreshing = false;
     }

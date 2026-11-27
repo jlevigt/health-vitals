@@ -75,10 +75,10 @@ let mailer: MailProvider;
 if (env.NODE_ENV === "test") {
   mailer = new MockMailProvider();
 } else if (mailProviderType === "resend" && resendApiKey) {
-  mailer = new ResendProvider(logger, resendApiKey);
+  mailer = new ResendProvider(logger, resendApiKey, env.MAIL_FROM);
 } else {
   // Fallback to nodemailer (or mock if no config, but NodeMailerProvider handles its own config)
-  mailer = new NodeMailerProvider(logger);
+  mailer = new NodeMailerProvider(logger, env.MAIL_FROM);
 }
 
 export const mailProvider = mailer;

@@ -1,0 +1,54 @@
+{
+  "title": "Files",
+  "subtitle": "Manage your uploaded documents and track processing status.",
+  "uploadButton": "Upload Files",
+  "refreshButton": "Refresh",
+  "table": {
+    "filename": "Filename",
+    "uploadedAt": "Uploaded At",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "delete": {
+    "button": "Delete file",
+    "confirmTitle": "Delete file and observations?",
+    "confirmDescription": "This will permanently remove \"{{filename}}\" along with its lab report and all extracted clinical observations.",
+    "confirmAction": "Delete",
+    "deleting": "Deleting...",
+    "error": "Failed to delete file. Please try again."
+  },
+  "status": {
+    "completed": "Completed",
+    "processing": "Processing",
+    "failed": "Failed",
+    "pending": "Pending"
+  },
+  "empty": {
+    "title": "No files uploaded yet",
+    "subtitle": "Upload your PDF lab reports to begin automatic extraction.",
+    "uploadCta": "Upload your first file"
+  },
+  "error": {
+    "title": "Unable to load files",
+    "message": "Failed to load files. Please try again.",
+    "retryCta": "Retry"
+  },
+  "uploadModal": {
+    "title": "Upload Reports",
+    "subtitle": "PDF documents are extracted and indexed automatically.",
+    "dropzoneTitle": "Click to upload or drag and drop",
+    "dropzoneHint": "PDF files only (max 10MB)",
+    "onlyPdfError": "Only PDF files are allowed.",
+    "selectedCount": "{{count}} file(s) selected",
+    "selectedCount_one": "{{count}} file selected",
+    "selectedCount_other": "{{count}} files selected",
+    "uploadingProgress": "Uploading ({{current}}/{{total}})",
+    "uploadAction": "Upload Files",
+    "uploadAction_one": "Upload {{count}} File",
+    "uploadAction_other": "Upload {{count}} Files",
+    "removeFile": "Remove file",
+    "successTitle": "Upload Complete!",
+    "successSubtitle": "Your reports are being processed.",
+    "uploadFailed": "Failed to upload files. Please try again."
+  }
+}

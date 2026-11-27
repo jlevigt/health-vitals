@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import type { CreateUserDTO } from "@health-vitals/contracts";
+import { renderVerifyEmail } from "@health-vitals/emails";
 import type { Database, Logger, MailProvider } from "@health-vitals/platform";
 import { AppError } from "@health-vitals/platform";
 import argon2 from "argon2";
@@ -52,14 +53,20 @@ export class CreateUserService {
 
       await client.query(verificationQuery, [user.id, tokenHash, expiresAt]);
 
-      // 5. Send email
+      // 5. Send branded verification email (HTML + plain text)
       const webUrl = process.env.WEB_URL || "http://localhost:5173";
-      const verificationLink = `${webUrl}/verify-email?token=${token}&email=${data.email}`;
+      const verificationLink = `${webUrl}/verify-email?token=${encodeURIComponent(token)}&email=${encodeURIComponent(data.email)}`;
+      const renderedEmail = await renderVerifyEmail({
+        verificationUrl: verificationLink,
+        locale: "pt-BR",
+        expiresInHours: 24,
+      });
 
       await this.mailProvider.sendMail(
         data.email,
-        "Verify your email",
-        `<p>Welcome! Click <a href="${verificationLink}">here</a> to verify your email.</p>`,
+        renderedEmail.subject,
+        renderedEmail.html,
+        renderedEmail.text,
       );
 
       await client.query("COMMIT");

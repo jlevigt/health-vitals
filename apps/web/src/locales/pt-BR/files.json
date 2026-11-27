@@ -1,0 +1,54 @@
+{
+  "title": "Arquivos",
+  "subtitle": "Gerencie seus documentos enviados e acompanhe o status de processamento.",
+  "uploadButton": "Enviar arquivos",
+  "refreshButton": "Atualizar",
+  "table": {
+    "filename": "Arquivo",
+    "uploadedAt": "Enviado em",
+    "status": "Status",
+    "actions": "Ações"
+  },
+  "delete": {
+    "button": "Excluir arquivo",
+    "confirmTitle": "Excluir arquivo e observações?",
+    "confirmDescription": "Esta ação removerá permanentemente \"{{filename}}\" junto com o laudo e todas as observações clínicas extraídas.",
+    "confirmAction": "Excluir",
+    "deleting": "Excluindo...",
+    "error": "Não foi possível excluir o arquivo. Tente novamente."
+  },
+  "status": {
+    "completed": "Concluído",
+    "processing": "Processando",
+    "failed": "Falhou",
+    "pending": "Pendente"
+  },
+  "empty": {
+    "title": "Nenhum arquivo enviado ainda",
+    "subtitle": "Envie seus laudos laboratoriais em PDF para iniciar a extração automática.",
+    "uploadCta": "Enviar primeiro arquivo"
+  },
+  "error": {
+    "title": "Não foi possível carregar os arquivos",
+    "message": "Não foi possível carregar os arquivos. Tente novamente.",
+    "retryCta": "Tentar novamente"
+  },
+  "uploadModal": {
+    "title": "Enviar laudos",
+    "subtitle": "Documentos em PDF são extraídos e indexados automaticamente.",
+    "dropzoneTitle": "Clique para selecionar ou arraste e solte aqui",
+    "dropzoneHint": "Apenas arquivos PDF (máx. 10 MB)",
+    "onlyPdfError": "Apenas arquivos PDF são permitidos.",
+    "selectedCount": "{{count}} arquivo(s) selecionado(s)",
+    "selectedCount_one": "{{count}} arquivo selecionado",
+    "selectedCount_other": "{{count}} arquivos selecionados",
+    "uploadingProgress": "Enviando ({{current}}/{{total}})",
+    "uploadAction": "Enviar arquivos",
+    "uploadAction_one": "Enviar {{count}} arquivo",
+    "uploadAction_other": "Enviar {{count}} arquivos",
+    "removeFile": "Remover arquivo",
+    "successTitle": "Envio concluído!",
+    "successSubtitle": "Seus laudos estão sendo processados.",
+    "uploadFailed": "Falha ao enviar os arquivos. Tente novamente."
+  }
+}

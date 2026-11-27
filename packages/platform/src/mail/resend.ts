@@ -11,18 +11,20 @@ export class ResendProvider implements MailProvider {
   constructor(
     private logger: Logger,
     apiKey: string,
+    private fromAddress = "HealthVitals <noreply@binderlex.com>",
   ) {
     this.resend = new Resend(apiKey);
     this.logger.info("Resend mail provider initialized");
   }
 
-  async sendMail(to: string, subject: string, body: string): Promise<void> {
+  async sendMail(to: string, subject: string, body: string, text?: string): Promise<void> {
     try {
       const { data, error } = await this.resend.emails.send({
-        from: "Health Is Wealth <onboarding@resend.dev>", // TODO: Configure custom domain
+        from: this.fromAddress,
         to,
         subject,
         html: body,
+        ...(text ? { text } : {}),
       });
 
       if (error) {
@@ -31,7 +33,7 @@ export class ResendProvider implements MailProvider {
       }
 
       this.logger.info(`Email sent to ${to} via Resend. ID: ${data?.id}`);
-    } catch (err) {
+    } catch (err: unknown) {
       this.logger.error(`Unexpected error sending email: ${err}`);
       throw err;
     }

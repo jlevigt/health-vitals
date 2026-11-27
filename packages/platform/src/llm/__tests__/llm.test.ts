@@ -160,7 +160,8 @@ describe("Platform LLM Providers & Factory", () => {
       expect(result.data.collection_date).toBe("2026-02-10");
       expect(result.data.lab_name).toBe("Local Ollama Lab");
       expect(result.data.observations).toHaveLength(1);
-      expect(result.data.observations[0].canonical_name).toBe("glucose");
+      expect(result.data.observations[0].canonical_name).toBe("fasting_glucose");
+      expect(result.data.observations[0].loinc_code).toBe("1558-6");
     });
 
     it("should merge array responses into a single LLMResult object", async () => {
@@ -255,6 +256,75 @@ describe("Platform LLM Providers & Factory", () => {
       await expect(ollama.processDocument("Sample text", "report.pdf")).rejects.toThrow(
         "LLM failed to return a collection_date.",
       );
+    });
+
+    it("should strip unit-mismatched /mm³ reference bounds from percentage observations", async () => {
+      const mockFetch = mock(async () => {
+        return new Response(
+          JSON.stringify({
+            model: "llama3.2",
+            message: {
+              content: JSON.stringify({
+                collection_date: "2026-11-01",
+                observations: [
+                  {
+                    category: "hematology",
+                    canonical_name: "eosinophils_percent",
+                    raw_name: "Eosinófilos (%)",
+                    raw_value: "1.9",
+                    raw_unit: "%",
+                    normalized_value: 1.9,
+                    base_unit: "percent",
+                    reference_low: 20,
+                    reference_high: 500,
+                  },
+                  {
+                    category: "hematology",
+                    canonical_name: "lymphocytes",
+                    raw_name: "Linfócitos",
+                    raw_value: "2173",
+                    raw_unit: "/mm³",
+                    normalized_value: 2173,
+                    base_unit: "unknown",
+                    reference_low: 1000,
+                    reference_high: 4500,
+                  },
+                  {
+                    category: "glucose_metabolism",
+                    canonical_name: "hba1c",
+                    raw_name: "HbA1c",
+                    raw_value: "5.2",
+                    raw_unit: "%",
+                    normalized_value: 5.2,
+                    base_unit: "percent",
+                    reference_low: 4.0,
+                    reference_high: 5.6,
+                  },
+                ],
+              }),
+            },
+          }),
+          { status: 200 },
+        );
+      });
+      globalThis.fetch = mockFetch as unknown as typeof fetch;
+
+      const ollama = new OllamaProvider(silentLogger);
+      const result = await ollama.processDocument("LEUCOGRAMA ...", "checkup.pdf");
+
+      const eosinophils = result.data.observations.find(
+        (o) => o.canonical_name === "eosinophils_percent",
+      );
+      expect(eosinophils?.reference_low).toBeUndefined();
+      expect(eosinophils?.reference_high).toBeUndefined();
+
+      const lymphocytes = result.data.observations.find((o) => o.canonical_name === "lymphocytes");
+      expect(lymphocytes?.reference_low).toBe(1000);
+      expect(lymphocytes?.reference_high).toBe(4500);
+
+      const hba1c = result.data.observations.find((o) => o.canonical_name === "hba1c");
+      expect(hba1c?.reference_low).toBe(4.0);
+      expect(hba1c?.reference_high).toBe(5.6);
     });
   });
 });

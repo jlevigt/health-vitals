@@ -16,7 +16,8 @@
     "lint:fix": "biome check --write .",
     "typecheck": "bun run --filter '*' build",
     "build": "bun run --filter '*' build",
-    "test": "bun test --env-file=.env tests apps/*/tests apps/jobs/*/tests packages/*/tests apps/*/src apps/jobs/*/src packages/*/src"
+    "test": "bun test --env-file=.env tests apps/*/tests apps/jobs/*/tests packages/*/tests apps/*/src apps/jobs/*/src packages/*/src",
+    "test:e2e": "RUN_E2E=true bun test tests/e2e/system.e2e.test.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.14",

@@ -1,16 +1,64 @@
+import { AlertCircle, CheckCircle2, Eye, EyeOff, Loader2 } from "lucide-react";
 import type React from "react";
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useId, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { api } from "@/api/client";
+import { AuthLayout } from "@/components/brand/AuthLayout";
 import { useAuth } from "@/context/AuthContext";
 
+interface LoginResponse {
+  accessToken: string;
+  user: {
+    id: string;
+    email: string;
+    name: string;
+  };
+}
+
+function getLocationMessage(state: unknown): string | null {
+  if (typeof state === "object" && state !== null && "message" in state) {
+    const value = (state as { message?: unknown }).message;
+    if (typeof value === "string" && value.trim().length > 0) {
+      return value;
+    }
+  }
+  return null;
+}
+
+function extractErrorMessage(err: unknown, fallback: string): string {
+  if (typeof err === "object" && err !== null) {
+    if ("response" in err) {
+      const response = (err as { response?: { data?: { message?: unknown } } }).response;
+      if (typeof response?.data?.message === "string" && response.data.message.trim().length > 0) {
+        return response.data.message;
+      }
+    }
+    if ("message" in err && typeof (err as { message?: unknown }).message === "string") {
+      const message = (err as { message: string }).message;
+      if (message.trim().length > 0) {
+        return message;
+      }
+    }
+  }
+  return fallback;
+}
+
 export const LoginPage: React.FC = () => {
+  const { t } = useTranslation("auth");
+  const emailId = useId();
+  const passwordId = useId();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const location = useLocation();
   const navigate = useNavigate();
   const { login } = useAuth();
+
+  const successMessage = getLocationMessage(location.state);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,74 +66,118 @@ export const LoginPage: React.FC = () => {
     setLoading(true);
 
     try {
-      const response = await api.post("/auth/login", { email, password });
+      const response = await api.post<LoginResponse>("/auth/login", { email, password });
       const { accessToken, user } = response.data;
       login(accessToken, user);
       navigate("/dashboard");
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Invalid credentials");
+    } catch (err: unknown) {
+      setError(extractErrorMessage(err, t("login.invalidCredentials")));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-surface p-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 space-y-6">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-primary">Welcome Back</h1>
-          <p className="text-on-surface-variant mt-2">Sign in to your health portal</p>
+    <AuthLayout>
+      <div className="space-y-6">
+        <div className="space-y-1.5">
+          <h1 className="font-display text-2xl font-bold text-on-surface tracking-tight">
+            {t("login.title")}
+          </h1>
+          <p className="text-sm text-on-surface-variant">{t("login.subtitle")}</p>
         </div>
 
+        {successMessage && !error && (
+          <div
+            role="status"
+            className="flex items-start gap-2.5 rounded-xl bg-success-container border border-success-border px-3.5 py-3 text-sm text-on-success-container"
+          >
+            <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5 text-success" />
+            <span>{successMessage}</span>
+          </div>
+        )}
+
+        {error && (
+          <div
+            role="alert"
+            className="flex items-start gap-2.5 rounded-xl bg-error-container border border-error-border px-3.5 py-3 text-sm text-on-error-container"
+          >
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-error" />
+            <span>{error}</span>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-on-surface ml-1 mb-1">
-              Email
-              <input
-                type="email"
-                required
-                className="w-full px-4 py-3 rounded-xl border border-outline focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all mt-1"
-                placeholder="name@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
+          <div className="space-y-1.5">
+            <label htmlFor={emailId} className="block text-sm font-medium text-on-surface">
+              {t("login.emailLabel")}
             </label>
+            <input
+              id={emailId}
+              type="email"
+              required
+              autoComplete="email"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-outline bg-white text-sm text-on-surface placeholder:text-on-surface-variant/60 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+              placeholder={t("login.emailPlaceholder")}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-on-surface ml-1 mb-1">
-              Password
+          <div className="space-y-1.5">
+            <label htmlFor={passwordId} className="block text-sm font-medium text-on-surface">
+              {t("login.passwordLabel")}
+            </label>
+            <div className="relative">
               <input
-                type="password"
+                id={passwordId}
+                type={showPassword ? "text" : "password"}
                 required
-                className="w-full px-4 py-3 rounded-xl border border-outline focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all mt-1"
-                placeholder="••••••••"
+                autoComplete="current-password"
+                className="w-full pl-3.5 pr-11 py-2.5 rounded-xl border border-outline bg-white text-sm text-on-surface placeholder:text-on-surface-variant/60 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                placeholder={t("login.passwordPlaceholder")}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-            </label>
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? t("login.hidePassword") : t("login.showPassword")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-variant transition-colors cursor-pointer"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
-
-          {error && <p className="text-error text-sm text-center">{error}</p>}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-primary text-on-primary py-3 rounded-xl font-semibold shadow-md hover:bg-opacity-90 active:scale-[0.98] transition-all disabled:opacity-50"
+            className="w-full inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-on-primary py-2.5 px-4 rounded-xl text-sm font-semibold shadow-xs transition-all active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
           >
-            {loading ? "Signing in..." : "Sign In"}
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                {t("login.loading")}
+              </>
+            ) : (
+              t("login.submit")
+            )}
           </button>
         </form>
 
-        <div className="text-center pt-2">
+        <div className="pt-2 border-t border-outline-variant text-center">
           <p className="text-sm text-on-surface-variant">
-            Don't have an account?{" "}
-            <Link to="/register" className="text-primary font-semibold hover:underline">
-              Register here
+            {t("login.noAccount")}{" "}
+            <Link
+              to="/register"
+              className="text-primary font-semibold hover:text-primary-hover hover:underline transition-colors"
+            >
+              {t("login.registerLink")}
             </Link>
           </p>
         </div>
       </div>
-    </div>
+    </AuthLayout>
   );
 };

@@ -1,0 +1,69 @@
+{
+  "title": "Health Dashboard",
+  "subtitle": "Track your biomarkers and clinical trends over time.",
+  "loading": "Updating trends...",
+  "categories": {
+    "lipid_panel": "Lipid Panel",
+    "glucose_metabolism": "Glucose Metabolism",
+    "renal_function": "Renal Function"
+  },
+  "summary": {
+    "trackedBiomarkers": "Tracked Biomarkers",
+    "inRange": "In Range",
+    "outOfRange": "Out of Range",
+    "needsAttention": "Needs Attention"
+  },
+  "chart": {
+    "referenceRange": "Reference range",
+    "latestValue": "Latest value",
+    "noReference": "No reference range",
+    "expand": "Expand chart",
+    "closeFocus": "Close expanded view",
+    "historyTitle": "Measurement history",
+    "dateColumn": "Date",
+    "valueColumn": "Value",
+    "referenceColumn": "Reference",
+    "statusColumn": "Status",
+    "pointsCount": "{{count}} recorded measurements",
+    "pointsCount_one": "{{count}} recorded measurement",
+    "pointsCount_other": "{{count}} recorded measurements",
+    "status": {
+      "normal": "Normal",
+      "high": "High",
+      "low": "Low",
+      "neutral": "No reference"
+    }
+  },
+  "empty": {
+    "title": "No trends found",
+    "subtitle": "Upload your first lab report PDF to start tracking your biomarkers.",
+    "uploadCta": "Upload File"
+  },
+  "error": {
+    "title": "Data Unavailable",
+    "message": "Unable to load health trends. Please try again later.",
+    "retryCta": "Retry Connection"
+  },
+  "biomarkers": {
+    "total_cholesterol": "Total Cholesterol",
+    "ldl_cholesterol": "LDL Cholesterol",
+    "hdl_cholesterol": "HDL Cholesterol",
+    "vldl_cholesterol": "VLDL Cholesterol",
+    "non_hdl_cholesterol": "Non-HDL Cholesterol",
+    "triglycerides": "Triglycerides",
+    "fasting_glucose": "Fasting Glucose",
+    "glucose": "Glucose",
+    "hba1c": "HbA1c",
+    "insulin": "Insulin",
+    "homa_ir": "HOMA-IR",
+    "estimated_average_glucose": "Estimated Avg Glucose",
+    "creatinine": "Creatinine",
+    "urea": "Urea",
+    "uric_acid": "Uric Acid",
+    "egfr": "eGFR",
+    "estimated_gfr": "Estimated GFR",
+    "albumin": "Albumin",
+    "sodium": "Sodium",
+    "potassium": "Potassium"
+  }
+}

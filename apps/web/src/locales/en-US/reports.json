@@ -1,0 +1,41 @@
+{
+  "title": "Lab Reports",
+  "subtitle": "View and manage your processed clinical documents.",
+  "totalReports": "Total reports",
+  "table": {
+    "reportName": "Report Name",
+    "date": "Date",
+    "lab": "Lab",
+    "observations": "Observations"
+  },
+  "unknownLab": "Unknown Lab",
+  "observationsCount": "{{count}} observations",
+  "observationsCount_one": "{{count}} observation",
+  "observationsCount_other": "{{count}} observations",
+  "expanded": {
+    "extractedObservations": "Extracted Observations",
+    "testName": "Test Name",
+    "value": "Value",
+    "unit": "Unit",
+    "reference": "Reference",
+    "interpretation": "Interpretation",
+    "totalCount": "{{count}} total",
+    "noObservations": "No observations found for this report.",
+    "errorLoading": "Failed to load observations for this report."
+  },
+  "interpretations": {
+    "normal": "Normal",
+    "high": "High",
+    "low": "Low"
+  },
+  "empty": {
+    "title": "No reports found",
+    "subtitle": "Processed lab reports will appear here once your PDF files have been analyzed.",
+    "uploadCta": "Go to Files"
+  },
+  "error": {
+    "title": "Unable to load reports",
+    "message": "An error occurred while loading your lab reports. Please try again.",
+    "retryCta": "Retry"
+  }
+}

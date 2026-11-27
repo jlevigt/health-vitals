@@ -1,0 +1,50 @@
+{
+  "brand": {
+    "name": "HealthVitals",
+    "tagline": "Clinical intelligence for your lab reports",
+    "portal": "Clinical Portal"
+  },
+  "nav": {
+    "workspace": "Workspace",
+    "dashboard": "Dashboard",
+    "files": "Files",
+    "reports": "Reports",
+    "openMenu": "Open navigation menu",
+    "closeMenu": "Close navigation menu"
+  },
+  "userMenu": {
+    "user": "User",
+    "signOut": "Sign out",
+    "account": "Account",
+    "openMenu": "Open user menu"
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "pageOf": "Page {{current}} of {{total}}"
+  },
+  "actions": {
+    "retry": "Retry",
+    "refresh": "Refresh",
+    "cancel": "Cancel",
+    "close": "Close"
+  },
+  "sorting": {
+    "sortBy": "Sort by {{column}}",
+    "ascending": "ascending",
+    "descending": "descending"
+  },
+  "languageSwitcher": {
+    "ariaLabel": "Select language",
+    "ptShort": "PT",
+    "enShort": "EN",
+    "ptFull": "Português (Brasil)",
+    "enFull": "English (US)"
+  },
+  "status": {
+    "loading": "Loading..."
+  },
+  "footer": {
+    "createdBy": "Created by"
+  }
+}

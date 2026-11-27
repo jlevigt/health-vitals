@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import type { PasswordRecoveryRequestDTO } from "@health-vitals/contracts";
+import { renderPasswordResetEmail } from "@health-vitals/emails";
 import type { Database, Logger, MailProvider } from "@health-vitals/platform";
 import argon2 from "argon2";
 
@@ -35,12 +36,18 @@ export class RequestRecoveryService {
     );
 
     const webUrl = process.env.WEB_URL || "http://localhost:5173";
-    const resetLink = `${webUrl}/reset-password?token=${token}&email=${email}`;
+    const resetLink = `${webUrl}/reset-password?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`;
+    const renderedEmail = await renderPasswordResetEmail({
+      resetUrl: resetLink,
+      locale: "pt-BR",
+      expiresInHours: 1,
+    });
 
     await this.mailProvider.sendMail(
       email,
-      "Password Recovery",
-      `<p>You requested a password reset. Click <a href="${resetLink}">here</a> to reset your password. This link expires in 1 hour.</p>`,
+      renderedEmail.subject,
+      renderedEmail.html,
+      renderedEmail.text,
     );
 
     this.logger.info(`Password recovery email sent to: ${email}`);

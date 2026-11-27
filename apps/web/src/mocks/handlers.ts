@@ -86,18 +86,105 @@ export const handlers = [
 
   http.get(`${API_URL}/reports/:id/observations`, async () => {
     await delay(300);
-    // Generate 15 mock observations
-    const observations = Array.from({ length: 15 }).map((_, i) => ({
-      id: `obs-${i + 1}`,
-      name:
-        ["Total Cholesterol", "HDL", "LDL", "Triglycerides", "Glucose", "Creatinine"][i % 6] ||
-        `Test ${i}`,
-      value: (Math.random() * 100 + 50).toFixed(1),
-      unit: "mg/dL",
-      status: "final",
-      interpretation: Math.random() > 0.7 ? "High" : "Normal",
-    }));
+    const catalog = [
+      { name: "Total Cholesterol", unit: "mg/dL", low: 125, high: 200 },
+      { name: "HDL Cholesterol", unit: "mg/dL", low: 40, high: 60 },
+      { name: "LDL Cholesterol", unit: "mg/dL", low: 0, high: 100 },
+      { name: "Triglycerides", unit: "mg/dL", low: 0, high: 150 },
+      { name: "Fasting Glucose", unit: "mg/dL", low: 70, high: 99 },
+      { name: "Creatinine", unit: "mg/dL", low: 0.7, high: 1.3 },
+    ];
+    const observations = Array.from({ length: 15 }).map((_, i) => {
+      const item = catalog[i % catalog.length];
+      const isHigh = i % 5 === 2;
+      const value = isHigh
+        ? Number((item.high * 1.15).toFixed(1))
+        : Number((((item.low + item.high) / 2) * (0.9 + (i % 3) * 0.08)).toFixed(1));
+      return {
+        id: `obs-${i + 1}`,
+        name: item.name,
+        value: String(value),
+        unit: item.unit,
+        reference_low: item.low,
+        reference_high: item.high,
+        status: "final",
+        interpretation: isHigh ? "High" : "Normal",
+      };
+    });
     return HttpResponse.json(observations);
+  }),
+
+  // Files Handlers
+  http.get(`${API_URL}/files`, async () => {
+    await delay(450);
+    return HttpResponse.json({
+      files: [
+        {
+          id: "file-1",
+          filename: "Exame_Perfil_Lipidico_Nov_2026.pdf",
+          status: "SUCCEEDED",
+          created_at: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
+          processed_at: new Date(Date.now() - 1000 * 60 * 60 * 4.9).toISOString(),
+        },
+        {
+          id: "file-2",
+          filename: "Hemograma_Glicemia_Out_2026.pdf",
+          status: "PROCESSING",
+          created_at: new Date(Date.now() - 1000 * 60 * 12).toISOString(),
+          processed_at: null,
+        },
+        {
+          id: "file-3",
+          filename: "Funcao_Renal_Fleury_Set_2026.pdf",
+          status: "SUCCEEDED",
+          created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 18).toISOString(),
+          processed_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 18 + 60000).toISOString(),
+        },
+        {
+          id: "file-4",
+          filename: "Laudo_Digitalizado_Baixa_Qualidade.pdf",
+          status: "FAILED_TERMINAL",
+          created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 32).toISOString(),
+          processed_at: null,
+        },
+      ],
+    });
+  }),
+
+  http.post(`${API_URL}/files/uploads`, async ({ request }) => {
+    await delay(300);
+    const body = (await request.json()) as {
+      files?: Array<{ original_filename: string }>;
+    };
+    const requested = body.files ?? [];
+    return HttpResponse.json({
+      files: requested.map((_, idx) => ({
+        file_id: `mock-file-${Date.now()}-${idx}`,
+        upload_url: `${API_URL}/mock-s3-upload/${idx}`,
+        expires_at: new Date(Date.now() + 900_000).toISOString(),
+      })),
+    });
+  }),
+
+  http.put(`${API_URL}/mock-s3-upload/:idx`, async () => {
+    await delay(400);
+    return new HttpResponse(null, { status: 200 });
+  }),
+
+  http.post(`${API_URL}/files/:fileId/upload-complete`, async ({ params }) => {
+    await delay(250);
+    return HttpResponse.json({
+      file_id: String(params.fileId),
+      status: "QUEUED",
+    });
+  }),
+
+  http.delete(`${API_URL}/files/:fileId`, async ({ params }) => {
+    await delay(300);
+    return HttpResponse.json({
+      file_id: String(params.fileId),
+      deleted: true,
+    });
   }),
 
   http.post(`${API_URL}/reports/upload`, async () => {
