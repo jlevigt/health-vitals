@@ -1,0 +1,38 @@
+{
+  "title": "Laudos Laboratoriais",
+  "subtitle": "Visualize e acompanhe os documentos clínicos já processados.",
+  "table": {
+    "reportName": "Nome do laudo",
+    "date": "Data",
+    "lab": "Laboratório",
+    "observations": "Observações"
+  },
+  "unknownLab": "Laboratório não informado",
+  "observationsCount": "{{count}} observações",
+  "observationsCount_one": "{{count}} observação",
+  "observationsCount_other": "{{count}} observações",
+  "expanded": {
+    "extractedObservations": "Observações extraídas",
+    "testName": "Exame",
+    "value": "Resultado",
+    "unit": "Unidade",
+    "interpretation": "Interpretação",
+    "noObservations": "Nenhuma observação encontrada para este laudo.",
+    "errorLoading": "Não foi possível carregar as observações deste laudo."
+  },
+  "interpretations": {
+    "normal": "Normal",
+    "high": "Elevado",
+    "low": "Baixo"
+  },
+  "empty": {
+    "title": "Nenhum laudo encontrado",
+    "subtitle": "Os laudos processados aparecerão aqui assim que seus arquivos PDF forem analisados.",
+    "uploadCta": "Ir para arquivos"
+  },
+  "error": {
+    "title": "Não foi possível carregar os laudos",
+    "message": "Ocorreu um erro ao buscar seus laudos laboratoriais. Tente novamente.",
+    "retryCta": "Tentar novamente"
+  }
+}

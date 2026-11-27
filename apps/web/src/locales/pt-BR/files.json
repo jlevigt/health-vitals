@@ -1,0 +1,43 @@
+{
+  "title": "Arquivos",
+  "subtitle": "Gerencie seus documentos enviados e acompanhe o status de processamento.",
+  "uploadButton": "Enviar arquivos",
+  "refreshButton": "Atualizar",
+  "table": {
+    "filename": "Arquivo",
+    "uploadedAt": "Enviado em",
+    "status": "Status"
+  },
+  "status": {
+    "completed": "Concluído",
+    "processing": "Processando",
+    "failed": "Falhou",
+    "pending": "Pendente"
+  },
+  "empty": {
+    "title": "Nenhum arquivo enviado ainda",
+    "subtitle": "Envie seus laudos laboratoriais em PDF para iniciar a extração automática.",
+    "uploadCta": "Enviar primeiro arquivo"
+  },
+  "error": {
+    "message": "Não foi possível carregar os arquivos. Tente novamente.",
+    "retryCta": "Tentar novamente"
+  },
+  "uploadModal": {
+    "title": "Enviar laudos",
+    "dropzoneTitle": "Clique para selecionar ou arraste e solte aqui",
+    "dropzoneHint": "Apenas arquivos PDF (máx. 10 MB)",
+    "onlyPdfError": "Apenas arquivos PDF são permitidos.",
+    "selectedCount": "{{count}} arquivo(s) selecionado(s)",
+    "selectedCount_one": "{{count}} arquivo selecionado",
+    "selectedCount_other": "{{count}} arquivos selecionados",
+    "uploadingProgress": "Enviando ({{current}}/{{total}})",
+    "uploadAction": "Enviar arquivos",
+    "uploadAction_one": "Enviar {{count}} arquivo",
+    "uploadAction_other": "Enviar {{count}} arquivos",
+    "removeFile": "Remover arquivo",
+    "successTitle": "Envio concluído!",
+    "successSubtitle": "Seus laudos estão sendo processados.",
+    "uploadFailed": "Falha ao enviar os arquivos. Tente novamente."
+  }
+}
