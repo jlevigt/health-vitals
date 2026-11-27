@@ -13,11 +13,13 @@ import {
   RefreshCw,
 } from "lucide-react";
 import type React from "react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { twMerge } from "tailwind-merge";
 import { api } from "@/api/client";
+import { SortButton } from "@/components/SortButton";
+import { type ReportSortField, type SortDirection, sortReports } from "@/utils/tableSort";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -81,12 +83,16 @@ const InterpretationPill: React.FC<{ interpretation: string | null }> = ({ inter
 };
 
 export const ReportsPage: React.FC = () => {
-  const { t } = useTranslation(["reports", "common"]);
+  const { t, i18n } = useTranslation(["reports", "common"]);
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedReportId, setExpandedReportId] = useState<string | null>(null);
+  const [sortField, setSortField] = useState<ReportSortField>("date");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+
+  const locale = i18n.language || "pt-BR";
 
   const fetchReports = useCallback(async () => {
     setLoading(true);
@@ -109,8 +115,23 @@ export const ReportsPage: React.FC = () => {
     setExpandedReportId((prev) => (prev === reportId ? null : reportId));
   };
 
-  const totalPages = Math.max(1, Math.ceil(reports.length / ITEMS_PER_PAGE));
-  const currentReports = reports.slice(
+  const handleSort = (field: ReportSortField) => {
+    if (sortField === field) {
+      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortField(field);
+      setSortDirection(field === "fileName" || field === "lab_name" ? "asc" : "desc");
+    }
+    setCurrentPage(1);
+  };
+
+  const sortedReports = useMemo(
+    () => sortReports(reports, sortField, sortDirection, locale),
+    [reports, sortField, sortDirection, locale],
+  );
+
+  const totalPages = Math.max(1, Math.ceil(sortedReports.length / ITEMS_PER_PAGE));
+  const currentReports = sortedReports.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE,
   );
@@ -134,14 +155,78 @@ export const ReportsPage: React.FC = () => {
         )}
       </div>
 
+      {/* Mobile Sort Controls */}
+      {!loading && !hasError && reports.length > 1 && (
+        <div className="flex md:hidden items-center flex-wrap gap-1.5">
+          <div className="inline-flex flex-wrap items-center gap-1 p-1 bg-white border border-outline-variant rounded-xl">
+            <SortButton
+              label={t("reports:table.reportName")}
+              active={sortField === "fileName"}
+              direction={sortDirection}
+              onClick={() => handleSort("fileName")}
+              className="px-2.5 py-1.5 rounded-lg"
+            />
+            <SortButton
+              label={t("reports:table.date")}
+              active={sortField === "date"}
+              direction={sortDirection}
+              onClick={() => handleSort("date")}
+              className="px-2.5 py-1.5 rounded-lg"
+            />
+            <SortButton
+              label={t("reports:table.lab")}
+              active={sortField === "lab_name"}
+              direction={sortDirection}
+              onClick={() => handleSort("lab_name")}
+              className="px-2.5 py-1.5 rounded-lg"
+            />
+            <SortButton
+              label={t("reports:table.observations")}
+              active={sortField === "observationsCount"}
+              direction={sortDirection}
+              onClick={() => handleSort("observationsCount")}
+              className="px-2.5 py-1.5 rounded-lg"
+            />
+          </div>
+        </div>
+      )}
+
       {/* Reports Card */}
       <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(15,23,42,0.04)] overflow-hidden">
         {/* Desktop Column Headers */}
-        <div className="hidden md:grid md:grid-cols-[minmax(0,1fr)_120px_180px_150px_32px] gap-4 px-6 py-3 border-b border-outline-variant bg-surface text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider">
-          <div>{t("reports:table.reportName")}</div>
-          <div>{t("reports:table.date")}</div>
-          <div>{t("reports:table.lab")}</div>
-          <div>{t("reports:table.observations")}</div>
+        <div className="hidden md:grid md:grid-cols-[minmax(0,1fr)_120px_180px_150px_32px] gap-4 px-6 py-3 border-b border-outline-variant bg-surface text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider items-center">
+          <div>
+            <SortButton
+              label={t("reports:table.reportName")}
+              active={sortField === "fileName"}
+              direction={sortDirection}
+              onClick={() => handleSort("fileName")}
+            />
+          </div>
+          <div>
+            <SortButton
+              label={t("reports:table.date")}
+              active={sortField === "date"}
+              direction={sortDirection}
+              onClick={() => handleSort("date")}
+            />
+          </div>
+          <div>
+            <SortButton
+              label={t("reports:table.lab")}
+              active={sortField === "lab_name"}
+              direction={sortDirection}
+              onClick={() => handleSort("lab_name")}
+            />
+          </div>
+          <div>
+            <SortButton
+              label={t("reports:table.observations")}
+              active={sortField === "observationsCount"}
+              direction={sortDirection}
+              onClick={() => handleSort("observationsCount")}
+            />
+          </div>
           <div className="sr-only">{t("reports:table.observations")}</div>
         </div>
 

@@ -43,4 +43,9 @@ export const filesApi = {
     );
     return response.data;
   },
+
+  deleteFile: async (fileId: string) => {
+    const response = await api.delete<{ file_id: string; deleted: boolean }>(`/files/${fileId}`);
+    return response.data;
+  },
 };

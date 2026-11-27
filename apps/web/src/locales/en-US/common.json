@@ -29,6 +29,11 @@
     "cancel": "Cancel",
     "close": "Close"
   },
+  "sorting": {
+    "sortBy": "Sort by {{column}}",
+    "ascending": "ascending",
+    "descending": "descending"
+  },
   "languageSwitcher": {
     "ariaLabel": "Select language",
     "ptShort": "PT",

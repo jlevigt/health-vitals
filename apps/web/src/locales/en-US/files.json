@@ -6,7 +6,16 @@
   "table": {
     "filename": "Filename",
     "uploadedAt": "Uploaded At",
-    "status": "Status"
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "delete": {
+    "button": "Delete file",
+    "confirmTitle": "Delete file and observations?",
+    "confirmDescription": "This will permanently remove \"{{filename}}\" along with its lab report and all extracted clinical observations.",
+    "confirmAction": "Delete",
+    "deleting": "Deleting...",
+    "error": "Failed to delete file. Please try again."
   },
   "status": {
     "completed": "Completed",

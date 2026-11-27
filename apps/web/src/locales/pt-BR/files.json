@@ -6,7 +6,16 @@
   "table": {
     "filename": "Arquivo",
     "uploadedAt": "Enviado em",
-    "status": "Status"
+    "status": "Status",
+    "actions": "Ações"
+  },
+  "delete": {
+    "button": "Excluir arquivo",
+    "confirmTitle": "Excluir arquivo e observações?",
+    "confirmDescription": "Esta ação removerá permanentemente \"{{filename}}\" junto com o laudo e todas as observações clínicas extraídas.",
+    "confirmAction": "Excluir",
+    "deleting": "Excluindo...",
+    "error": "Não foi possível excluir o arquivo. Tente novamente."
   },
   "status": {
     "completed": "Concluído",

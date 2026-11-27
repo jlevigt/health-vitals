@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { twMerge } from "tailwind-merge";
 import { api } from "@/api/client";
+import { ChartFocusModal } from "@/components/ChartFocusModal";
 import { evaluatePointStatus, TrendChart } from "@/components/TrendChart";
 
 function cn(...inputs: ClassValue[]) {
@@ -66,10 +67,12 @@ export const DashboardPage: React.FC = () => {
   const [data, setData] = useState<TrendSeries[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [focusedSeries, setFocusedSeries] = useState<TrendSeries | null>(null);
 
   const fetchData = useCallback(async (cat: DashboardCategory) => {
     setLoading(true);
     setHasError(false);
+    setFocusedSeries(null);
     try {
       const response = await api.get<DashboardResponse>(`/dashboard/${cat}`);
       setData(response.data.series);
@@ -233,7 +236,7 @@ export const DashboardPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {data.map((series) => (
             <div key={series.canonical_name} className="h-[270px]">
-              <TrendChart series={series} />
+              <TrendChart series={series} onExpand={() => setFocusedSeries(series)} />
             </div>
           ))}
         </div>
@@ -255,6 +258,8 @@ export const DashboardPage: React.FC = () => {
           </Link>
         </div>
       )}
+
+      <ChartFocusModal series={focusedSeries} onClose={() => setFocusedSeries(null)} />
     </div>
   );
 };

@@ -1,4 +1,5 @@
 import type { TrendPoint, TrendSeries } from "@health-vitals/contracts";
+import { Maximize2 } from "lucide-react";
 import type React from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -17,6 +18,7 @@ export type BiomarkerStatus = "normal" | "high" | "low" | "neutral";
 
 interface TrendChartProps {
   series: TrendSeries;
+  onExpand?: () => void;
 }
 
 const UPPERCASE_TOKENS: Record<string, string> = {
@@ -50,7 +52,7 @@ export function evaluatePointStatus(
   return "normal";
 }
 
-function formatFallbackBiomarkerName(canonicalName: string): string {
+export function formatFallbackBiomarkerName(canonicalName: string): string {
   return canonicalName
     .split("_")
     .map((word) => {
@@ -63,7 +65,7 @@ function formatFallbackBiomarkerName(canonicalName: string): string {
     .join(" ");
 }
 
-function formatNumericValue(value: number): string {
+export function formatNumericValue(value: number): string {
   return Number.isInteger(value) ? String(value) : Number(value.toFixed(2)).toString();
 }
 
@@ -81,7 +83,7 @@ function parseUtcDate(dateStr: string): Date | null {
   return new Date(Date.UTC(year, month - 1, day));
 }
 
-function formatAxisDate(dateStr: string, locale: string): string {
+export function formatAxisDate(dateStr: string, locale: string): string {
   const parsed = parseUtcDate(dateStr);
   if (!parsed) {
     return dateStr;
@@ -93,7 +95,7 @@ function formatAxisDate(dateStr: string, locale: string): string {
   }).format(parsed);
 }
 
-function formatFullDate(dateStr: string, locale: string): string {
+export function formatFullDate(dateStr: string, locale: string): string {
   const parsed = parseUtcDate(dateStr);
   if (!parsed) {
     return dateStr;
@@ -106,7 +108,7 @@ function formatFullDate(dateStr: string, locale: string): string {
   }).format(parsed);
 }
 
-function formatReferenceRange(
+export function formatReferenceRange(
   refLow: number | null,
   refHigh: number | null,
   unit: string,
@@ -124,10 +126,11 @@ function formatReferenceRange(
   return null;
 }
 
-function computeYDomain(
+export function computeYDomain(
   points: TrendPoint[],
   refLow: number | null,
   refHigh: number | null,
+  paddingRatio = 0.18,
 ): [number, number] {
   const values: number[] = points.map((p) => p.value);
   if (refLow !== null) {
@@ -143,7 +146,7 @@ function computeYDomain(
   const minVal = Math.min(...values);
   const maxVal = Math.max(...values);
   const span = maxVal - minVal;
-  const padding = span === 0 ? Math.max(Math.abs(maxVal) * 0.15, 1) : span * 0.18;
+  const padding = span === 0 ? Math.max(Math.abs(maxVal) * 0.15, 1) : span * paddingRatio;
 
   const paddedMin = minVal >= 0 ? Math.max(0, minVal - padding) : minVal - padding;
   const paddedMax = maxVal + padding;
@@ -165,7 +168,7 @@ function getStatusColor(status: BiomarkerStatus): string {
   return "#64748B";
 }
 
-function getStatusStyle(status: BiomarkerStatus): {
+export function getStatusStyle(status: BiomarkerStatus): {
   badgeClass: string;
   dotClass: string;
 } | null {
@@ -190,26 +193,27 @@ interface DotProps {
   cx?: number;
   cy?: number;
   payload?: TrendPoint;
+  radius?: number;
 }
 
-const CustomDot: React.FC<DotProps> = ({ cx, cy, payload }) => {
+export const CustomDot: React.FC<DotProps> = ({ cx, cy, payload, radius = 4 }) => {
   if (!payload || cx === undefined || cy === undefined) {
     return null;
   }
   const status = evaluatePointStatus(payload.value, payload.reference_low, payload.reference_high);
   const color = getStatusColor(status);
 
-  return <circle cx={cx} cy={cy} r={4} fill={color} stroke="#FFFFFF" strokeWidth={1.5} />;
+  return <circle cx={cx} cy={cy} r={radius} fill={color} stroke="#FFFFFF" strokeWidth={1.5} />;
 };
 
-const ActiveDot: React.FC<DotProps> = ({ cx, cy, payload }) => {
+export const ActiveDot: React.FC<DotProps> = ({ cx, cy, payload, radius = 6 }) => {
   if (!payload || cx === undefined || cy === undefined) {
     return null;
   }
   const status = evaluatePointStatus(payload.value, payload.reference_low, payload.reference_high);
   const color = getStatusColor(status);
 
-  return <circle cx={cx} cy={cy} r={6} fill={color} stroke="#FFFFFF" strokeWidth={2} />;
+  return <circle cx={cx} cy={cy} r={radius} fill={color} stroke="#FFFFFF" strokeWidth={2} />;
 };
 
 interface CustomTooltipProps {
@@ -220,7 +224,7 @@ interface CustomTooltipProps {
   statusLabels: Record<BiomarkerStatus, string>;
 }
 
-const CustomTooltip: React.FC<CustomTooltipProps> = ({
+export const CustomTooltip: React.FC<CustomTooltipProps> = ({
   active,
   payload,
   unit,
@@ -268,7 +272,7 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({
   );
 };
 
-export const TrendChart: React.FC<TrendChartProps> = ({ series }) => {
+export const TrendChart: React.FC<TrendChartProps> = ({ series, onExpand }) => {
   const { t, i18n } = useTranslation("dashboard");
   const { points, unit, canonical_name } = series;
   const locale = i18n.language || "pt-BR";
@@ -301,23 +305,47 @@ export const TrendChart: React.FC<TrendChartProps> = ({ series }) => {
   const yDomain = computeYDomain(points, refLow, refHigh);
 
   return (
-    <div className="bg-white p-4 sm:p-5 rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(15,23,42,0.04)] hover:border-outline transition-colors flex flex-col h-full overflow-hidden">
-      {/* Header: Name + Status Pill */}
+    <div className="group bg-white p-4 sm:p-5 rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(15,23,42,0.04)] hover:border-primary/40 hover:shadow-[0_4px_12px_rgba(15,23,42,0.06)] transition-all flex flex-col h-full overflow-hidden">
+      {/* Header: Name + Status Pill + Expand Button */}
       <div className="flex items-start justify-between gap-2">
-        <h3
-          className="font-display text-sm font-semibold text-on-surface truncate"
-          title={displayName}
-        >
-          {displayName}
-        </h3>
-        {statusStyle && (
-          <span
-            className={`shrink-0 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold border ${statusStyle.badgeClass}`}
+        {onExpand ? (
+          <button
+            type="button"
+            onClick={onExpand}
+            title={t("chart.expand")}
+            className="font-display text-sm font-semibold text-on-surface hover:text-primary truncate text-left transition-colors cursor-pointer"
           >
-            <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dotClass}`} />
-            {statusLabels[latestStatus]}
-          </span>
+            {displayName}
+          </button>
+        ) : (
+          <h3
+            className="font-display text-sm font-semibold text-on-surface truncate"
+            title={displayName}
+          >
+            {displayName}
+          </h3>
         )}
+        <div className="flex items-center gap-1.5 shrink-0">
+          {statusStyle && (
+            <span
+              className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold border ${statusStyle.badgeClass}`}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dotClass}`} />
+              {statusLabels[latestStatus]}
+            </span>
+          )}
+          {onExpand && (
+            <button
+              type="button"
+              onClick={onExpand}
+              aria-label={`${t("chart.expand")}: ${displayName}`}
+              title={t("chart.expand")}
+              className="p-1 rounded-lg text-on-surface-variant hover:text-primary hover:bg-primary-soft transition-colors cursor-pointer"
+            >
+              <Maximize2 className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Latest Value & Reference Range */}

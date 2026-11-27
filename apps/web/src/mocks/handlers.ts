@@ -179,6 +179,14 @@ export const handlers = [
     });
   }),
 
+  http.delete(`${API_URL}/files/:fileId`, async ({ params }) => {
+    await delay(300);
+    return HttpResponse.json({
+      file_id: String(params.fileId),
+      deleted: true,
+    });
+  }),
+
   http.post(`${API_URL}/reports/upload`, async () => {
     await delay(2000); // Simulate large file processing
     return HttpResponse.json({
