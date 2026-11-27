@@ -7,6 +7,7 @@ export interface MailProvider {
    * @param to Recipient email address
    * @param subject Email subject
    * @param body Email body (HTML or plain text)
+   * @param text Optional plain-text fallback body
    */
-  sendMail(to: string, subject: string, body: string): Promise<void>;
+  sendMail(to: string, subject: string, body: string, text?: string): Promise<void>;
 }

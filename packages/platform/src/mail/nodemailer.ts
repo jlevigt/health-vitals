@@ -10,7 +10,10 @@ export class NodeMailerProvider implements MailProvider {
   private transporter: nodemailer.Transporter;
   private testAccount: nodemailer.TestAccount | null = null;
 
-  constructor(private logger: Logger) {
+  constructor(
+    private logger: Logger,
+    private fromAddress = "HealthVitals <noreply@binderlex.com>",
+  ) {
     // Initialize transporter without auth - will be set up on first send
     this.transporter = nodemailer.createTransport({
       host: "smtp.ethereal.email",
@@ -46,16 +49,17 @@ export class NodeMailerProvider implements MailProvider {
     this.logger.info(`Ethereal test account created: ${this.testAccount.user}`);
   }
 
-  async sendMail(to: string, subject: string, body: string): Promise<void> {
+  async sendMail(to: string, subject: string, body: string, text?: string): Promise<void> {
     try {
       // Ensure test account exists before sending
       await this.ensureTestAccount();
 
       const info = await this.transporter.sendMail({
-        from: '"Health Data App" <no-reply@healthdata.com>',
+        from: this.fromAddress,
         to,
         subject,
         html: body,
+        ...(text ? { text } : {}),
       });
 
       // Get preview URL for the sent email
@@ -69,7 +73,7 @@ export class NodeMailerProvider implements MailProvider {
       } else {
         this.logger.warn("Preview URL not available. Check Ethereal Email inbox manually.");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.logger.error(`Error sending email to ${to}: ${error}`);
       throw error;
     }
