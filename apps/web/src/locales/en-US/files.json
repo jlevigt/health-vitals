@@ -20,11 +20,13 @@
     "uploadCta": "Upload your first file"
   },
   "error": {
+    "title": "Unable to load files",
     "message": "Failed to load files. Please try again.",
     "retryCta": "Retry"
   },
   "uploadModal": {
     "title": "Upload Reports",
+    "subtitle": "PDF documents are extracted and indexed automatically.",
     "dropzoneTitle": "Click to upload or drag and drop",
     "dropzoneHint": "PDF files only (max 10MB)",
     "onlyPdfError": "Only PDF files are allowed.",

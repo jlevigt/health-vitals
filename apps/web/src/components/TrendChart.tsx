@@ -1,5 +1,6 @@
 import type { TrendPoint, TrendSeries } from "@health-vitals/contracts";
 import type React from "react";
+import { useTranslation } from "react-i18next";
 import {
   CartesianGrid,
   Line,
@@ -21,7 +22,9 @@ interface TrendChartProps {
 const UPPERCASE_TOKENS: Record<string, string> = {
   ldl: "LDL",
   hdl: "HDL",
+  vldl: "VLDL",
   hba1c: "HbA1c",
+  egfr: "eGFR",
   gfr: "GFR",
   ast: "AST",
   alt: "ALT",
@@ -29,21 +32,6 @@ const UPPERCASE_TOKENS: Record<string, string> = {
   crp: "CRP",
   bun: "BUN",
 };
-
-const MONTH_NAMES = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-] as const;
 
 export function evaluatePointStatus(
   value: number,
@@ -62,7 +50,7 @@ export function evaluatePointStatus(
   return "normal";
 }
 
-function formatBiomarkerName(canonicalName: string): string {
+function formatFallbackBiomarkerName(canonicalName: string): string {
   return canonicalName
     .split("_")
     .map((word) => {
@@ -79,31 +67,43 @@ function formatNumericValue(value: number): string {
   return Number.isInteger(value) ? String(value) : Number(value.toFixed(2)).toString();
 }
 
-function formatAxisDate(dateStr: string): string {
+function parseUtcDate(dateStr: string): Date | null {
   const parts = dateStr.split("-");
   if (parts.length !== 3) {
-    return dateStr;
+    return null;
   }
-  const monthIdx = Number(parts[1]) - 1;
+  const year = Number(parts[0]);
+  const month = Number(parts[1]);
   const day = Number(parts[2]);
-  if (monthIdx >= 0 && monthIdx < 12 && !Number.isNaN(day)) {
-    return `${MONTH_NAMES[monthIdx]} ${day}`;
+  if (Number.isNaN(year) || Number.isNaN(month) || Number.isNaN(day)) {
+    return null;
   }
-  return `${parts[1]}/${parts[2]}`;
+  return new Date(Date.UTC(year, month - 1, day));
 }
 
-function formatFullDate(dateStr: string): string {
-  const parts = dateStr.split("-");
-  if (parts.length !== 3) {
+function formatAxisDate(dateStr: string, locale: string): string {
+  const parsed = parseUtcDate(dateStr);
+  if (!parsed) {
     return dateStr;
   }
-  const year = parts[0];
-  const monthIdx = Number(parts[1]) - 1;
-  const day = Number(parts[2]);
-  if (monthIdx >= 0 && monthIdx < 12 && !Number.isNaN(day)) {
-    return `${MONTH_NAMES[monthIdx]} ${day}, ${year}`;
+  return new Intl.DateTimeFormat(locale, {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  }).format(parsed);
+}
+
+function formatFullDate(dateStr: string, locale: string): string {
+  const parsed = parseUtcDate(dateStr);
+  if (!parsed) {
+    return dateStr;
   }
-  return dateStr;
+  return new Intl.DateTimeFormat(locale, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(parsed);
 }
 
 function formatReferenceRange(
@@ -165,27 +165,19 @@ function getStatusColor(status: BiomarkerStatus): string {
   return "#64748B";
 }
 
-function getStatusMeta(status: BiomarkerStatus): {
-  label: string;
+function getStatusStyle(status: BiomarkerStatus): {
   badgeClass: string;
   dotClass: string;
 } | null {
   switch (status) {
     case "normal":
       return {
-        label: "Normal",
         badgeClass: "bg-success-container text-on-success-container border-success-border",
         dotClass: "bg-success",
       };
     case "high":
-      return {
-        label: "High",
-        badgeClass: "bg-error-container text-on-error-container border-error-border",
-        dotClass: "bg-error",
-      };
     case "low":
       return {
-        label: "Low",
         badgeClass: "bg-error-container text-on-error-container border-error-border",
         dotClass: "bg-error",
       };
@@ -224,30 +216,38 @@ interface CustomTooltipProps {
   active?: boolean;
   payload?: ReadonlyArray<{ payload?: TrendPoint }>;
   unit: string;
+  locale: string;
+  statusLabels: Record<BiomarkerStatus, string>;
 }
 
-const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, unit }) => {
+const CustomTooltip: React.FC<CustomTooltipProps> = ({
+  active,
+  payload,
+  unit,
+  locale,
+  statusLabels,
+}) => {
   const point = payload?.[0]?.payload;
   if (!active || !point) {
     return null;
   }
 
   const status = evaluatePointStatus(point.value, point.reference_low, point.reference_high);
-  const statusMeta = getStatusMeta(status);
+  const statusStyle = getStatusStyle(status);
   const refText = formatReferenceRange(point.reference_low, point.reference_high, unit);
 
   return (
-    <div className="rounded-xl bg-white border border-outline-variant shadow-lg shadow-slate-900/10 px-3 py-2.5 text-xs min-w-[155px]">
+    <div className="rounded-xl bg-white border border-outline-variant shadow-lg shadow-slate-900/10 px-3 py-2.5 text-xs min-w-[160px]">
       <div className="flex items-center justify-between gap-2 mb-1.5">
         <span className="font-medium text-on-surface-variant tabular-nums">
-          {formatFullDate(point.date)}
+          {formatFullDate(point.date, locale)}
         </span>
-        {statusMeta && (
+        {statusStyle && (
           <span
-            className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold border ${statusMeta.badgeClass}`}
+            className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold border ${statusStyle.badgeClass}`}
           >
-            <span className={`w-1.5 h-1.5 rounded-full ${statusMeta.dotClass}`} />
-            {statusMeta.label}
+            <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dotClass}`} />
+            {statusLabels[status]}
           </span>
         )}
       </div>
@@ -269,9 +269,13 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, unit }) 
 };
 
 export const TrendChart: React.FC<TrendChartProps> = ({ series }) => {
+  const { t, i18n } = useTranslation("dashboard");
   const { points, unit, canonical_name } = series;
+  const locale = i18n.language || "pt-BR";
 
-  const displayName = formatBiomarkerName(canonical_name);
+  const displayName = t(`biomarkers.${canonical_name}`, {
+    defaultValue: formatFallbackBiomarkerName(canonical_name),
+  });
   const latestPoint = points.length > 0 ? points[points.length - 1] : null;
 
   const refLow =
@@ -286,7 +290,13 @@ export const TrendChart: React.FC<TrendChartProps> = ({ series }) => {
   const latestStatus = latestPoint
     ? evaluatePointStatus(latestPoint.value, refLow, refHigh)
     : "neutral";
-  const statusMeta = getStatusMeta(latestStatus);
+  const statusStyle = getStatusStyle(latestStatus);
+  const statusLabels: Record<BiomarkerStatus, string> = {
+    normal: t("chart.status.normal"),
+    high: t("chart.status.high"),
+    low: t("chart.status.low"),
+    neutral: t("chart.status.neutral"),
+  };
   const refRangeText = formatReferenceRange(refLow, refHigh, unit);
   const yDomain = computeYDomain(points, refLow, refHigh);
 
@@ -300,12 +310,12 @@ export const TrendChart: React.FC<TrendChartProps> = ({ series }) => {
         >
           {displayName}
         </h3>
-        {statusMeta && (
+        {statusStyle && (
           <span
-            className={`shrink-0 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold border ${statusMeta.badgeClass}`}
+            className={`shrink-0 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-semibold border ${statusStyle.badgeClass}`}
           >
-            <span className={`w-1.5 h-1.5 rounded-full ${statusMeta.dotClass}`} />
-            {statusMeta.label}
+            <span className={`w-1.5 h-1.5 rounded-full ${statusStyle.dotClass}`} />
+            {statusLabels[latestStatus]}
           </span>
         )}
       </div>
@@ -319,9 +329,13 @@ export const TrendChart: React.FC<TrendChartProps> = ({ series }) => {
           {unit && <span className="text-xs font-medium text-on-surface-variant">{unit}</span>}
         </div>
 
-        {refRangeText && (
+        {refRangeText ? (
           <span className="text-[11px] font-medium text-on-surface-variant tabular-nums">
             {refRangeText}
+          </span>
+        ) : (
+          <span className="text-[11px] font-medium text-on-surface-variant/75">
+            {t("chart.noReference")}
           </span>
         )}
       </div>
@@ -336,7 +350,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({ series }) => {
               axisLine={false}
               tickLine={false}
               tick={{ fill: "#64748B", fontSize: 10 }}
-              tickFormatter={formatAxisDate}
+              tickFormatter={(value: string) => formatAxisDate(value, locale)}
               dy={6}
               minTickGap={16}
             />
@@ -349,7 +363,7 @@ export const TrendChart: React.FC<TrendChartProps> = ({ series }) => {
               tickCount={4}
             />
             <Tooltip
-              content={<CustomTooltip unit={unit} />}
+              content={<CustomTooltip unit={unit} locale={locale} statusLabels={statusLabels} />}
               cursor={{ stroke: "#CBD5E1", strokeWidth: 1, strokeDasharray: "3 3" }}
             />
             {refLow !== null && refHigh !== null && (

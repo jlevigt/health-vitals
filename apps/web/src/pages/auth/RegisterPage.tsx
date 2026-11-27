@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import type React from "react";
 import { useId, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { api } from "@/api/client";
 import { AuthLayout } from "@/components/brand/AuthLayout";
@@ -33,6 +34,7 @@ function extractErrorMessage(err: unknown, fallback: string): string {
 }
 
 export const RegisterPage: React.FC = () => {
+  const { t } = useTranslation("auth");
   const emailId = useId();
   const passwordId = useId();
   const [email, setEmail] = useState("");
@@ -53,7 +55,7 @@ export const RegisterPage: React.FC = () => {
       await api.post("/auth/register", { email, password });
       setRegisteredEmail(email.trim());
     } catch (err: unknown) {
-      setError(extractErrorMessage(err, "Registration failed. Please try again."));
+      setError(extractErrorMessage(err, t("register.genericError")));
     } finally {
       setLoading(false);
     }
@@ -69,22 +71,17 @@ export const RegisterPage: React.FC = () => {
 
           <div className="space-y-2">
             <h1 className="font-display text-2xl font-bold text-on-surface tracking-tight">
-              Check your inbox
+              {t("register.checkInbox.title")}
             </h1>
-            <p className="text-sm text-on-surface-variant leading-relaxed">
-              We sent a verification link to{" "}
-              <span className="font-semibold text-on-surface break-all">{registeredEmail}</span>.
+            <p className="text-sm text-on-surface-variant leading-relaxed break-words">
+              {t("register.checkInbox.subtitle", { email: registeredEmail })}
             </p>
           </div>
 
           <div className="rounded-xl bg-surface-variant/70 border border-outline-variant p-4 text-left text-xs text-on-surface-variant space-y-1.5 leading-relaxed">
-            <p className="font-semibold text-on-surface">Next steps</p>
-            <p>
-              Open the email and click the verification link within{" "}
-              <span className="font-semibold text-on-surface tabular-nums">24 hours</span> to
-              activate your HealthVitals workspace.
-            </p>
-            <p>If it doesn&apos;t arrive within a few minutes, check your spam or junk folder.</p>
+            <p className="font-semibold text-on-surface">{t("register.checkInbox.nextSteps")}</p>
+            <p>{t("register.checkInbox.instructions")}</p>
+            <p>{t("register.checkInbox.expiryNotice")}</p>
           </div>
 
           <div className="space-y-3 pt-1">
@@ -92,7 +89,7 @@ export const RegisterPage: React.FC = () => {
               to="/login"
               className="w-full inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-on-primary py-2.5 px-4 rounded-xl text-sm font-semibold shadow-xs transition-all"
             >
-              Continue to Sign In
+              {t("register.checkInbox.backToSignIn")}
               <ArrowRight className="w-4 h-4" />
             </Link>
 
@@ -105,7 +102,7 @@ export const RegisterPage: React.FC = () => {
               }}
               className="w-full py-2 text-xs font-medium text-on-surface-variant hover:text-primary transition-colors cursor-pointer"
             >
-              Use a different email address
+              {t("register.checkInbox.useDifferentEmail")}
             </button>
           </div>
         </div>
@@ -118,11 +115,9 @@ export const RegisterPage: React.FC = () => {
       <div className="space-y-6">
         <div className="space-y-1.5">
           <h1 className="font-display text-2xl font-bold text-on-surface tracking-tight">
-            Create your account
+            {t("register.title")}
           </h1>
-          <p className="text-sm text-on-surface-variant">
-            Start turning PDF lab reports into structured biomarker insights.
-          </p>
+          <p className="text-sm text-on-surface-variant">{t("register.subtitle")}</p>
         </div>
 
         {error && (
@@ -138,7 +133,7 @@ export const RegisterPage: React.FC = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
             <label htmlFor={emailId} className="block text-sm font-medium text-on-surface">
-              Email address
+              {t("register.emailLabel")}
             </label>
             <input
               id={emailId}
@@ -146,7 +141,7 @@ export const RegisterPage: React.FC = () => {
               required
               autoComplete="email"
               className="w-full px-3.5 py-2.5 rounded-xl border border-outline bg-white text-sm text-on-surface placeholder:text-on-surface-variant/60 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-              placeholder="name@example.com"
+              placeholder={t("register.emailPlaceholder")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
@@ -154,7 +149,7 @@ export const RegisterPage: React.FC = () => {
 
           <div className="space-y-2">
             <label htmlFor={passwordId} className="block text-sm font-medium text-on-surface">
-              Password
+              {t("register.passwordLabel")}
             </label>
             <div className="relative">
               <input
@@ -164,15 +159,15 @@ export const RegisterPage: React.FC = () => {
                 minLength={6}
                 autoComplete="new-password"
                 className="w-full pl-3.5 pr-11 py-2.5 rounded-xl border border-outline bg-white text-sm text-on-surface placeholder:text-on-surface-variant/60 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                placeholder="Create a password"
+                placeholder={t("register.passwordPlaceholder")}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((prev) => !prev)}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-variant transition-colors"
+                aria-label={showPassword ? t("login.hidePassword") : t("login.showPassword")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-variant transition-colors cursor-pointer"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -189,7 +184,7 @@ export const RegisterPage: React.FC = () => {
                   hasMinLength ? "text-on-success-container font-medium" : "text-on-surface-variant"
                 }
               >
-                At least 6 characters
+                {t("register.passwordHint")}
               </span>
             </div>
           </div>
@@ -202,22 +197,22 @@ export const RegisterPage: React.FC = () => {
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Creating account...
+                {t("register.loading")}
               </>
             ) : (
-              "Create Account"
+              t("register.submit")
             )}
           </button>
         </form>
 
         <div className="pt-2 border-t border-outline-variant text-center">
           <p className="text-sm text-on-surface-variant">
-            Already have an account?{" "}
+            {t("register.hasAccount")}{" "}
             <Link
               to="/login"
               className="text-primary font-semibold hover:text-primary-hover hover:underline transition-colors"
             >
-              Sign in
+              {t("register.signInLink")}
             </Link>
           </p>
         </div>

@@ -1,9 +1,11 @@
 {
   "brand": {
     "name": "HealthVitals",
-    "tagline": "Inteligência clínica para seus exames laboratoriais"
+    "tagline": "Inteligência clínica para seus exames laboratoriais",
+    "portal": "Portal Clínico"
   },
   "nav": {
+    "workspace": "Espaço de Trabalho",
     "dashboard": "Painel",
     "files": "Arquivos",
     "reports": "Laudos",

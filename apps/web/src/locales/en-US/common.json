@@ -1,9 +1,11 @@
 {
   "brand": {
     "name": "HealthVitals",
-    "tagline": "Clinical intelligence for your lab reports"
+    "tagline": "Clinical intelligence for your lab reports",
+    "portal": "Clinical Portal"
   },
   "nav": {
+    "workspace": "Workspace",
     "dashboard": "Dashboard",
     "files": "Files",
     "reports": "Reports",

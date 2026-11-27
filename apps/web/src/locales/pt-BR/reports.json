@@ -1,6 +1,7 @@
 {
   "title": "Laudos Laboratoriais",
   "subtitle": "Visualize e acompanhe os documentos clínicos já processados.",
+  "totalReports": "Total de laudos",
   "table": {
     "reportName": "Nome do laudo",
     "date": "Data",
@@ -16,7 +17,9 @@
     "testName": "Exame",
     "value": "Resultado",
     "unit": "Unidade",
+    "reference": "Referência",
     "interpretation": "Interpretação",
+    "totalCount": "{{count}} no total",
     "noObservations": "Nenhuma observação encontrada para este laudo.",
     "errorLoading": "Não foi possível carregar as observações deste laudo."
   },

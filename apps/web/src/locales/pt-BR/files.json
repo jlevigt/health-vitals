@@ -20,11 +20,13 @@
     "uploadCta": "Enviar primeiro arquivo"
   },
   "error": {
+    "title": "Não foi possível carregar os arquivos",
     "message": "Não foi possível carregar os arquivos. Tente novamente.",
     "retryCta": "Tentar novamente"
   },
   "uploadModal": {
     "title": "Enviar laudos",
+    "subtitle": "Documentos em PDF são extraídos e indexados automaticamente.",
     "dropzoneTitle": "Clique para selecionar ou arraste e solte aqui",
     "dropzoneHint": "Apenas arquivos PDF (máx. 10 MB)",
     "onlyPdfError": "Apenas arquivos PDF são permitidos.",

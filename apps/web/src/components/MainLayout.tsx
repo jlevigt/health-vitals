@@ -11,9 +11,11 @@ import {
 } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { NavLink, Outlet } from "react-router-dom";
 import { twMerge } from "tailwind-merge";
 import { BrandLogo } from "@/components/brand/BrandLogo";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useAuth } from "@/context/AuthContext";
 
 function cn(...inputs: ClassValue[]) {
@@ -25,18 +27,19 @@ export interface MainLayoutProps {
 }
 
 const NAV_ITEMS = [
-  { to: "/dashboard", label: "Dashboards", icon: LayoutDashboard },
-  { to: "/files", label: "Files", icon: FolderOpen },
-  { to: "/reports", label: "Reports", icon: FileText },
+  { to: "/dashboard", key: "dashboard", icon: LayoutDashboard },
+  { to: "/files", key: "files", icon: FolderOpen },
+  { to: "/reports", key: "reports", icon: FileText },
 ] as const;
 
 export const MainLayout: React.FC<MainLayoutProps> = ({ headerActions }) => {
+  const { t } = useTranslation("common");
   const { user, logout } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   const userInitial = user?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "U";
-  const displayName = user?.name?.trim() || user?.email || "Account";
+  const displayName = user?.name?.trim() || user?.email || t("userMenu.account");
 
   return (
     <div className="h-screen flex flex-col bg-surface overflow-hidden">
@@ -46,7 +49,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ headerActions }) => {
           <button
             type="button"
             onClick={() => setIsSidebarOpen((prev) => !prev)}
-            aria-label={isSidebarOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-label={isSidebarOpen ? t("nav.closeMenu") : t("nav.openMenu")}
             aria-expanded={isSidebarOpen}
             className="md:hidden p-2 -ml-1.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant rounded-lg transition-colors cursor-pointer"
           >
@@ -60,13 +63,16 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ headerActions }) => {
 
         {/* Right Utility Controls */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {headerActions && <div className="flex items-center">{headerActions}</div>}
+          <div className="flex items-center">
+            {headerActions ?? <LanguageSwitcher variant="subtle" />}
+          </div>
 
           {/* User Dropdown */}
           <div className="relative">
             <button
               type="button"
               onClick={() => setIsUserMenuOpen((prev) => !prev)}
+              aria-label={t("userMenu.openMenu")}
               aria-expanded={isUserMenuOpen}
               aria-haspopup="menu"
               className="flex items-center gap-2.5 pl-1.5 pr-2.5 py-1.5 rounded-xl border border-transparent hover:border-outline-variant hover:bg-surface-variant/60 transition-colors cursor-pointer"
@@ -89,7 +95,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ headerActions }) => {
               <>
                 <button
                   type="button"
-                  aria-label="Close account menu"
+                  aria-label={t("actions.close")}
                   onClick={() => setIsUserMenuOpen(false)}
                   className="fixed inset-0 z-10 cursor-default bg-transparent"
                 />
@@ -99,7 +105,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ headerActions }) => {
                 >
                   <div className="px-4 py-3 border-b border-outline-variant">
                     <p className="text-sm font-semibold text-on-surface truncate">
-                      {user?.name || "HealthVitals User"}
+                      {user?.name || t("userMenu.user")}
                     </p>
                     <p className="text-xs text-on-surface-variant truncate mt-0.5">{user?.email}</p>
                   </div>
@@ -114,7 +120,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ headerActions }) => {
                       className="w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-error hover:bg-error-container transition-colors flex items-center gap-2.5 cursor-pointer"
                     >
                       <LogOut className="w-4 h-4" />
-                      Sign Out
+                      {t("userMenu.signOut")}
                     </button>
                   </div>
                 </div>
@@ -127,9 +133,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ headerActions }) => {
       <div className="flex flex-1 overflow-hidden relative">
         {/* Desktop 240px Sidebar */}
         <aside className="hidden md:flex w-60 shrink-0 flex-col bg-white border-r border-outline-variant">
-          <nav aria-label="Primary navigation" className="p-3 space-y-1 flex-1">
+          <nav aria-label={t("nav.workspace")} className="p-3 space-y-1 flex-1">
             <p className="px-3 pt-2 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant/75">
-              Workspace
+              {t("nav.workspace")}
             </p>
             {NAV_ITEMS.map((item) => (
               <NavLink
@@ -145,7 +151,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ headerActions }) => {
                 }
               >
                 <item.icon className="w-[18px] h-[18px] shrink-0" />
-                <span>{item.label}</span>
+                <span>{t(`nav.${item.key}`)}</span>
               </NavLink>
             ))}
           </nav>
@@ -157,7 +163,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ headerActions }) => {
                 <ShieldCheck className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-on-surface truncate">Clinical Portal</p>
+                <p className="text-xs font-semibold text-on-surface truncate">
+                  {t("brand.portal")}
+                </p>
                 <p className="text-[11px] text-on-surface-variant truncate">binderlex.com</p>
               </div>
             </div>
@@ -169,7 +177,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ headerActions }) => {
           <div className="fixed inset-0 z-30 flex md:hidden">
             <button
               type="button"
-              aria-label="Close navigation drawer"
+              aria-label={t("nav.closeMenu")}
               onClick={() => setIsSidebarOpen(false)}
               className="fixed inset-0 bg-slate-900/45 backdrop-blur-[2px] cursor-default"
             />
@@ -179,14 +187,14 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ headerActions }) => {
                 <button
                   type="button"
                   onClick={() => setIsSidebarOpen(false)}
-                  aria-label="Close navigation menu"
+                  aria-label={t("nav.closeMenu")}
                   className="p-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-variant transition-colors cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              <nav aria-label="Mobile navigation" className="p-3 space-y-1 flex-1">
+              <nav aria-label={t("nav.workspace")} className="p-3 space-y-1 flex-1">
                 {NAV_ITEMS.map((item) => (
                   <NavLink
                     key={item.to}
@@ -202,7 +210,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ headerActions }) => {
                     }
                   >
                     <item.icon className="w-[18px] h-[18px] shrink-0" />
-                    <span>{item.label}</span>
+                    <span>{t(`nav.${item.key}`)}</span>
                   </NavLink>
                 ))}
               </nav>
@@ -214,7 +222,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ headerActions }) => {
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs font-semibold text-on-surface truncate">
-                      Clinical Portal
+                      {t("brand.portal")}
                     </p>
                     <p className="text-[11px] text-on-surface-variant truncate">binderlex.com</p>
                   </div>

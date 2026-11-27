@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import type React from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { twMerge } from "tailwind-merge";
 import { api } from "@/api/client";
@@ -21,10 +22,10 @@ function cn(...inputs: ClassValue[]) {
 
 type DashboardCategory = "lipid_panel" | "glucose_metabolism" | "renal_function";
 
-const CATEGORIES: ReadonlyArray<{ id: DashboardCategory; label: string }> = [
-  { id: "lipid_panel", label: "Lipid Panel" },
-  { id: "glucose_metabolism", label: "Glucose Metabolism" },
-  { id: "renal_function", label: "Renal Function" },
+const CATEGORIES: readonly DashboardCategory[] = [
+  "lipid_panel",
+  "glucose_metabolism",
+  "renal_function",
 ];
 
 const SKELETON_KEYS = ["sk-1", "sk-2", "sk-3", "sk-4", "sk-5", "sk-6"] as const;
@@ -60,19 +61,20 @@ function summarizePanel(seriesList: TrendSeries[]): PanelSummary {
 }
 
 export const DashboardPage: React.FC = () => {
+  const { t } = useTranslation("dashboard");
   const [category, setCategory] = useState<DashboardCategory>("lipid_panel");
   const [data, setData] = useState<TrendSeries[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [hasError, setHasError] = useState(false);
 
   const fetchData = useCallback(async (cat: DashboardCategory) => {
     setLoading(true);
-    setError(null);
+    setHasError(false);
     try {
       const response = await api.get<DashboardResponse>(`/dashboard/${cat}`);
       setData(response.data.series);
     } catch (_err: unknown) {
-      setError("Unable to load biomarker trends right now. Please try again.");
+      setHasError(true);
     } finally {
       setLoading(false);
     }
@@ -90,27 +92,25 @@ export const DashboardPage: React.FC = () => {
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4">
         <div className="space-y-1">
           <h1 className="font-display text-2xl font-bold text-on-surface tracking-tight">
-            Health Dashboards
+            {t("title")}
           </h1>
-          <p className="text-sm text-on-surface-variant">
-            Longitudinal biomarker trends with clinical reference corridors.
-          </p>
+          <p className="text-sm text-on-surface-variant">{t("subtitle")}</p>
         </div>
 
         <div
           role="tablist"
-          aria-label="Biomarker panel categories"
+          aria-label={t("title")}
           className="inline-flex flex-wrap p-1 bg-surface-variant border border-outline-variant rounded-xl self-start lg:self-auto"
         >
-          {CATEGORIES.map((cat) => {
-            const isActive = category === cat.id;
+          {CATEGORIES.map((catId) => {
+            const isActive = category === catId;
             return (
               <button
-                key={cat.id}
+                key={catId}
                 type="button"
                 role="tab"
                 aria-selected={isActive}
-                onClick={() => setCategory(cat.id)}
+                onClick={() => setCategory(catId)}
                 className={cn(
                   "px-3.5 py-2 rounded-lg text-xs sm:text-sm transition-all cursor-pointer",
                   isActive
@@ -118,7 +118,7 @@ export const DashboardPage: React.FC = () => {
                     : "text-on-surface-variant font-medium hover:text-on-surface",
                 )}
               >
-                {cat.label}
+                {t(`categories.${catId}`)}
               </button>
             );
           })}
@@ -126,7 +126,7 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* Compact Panel Summary Strip */}
-      {!loading && !error && data.length > 0 && (
+      {!loading && !hasError && data.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="bg-white rounded-xl border border-outline-variant px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
@@ -134,7 +134,7 @@ export const DashboardPage: React.FC = () => {
                 <TrendingUp className="w-4 h-4" />
               </div>
               <span className="text-xs font-medium text-on-surface-variant">
-                Tracked Biomarkers
+                {t("summary.trackedBiomarkers")}
               </span>
             </div>
             <span className="text-lg font-bold text-on-surface tabular-nums">
@@ -147,7 +147,9 @@ export const DashboardPage: React.FC = () => {
               <div className="w-8 h-8 rounded-lg bg-success-container border border-success-border flex items-center justify-center text-success">
                 <CheckCircle2 className="w-4 h-4" />
               </div>
-              <span className="text-xs font-medium text-on-surface-variant">In Range</span>
+              <span className="text-xs font-medium text-on-surface-variant">
+                {t("summary.inRange")}
+              </span>
             </div>
             <span className="text-lg font-bold text-on-success-container tabular-nums">
               {summary.inRange}
@@ -166,7 +168,9 @@ export const DashboardPage: React.FC = () => {
               >
                 <AlertTriangle className="w-4 h-4" />
               </div>
-              <span className="text-xs font-medium text-on-surface-variant">Out of Range</span>
+              <span className="text-xs font-medium text-on-surface-variant">
+                {t("summary.outOfRange")}
+              </span>
             </div>
             <span
               className={cn(
@@ -184,7 +188,7 @@ export const DashboardPage: React.FC = () => {
       {loading ? (
         <div
           role="status"
-          aria-label="Loading biomarker trends"
+          aria-label={t("loading")}
           className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"
         >
           {SKELETON_KEYS.map((key) => (
@@ -206,14 +210,14 @@ export const DashboardPage: React.FC = () => {
             </div>
           ))}
         </div>
-      ) : error ? (
+      ) : hasError ? (
         <div className="bg-white rounded-2xl border border-outline-variant p-10 text-center flex flex-col items-center justify-center space-y-4">
           <div className="w-12 h-12 rounded-2xl bg-error-container border border-error-border text-error flex items-center justify-center">
             <Activity className="w-6 h-6" />
           </div>
           <div className="space-y-1">
-            <h2 className="font-display text-lg font-bold text-on-surface">Data unavailable</h2>
-            <p className="text-sm text-on-surface-variant max-w-md">{error}</p>
+            <h2 className="font-display text-lg font-bold text-on-surface">{t("error.title")}</h2>
+            <p className="text-sm text-on-surface-variant max-w-md">{t("error.message")}</p>
           </div>
           <button
             type="button"
@@ -221,7 +225,7 @@ export const DashboardPage: React.FC = () => {
             className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover text-on-primary rounded-xl text-sm font-semibold shadow-xs transition-colors cursor-pointer"
           >
             <RefreshCw className="w-4 h-4" />
-            Retry
+            {t("error.retryCta")}
           </button>
         </div>
       ) : data.length > 0 ? (
@@ -238,20 +242,15 @@ export const DashboardPage: React.FC = () => {
             <Activity className="w-6 h-6" />
           </div>
           <div className="space-y-1">
-            <h2 className="font-display text-lg font-bold text-on-surface">
-              No biomarker trends yet
-            </h2>
-            <p className="text-sm text-on-surface-variant max-w-md">
-              Upload your PDF lab reports to automatically extract biomarkers and plot longitudinal
-              reference-range trends.
-            </p>
+            <h2 className="font-display text-lg font-bold text-on-surface">{t("empty.title")}</h2>
+            <p className="text-sm text-on-surface-variant max-w-md">{t("empty.subtitle")}</p>
           </div>
           <Link
             to="/files"
             className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover text-on-primary rounded-xl text-sm font-semibold shadow-xs transition-colors"
           >
             <FolderUp className="w-4 h-4" />
-            Upload Lab Reports
+            {t("empty.uploadCta")}
           </Link>
         </div>
       )}

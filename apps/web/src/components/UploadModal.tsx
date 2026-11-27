@@ -2,6 +2,7 @@ import { type ClassValue, clsx } from "clsx";
 import { AlertCircle, CheckCircle2, FileText, Loader2, Upload, X } from "lucide-react";
 import type React from "react";
 import { useCallback, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { twMerge } from "tailwind-merge";
 import { filesApi } from "@/api/files";
 
@@ -62,6 +63,7 @@ interface QueuedFileListProps {
   files: QueuedFile[];
   uploading: boolean;
   completedCount: number;
+  removeLabel: string;
   onRemove: (id: string) => void;
 }
 
@@ -69,6 +71,7 @@ const QueuedFileList: React.FC<QueuedFileListProps> = ({
   files,
   uploading,
   completedCount,
+  removeLabel,
   onRemove,
 }) => {
   if (files.length === 0) {
@@ -103,7 +106,7 @@ const QueuedFileList: React.FC<QueuedFileListProps> = ({
                 <button
                   type="button"
                   onClick={() => onRemove(entry.id)}
-                  aria-label={`Remove ${entry.file.name}`}
+                  aria-label={`${removeLabel}: ${entry.file.name}`}
                   className="p-1.5 rounded-lg text-on-surface-variant hover:text-error hover:bg-error-container transition-colors cursor-pointer"
                 >
                   <X className="w-4 h-4" />
@@ -122,14 +125,8 @@ const QueuedFileList: React.FC<QueuedFileListProps> = ({
   );
 };
 
-function getUploadButtonLabel(count: number): string {
-  if (count === 0) {
-    return "Upload Files";
-  }
-  return `Upload ${count} ${count === 1 ? "File" : "Files"}`;
-}
-
 export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUploadComplete }) => {
+  const { t } = useTranslation(["files", "common"]);
   const [queuedFiles, setQueuedFiles] = useState<QueuedFile[]>([]);
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -155,18 +152,21 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpl
     onClose();
   };
 
-  const appendFiles = useCallback((fileList: FileList | null) => {
-    if (!fileList || fileList.length === 0) {
-      return;
-    }
-    const pdfs = createQueuedFiles(fileList);
-    if (pdfs.length > 0) {
-      setQueuedFiles((prev) => [...prev, ...pdfs]);
-      setError(null);
-    } else {
-      setError("Only PDF lab reports are supported.");
-    }
-  }, []);
+  const appendFiles = useCallback(
+    (fileList: FileList | null) => {
+      if (!fileList || fileList.length === 0) {
+        return;
+      }
+      const pdfs = createQueuedFiles(fileList);
+      if (pdfs.length > 0) {
+        setQueuedFiles((prev) => [...prev, ...pdfs]);
+        setError(null);
+      } else {
+        setError(t("files:uploadModal.onlyPdfError"));
+      }
+    },
+    [t],
+  );
 
   const onDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -232,7 +232,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpl
         onClose();
       }, 1400);
     } catch (err: unknown) {
-      setError(extractErrorMessage(err, "Failed to upload files. Please try again."));
+      setError(extractErrorMessage(err, t("files:uploadModal.uploadFailed")));
       setUploading(false);
     }
   };
@@ -244,12 +244,17 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpl
   const progressPercent =
     queuedFiles.length > 0 ? Math.round((completedCount / queuedFiles.length) * 100) : 0;
 
+  const uploadActionLabel =
+    queuedFiles.length === 0
+      ? t("files:uploadModal.uploadAction")
+      : t("files:uploadModal.uploadAction", { count: queuedFiles.length });
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <button
         type="button"
-        aria-label="Close upload dialog"
+        aria-label={t("common:actions.close")}
         onClick={handleClose}
         disabled={uploading}
         className="fixed inset-0 bg-slate-900/50 backdrop-blur-[2px] cursor-default"
@@ -266,17 +271,17 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpl
         <div className="flex items-center justify-between px-6 py-4 border-b border-outline-variant">
           <div>
             <h2 id="upload-modal-title" className="font-display text-lg font-bold text-on-surface">
-              Upload Lab Reports
+              {t("files:uploadModal.title")}
             </h2>
             <p className="text-xs text-on-surface-variant mt-0.5">
-              PDF documents are extracted and indexed automatically.
+              {t("files:uploadModal.subtitle")}
             </p>
           </div>
           <button
             type="button"
             onClick={handleClose}
             disabled={uploading}
-            aria-label="Close dialog"
+            aria-label={t("common:actions.close")}
             className="p-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-variant transition-colors disabled:opacity-40 cursor-pointer"
           >
             <X className="w-5 h-5" />
@@ -291,9 +296,11 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpl
                 <CheckCircle2 className="w-7 h-7" />
               </div>
               <div className="space-y-1">
-                <h3 className="font-display text-lg font-bold text-on-surface">Upload complete</h3>
+                <h3 className="font-display text-lg font-bold text-on-surface">
+                  {t("files:uploadModal.successTitle")}
+                </h3>
                 <p className="text-sm text-on-surface-variant">
-                  Your PDF reports have been queued for biomarker extraction.
+                  {t("files:uploadModal.successSubtitle")}
                 </p>
               </div>
             </div>
@@ -334,10 +341,10 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpl
                   <Upload className="w-5 h-5" />
                 </div>
                 <p className="text-sm font-semibold text-on-surface">
-                  Click to browse or drag PDF files here
+                  {t("files:uploadModal.dropzoneTitle")}
                 </p>
                 <p className="text-xs text-on-surface-variant mt-1">
-                  Supports clinical lab reports in PDF format (up to 10 MB each)
+                  {t("files:uploadModal.dropzoneHint")}
                 </p>
               </button>
 
@@ -345,7 +352,12 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpl
               {uploading && (
                 <div className="mt-4 space-y-1.5">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-medium text-on-surface">Uploading documents...</span>
+                    <span className="font-medium text-on-surface">
+                      {t("files:uploadModal.uploadingProgress", {
+                        current: Math.min(completedCount + 1, queuedFiles.length),
+                        total: queuedFiles.length,
+                      })}
+                    </span>
                     <span className="font-semibold text-primary tabular-nums">
                       {completedCount} / {queuedFiles.length} ({progressPercent}%)
                     </span>
@@ -364,6 +376,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpl
                 files={queuedFiles}
                 uploading={uploading}
                 completedCount={completedCount}
+                removeLabel={t("files:uploadModal.removeFile")}
                 onRemove={removeFile}
               />
 
@@ -389,7 +402,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpl
               disabled={uploading}
               className="px-4 py-2 text-sm font-medium text-on-surface-variant hover:text-on-surface hover:bg-surface-variant rounded-xl transition-colors disabled:opacity-50 cursor-pointer"
             >
-              Cancel
+              {t("common:actions.cancel")}
             </button>
             <button
               type="button"
@@ -400,10 +413,13 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onUpl
               {uploading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Uploading...
+                  {t("files:uploadModal.uploadingProgress", {
+                    current: Math.min(completedCount + 1, queuedFiles.length),
+                    total: queuedFiles.length,
+                  })}
                 </>
               ) : (
-                getUploadButtonLabel(queuedFiles.length)
+                uploadActionLabel
               )}
             </button>
           </div>

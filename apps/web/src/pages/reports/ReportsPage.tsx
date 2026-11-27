@@ -9,10 +9,13 @@ import {
   ChevronLeft,
   ChevronRight,
   FileText,
+  FolderUp,
   RefreshCw,
 } from "lucide-react";
 import type React from "react";
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import { twMerge } from "tailwind-merge";
 import { api } from "@/api/client";
 
@@ -38,16 +41,25 @@ function formatReferenceInterval(low: number | null, high: number | null): strin
 }
 
 const InterpretationPill: React.FC<{ interpretation: string | null }> = ({ interpretation }) => {
+  const { t } = useTranslation("reports");
+
   if (!interpretation) {
     return <span className="text-xs text-on-surface-variant">—</span>;
   }
 
   const normalized = interpretation.trim().toLowerCase();
   if (normalized === "high" || normalized === "low" || normalized === "abnormal") {
+    const label =
+      normalized === "high"
+        ? t("interpretations.high")
+        : normalized === "low"
+          ? t("interpretations.low")
+          : interpretation;
+
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-error-container text-on-error-container border border-error-border">
         <AlertCircle className="w-3 h-3 text-error shrink-0" />
-        {interpretation}
+        {label}
       </span>
     );
   }
@@ -56,7 +68,7 @@ const InterpretationPill: React.FC<{ interpretation: string | null }> = ({ inter
     return (
       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-success-container text-on-success-container border border-success-border">
         <CheckCircle2 className="w-3 h-3 text-success shrink-0" />
-        {interpretation}
+        {t("interpretations.normal")}
       </span>
     );
   }
@@ -69,20 +81,21 @@ const InterpretationPill: React.FC<{ interpretation: string | null }> = ({ inter
 };
 
 export const ReportsPage: React.FC = () => {
+  const { t } = useTranslation(["reports", "common"]);
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [hasError, setHasError] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedReportId, setExpandedReportId] = useState<string | null>(null);
 
   const fetchReports = useCallback(async () => {
     setLoading(true);
-    setError(null);
+    setHasError(false);
     try {
       const response = await api.get<Report[]>("/reports");
       setReports(response.data);
     } catch (_err: unknown) {
-      setError("Unable to load lab reports right now. Please try again.");
+      setHasError(true);
     } finally {
       setLoading(false);
     }
@@ -108,16 +121,14 @@ export const ReportsPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div className="space-y-1">
           <h1 className="font-display text-2xl font-bold text-on-surface tracking-tight">
-            Lab Reports
+            {t("reports:title")}
           </h1>
-          <p className="text-sm text-on-surface-variant">
-            Inspect processed clinical documents and extracted biomarker observations.
-          </p>
+          <p className="text-sm text-on-surface-variant">{t("reports:subtitle")}</p>
         </div>
 
-        {!loading && !error && reports.length > 0 && (
+        {!loading && !hasError && reports.length > 0 && (
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-outline-variant text-xs text-on-surface-variant self-start sm:self-auto">
-            <span>Total Reports</span>
+            <span>{t("reports:totalReports")}</span>
             <span className="font-bold text-on-surface tabular-nums">{reports.length}</span>
           </div>
         )}
@@ -126,25 +137,25 @@ export const ReportsPage: React.FC = () => {
       {/* Reports Card */}
       <div className="bg-white rounded-2xl border border-outline-variant shadow-[0_1px_3px_rgba(15,23,42,0.04)] overflow-hidden">
         {/* Desktop Column Headers */}
-        <div className="hidden md:grid md:grid-cols-[minmax(0,1fr)_120px_180px_130px_32px] gap-4 px-6 py-3 border-b border-outline-variant bg-surface text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider">
-          <div>Report</div>
-          <div>Date</div>
-          <div>Laboratory</div>
-          <div>Observations</div>
-          <div className="sr-only">Expand</div>
+        <div className="hidden md:grid md:grid-cols-[minmax(0,1fr)_120px_180px_150px_32px] gap-4 px-6 py-3 border-b border-outline-variant bg-surface text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider">
+          <div>{t("reports:table.reportName")}</div>
+          <div>{t("reports:table.date")}</div>
+          <div>{t("reports:table.lab")}</div>
+          <div>{t("reports:table.observations")}</div>
+          <div className="sr-only">{t("reports:table.observations")}</div>
         </div>
 
         {/* Body */}
         {loading ? (
           <div
             role="status"
-            aria-label="Loading reports"
+            aria-label={t("common:status.loading")}
             className="divide-y divide-outline-variant"
           >
             {SKELETON_ROWS.map((key) => (
               <div
                 key={key}
-                className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_120px_180px_130px_32px] gap-3 md:gap-4 px-6 py-4 items-center"
+                className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_120px_180px_150px_32px] gap-3 md:gap-4 px-6 py-4 items-center"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-lg skeleton-shimmer shrink-0" />
@@ -157,16 +168,18 @@ export const ReportsPage: React.FC = () => {
               </div>
             ))}
           </div>
-        ) : error ? (
+        ) : hasError ? (
           <div className="p-12 text-center flex flex-col items-center space-y-3">
             <div className="w-12 h-12 rounded-2xl bg-error-container border border-error-border text-error flex items-center justify-center">
               <AlertCircle className="w-6 h-6" />
             </div>
             <div className="space-y-1">
               <h2 className="font-display text-base font-bold text-on-surface">
-                Failed to load reports
+                {t("reports:error.title")}
               </h2>
-              <p className="text-sm text-on-surface-variant max-w-md">{error}</p>
+              <p className="text-sm text-on-surface-variant max-w-md">
+                {t("reports:error.message")}
+              </p>
             </div>
             <button
               type="button"
@@ -174,23 +187,29 @@ export const ReportsPage: React.FC = () => {
               className="inline-flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-on-primary rounded-xl text-sm font-semibold transition-colors cursor-pointer"
             >
               <RefreshCw className="w-4 h-4" />
-              Retry
+              {t("reports:error.retryCta")}
             </button>
           </div>
         ) : reports.length === 0 ? (
-          <div className="p-12 text-center flex flex-col items-center space-y-3">
+          <div className="p-12 text-center flex flex-col items-center space-y-4">
             <div className="w-12 h-12 rounded-2xl bg-primary-soft border border-primary-container text-primary flex items-center justify-center">
               <FileText className="w-6 h-6" />
             </div>
             <div className="space-y-1">
               <h2 className="font-display text-base font-bold text-on-surface">
-                No processed reports yet
+                {t("reports:empty.title")}
               </h2>
               <p className="text-sm text-on-surface-variant max-w-sm">
-                Once uploaded PDF files finish processing, your structured lab reports will appear
-                here.
+                {t("reports:empty.subtitle")}
               </p>
             </div>
+            <Link
+              to="/files"
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover text-on-primary rounded-xl text-sm font-semibold shadow-xs transition-colors"
+            >
+              <FolderUp className="w-4 h-4" />
+              {t("reports:empty.uploadCta")}
+            </Link>
           </div>
         ) : (
           <div className="divide-y divide-outline-variant">
@@ -206,7 +225,7 @@ export const ReportsPage: React.FC = () => {
         )}
 
         {/* Pagination */}
-        {!loading && !error && totalPages > 1 && (
+        {!loading && !hasError && totalPages > 1 && (
           <div className="px-6 py-3.5 border-t border-outline-variant flex items-center justify-between bg-surface">
             <button
               type="button"
@@ -215,10 +234,10 @@ export const ReportsPage: React.FC = () => {
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-on-surface bg-white border border-outline-variant hover:bg-surface-variant rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
-              Previous
+              {t("common:pagination.previous")}
             </button>
             <span className="text-xs font-medium text-on-surface-variant tabular-nums">
-              Page {currentPage} of {totalPages}
+              {t("common:pagination.pageOf", { current: currentPage, total: totalPages })}
             </span>
             <button
               type="button"
@@ -226,7 +245,7 @@ export const ReportsPage: React.FC = () => {
               disabled={currentPage === totalPages}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-on-surface bg-white border border-outline-variant hover:bg-surface-variant rounded-lg disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
             >
-              Next
+              {t("common:pagination.next")}
               <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -243,21 +262,22 @@ interface ReportRowProps {
 }
 
 const ReportRow: React.FC<ReportRowProps> = ({ report, isExpanded, onToggle }) => {
+  const { t } = useTranslation(["reports", "common"]);
   const [observations, setObservations] = useState<Observation[]>([]);
   const [obsLoading, setObsLoading] = useState(false);
-  const [obsError, setObsError] = useState<string | null>(null);
+  const [hasObsError, setHasObsError] = useState(false);
   const [obsPage, setObsPage] = useState(1);
   const [fetched, setFetched] = useState(false);
 
   const loadObservations = useCallback(async () => {
     setObsLoading(true);
-    setObsError(null);
+    setHasObsError(false);
     try {
       const res = await api.get<Observation[]>(`/reports/${report.id}/observations`);
       setObservations(res.data);
       setFetched(true);
     } catch (_err: unknown) {
-      setObsError("Failed to load observations for this report.");
+      setHasObsError(true);
     } finally {
       setObsLoading(false);
     }
@@ -279,7 +299,7 @@ const ReportRow: React.FC<ReportRowProps> = ({ report, isExpanded, onToggle }) =
         onClick={onToggle}
         aria-expanded={isExpanded}
         className={cn(
-          "w-full text-left flex flex-col md:grid md:grid-cols-[minmax(0,1fr)_120px_180px_130px_32px] gap-2.5 md:gap-4 px-5 sm:px-6 py-4 md:items-center transition-colors cursor-pointer",
+          "w-full text-left flex flex-col md:grid md:grid-cols-[minmax(0,1fr)_120px_180px_150px_32px] gap-2.5 md:gap-4 px-5 sm:px-6 py-4 md:items-center transition-colors cursor-pointer",
           isExpanded ? "bg-primary-soft/70" : "bg-white hover:bg-surface",
         )}
       >
@@ -311,13 +331,15 @@ const ReportRow: React.FC<ReportRowProps> = ({ report, isExpanded, onToggle }) =
                 {report.lab_name}
               </span>
             ) : (
-              <span className="text-xs text-on-surface-variant italic">Unknown Lab</span>
+              <span className="text-xs text-on-surface-variant italic">
+                {t("reports:unknownLab")}
+              </span>
             )}
           </div>
 
           <div>
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-surface-variant text-on-surface border border-outline-variant tabular-nums">
-              {report.observationsCount} {report.observationsCount === 1 ? "metric" : "metrics"}
+              {t("reports:observationsCount", { count: report.observationsCount })}
             </span>
           </div>
 
@@ -338,11 +360,11 @@ const ReportRow: React.FC<ReportRowProps> = ({ report, isExpanded, onToggle }) =
             <div className="px-4 py-2.5 border-b border-outline-variant bg-surface/60 flex items-center justify-between">
               <span className="text-xs font-semibold text-primary uppercase tracking-wider flex items-center gap-2">
                 <Activity className="w-3.5 h-3.5" />
-                Extracted Observations
+                {t("reports:expanded.extractedObservations")}
               </span>
-              {fetched && !obsError && (
+              {fetched && !hasObsError && (
                 <span className="text-[11px] font-medium text-on-surface-variant tabular-nums">
-                  {observations.length} total
+                  {t("reports:expanded.totalCount", { count: observations.length })}
                 </span>
               )}
             </div>
@@ -353,16 +375,18 @@ const ReportRow: React.FC<ReportRowProps> = ({ report, isExpanded, onToggle }) =
                 <div className="h-8 w-full rounded-lg skeleton-shimmer" />
                 <div className="h-8 w-full rounded-lg skeleton-shimmer" />
               </div>
-            ) : obsError ? (
+            ) : hasObsError ? (
               <div className="p-6 text-center space-y-2.5">
-                <p className="text-sm text-on-error-container">{obsError}</p>
+                <p className="text-sm text-on-error-container">
+                  {t("reports:expanded.errorLoading")}
+                </p>
                 <button
                   type="button"
                   onClick={loadObservations}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary hover:bg-primary-hover text-on-primary transition-colors cursor-pointer"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
-                  Retry
+                  {t("common:actions.retry")}
                 </button>
               </div>
             ) : observations.length > 0 ? (
@@ -371,11 +395,11 @@ const ReportRow: React.FC<ReportRowProps> = ({ report, isExpanded, onToggle }) =
                   <table className="w-full text-sm text-left">
                     <thead className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider bg-surface border-b border-outline-variant">
                       <tr>
-                        <th className="px-4 py-2.5">Test Name</th>
-                        <th className="px-4 py-2.5 text-right">Value</th>
-                        <th className="px-4 py-2.5">Unit</th>
-                        <th className="px-4 py-2.5">Reference</th>
-                        <th className="px-4 py-2.5">Status</th>
+                        <th className="px-4 py-2.5">{t("reports:expanded.testName")}</th>
+                        <th className="px-4 py-2.5 text-right">{t("reports:expanded.value")}</th>
+                        <th className="px-4 py-2.5">{t("reports:expanded.unit")}</th>
+                        <th className="px-4 py-2.5">{t("reports:expanded.reference")}</th>
+                        <th className="px-4 py-2.5">{t("reports:expanded.interpretation")}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-outline-variant/70">
@@ -406,7 +430,7 @@ const ReportRow: React.FC<ReportRowProps> = ({ report, isExpanded, onToggle }) =
                       type="button"
                       onClick={() => setObsPage((p) => Math.max(1, p - 1))}
                       disabled={obsPage === 1}
-                      aria-label="Previous observations page"
+                      aria-label={t("common:pagination.previous")}
                       className="p-1.5 rounded-lg border border-outline-variant bg-white text-on-surface hover:bg-surface-variant disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                     >
                       <ChevronLeft className="w-3.5 h-3.5" />
@@ -418,7 +442,7 @@ const ReportRow: React.FC<ReportRowProps> = ({ report, isExpanded, onToggle }) =
                       type="button"
                       onClick={() => setObsPage((p) => Math.min(totalObsPages, p + 1))}
                       disabled={obsPage === totalObsPages}
-                      aria-label="Next observations page"
+                      aria-label={t("common:pagination.next")}
                       className="p-1.5 rounded-lg border border-outline-variant bg-white text-on-surface hover:bg-surface-variant disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                     >
                       <ChevronRight className="w-3.5 h-3.5" />
@@ -428,7 +452,7 @@ const ReportRow: React.FC<ReportRowProps> = ({ report, isExpanded, onToggle }) =
               </>
             ) : (
               <div className="p-6 text-center text-xs text-on-surface-variant">
-                No observations found for this report.
+                {t("reports:expanded.noObservations")}
               </div>
             )}
           </div>
