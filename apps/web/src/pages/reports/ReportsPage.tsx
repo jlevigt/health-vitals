@@ -184,10 +184,11 @@ export const ReportsPage: React.FC = () => {
             <button
               type="button"
               onClick={fetchReports}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-on-primary rounded-xl text-sm font-semibold transition-colors cursor-pointer"
+              disabled={loading}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-on-primary rounded-xl text-sm font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
             >
-              <RefreshCw className="w-4 h-4" />
-              {t("reports:error.retryCta")}
+              <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+              {loading ? t("common:status.loading") : t("reports:error.retryCta")}
             </button>
           </div>
         ) : reports.length === 0 ? (
@@ -383,10 +384,11 @@ const ReportRow: React.FC<ReportRowProps> = ({ report, isExpanded, onToggle }) =
                 <button
                   type="button"
                   onClick={loadObservations}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary hover:bg-primary-hover text-on-primary transition-colors cursor-pointer"
+                  disabled={obsLoading}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary hover:bg-primary-hover text-on-primary transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
                 >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  {t("common:actions.retry")}
+                  <RefreshCw className={`w-3.5 h-3.5 ${obsLoading ? "animate-spin" : ""}`} />
+                  {obsLoading ? t("common:status.loading") : t("common:actions.retry")}
                 </button>
               </div>
             ) : observations.length > 0 ? (

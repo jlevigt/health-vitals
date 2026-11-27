@@ -196,10 +196,11 @@ export const FilesPage: React.FC = () => {
             <button
               type="button"
               onClick={() => fetchFiles(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-on-primary rounded-xl text-sm font-semibold transition-colors cursor-pointer"
+              disabled={refreshing}
+              className="inline-flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-on-primary rounded-xl text-sm font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
             >
-              <RefreshCw className="w-4 h-4" />
-              {t("files:error.retryCta")}
+              <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
+              {refreshing ? t("common:status.loading") : t("files:error.retryCta")}
             </button>
           </div>
         ) : files.length === 0 ? (
@@ -225,7 +226,11 @@ export const FilesPage: React.FC = () => {
             </button>
           </div>
         ) : (
-          <div className="divide-y divide-outline-variant">
+          <div
+            className={`divide-y divide-outline-variant transition-opacity duration-200 ${
+              refreshing ? "opacity-55 pointer-events-none" : "opacity-100"
+            }`}
+          >
             {files.map((file) => (
               <div
                 key={file.id}

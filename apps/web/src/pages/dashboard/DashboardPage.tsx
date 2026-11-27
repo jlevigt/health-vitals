@@ -222,10 +222,11 @@ export const DashboardPage: React.FC = () => {
           <button
             type="button"
             onClick={() => fetchData(category)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover text-on-primary rounded-xl text-sm font-semibold shadow-xs transition-colors cursor-pointer"
+            disabled={loading}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-primary-hover text-on-primary rounded-xl text-sm font-semibold shadow-xs transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
           >
-            <RefreshCw className="w-4 h-4" />
-            {t("error.retryCta")}
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+            {loading ? t("loading") : t("error.retryCta")}
           </button>
         </div>
       ) : data.length > 0 ? (
