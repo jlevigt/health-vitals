@@ -1,176 +1,236 @@
 import { type ClassValue, clsx } from "clsx";
 import {
-  Activity,
-  ChevronRight,
+  ChevronDown,
   FileText,
   FolderOpen,
   LayoutDashboard,
   LogOut,
   Menu,
+  ShieldCheck,
   X,
 } from "lucide-react";
 import type React from "react";
 import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { twMerge } from "tailwind-merge";
+import { BrandLogo } from "@/components/brand/BrandLogo";
 import { useAuth } from "@/context/AuthContext";
-
-// import { DnaWave } from './DnaWave';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const MainLayout: React.FC = () => {
+export interface MainLayoutProps {
+  headerActions?: React.ReactNode;
+}
+
+const NAV_ITEMS = [
+  { to: "/dashboard", label: "Dashboards", icon: LayoutDashboard },
+  { to: "/files", label: "Files", icon: FolderOpen },
+  { to: "/reports", label: "Reports", icon: FileText },
+] as const;
+
+export const MainLayout: React.FC<MainLayoutProps> = ({ headerActions }) => {
   const { user, logout } = useAuth();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // Mobile sidebar state
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false); // Header user menu state
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
-  const toggleUserMenu = () => setIsUserMenuOpen(!isUserMenuOpen);
-
-  const navItems = [
-    { to: "/dashboard", label: "Dashboards", icon: LayoutDashboard },
-    { to: "/files", label: "Files", icon: FolderOpen },
-    { to: "/reports", label: "Reports", icon: FileText },
-  ];
+  const userInitial = user?.name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || "U";
+  const displayName = user?.name?.trim() || user?.email || "Account";
 
   return (
     <div className="h-screen flex flex-col bg-surface overflow-hidden">
-      {/* Header */}
-      <header className="shrink-0 bg-white border-b border-outline-variant px-4 py-3 flex justify-between items-center z-20 shadow-sm relative">
+      {/* 64px Top Navigation Bar */}
+      <header className="h-16 shrink-0 bg-white/90 backdrop-blur-md border-b border-outline-variant px-4 lg:px-6 flex justify-between items-center z-20 relative">
         <div className="flex items-center gap-3">
           <button
-            onClick={toggleSidebar}
-            className="md:hidden p-2 text-on-surface hover:bg-surface-variant/20 rounded-full"
+            type="button"
+            onClick={() => setIsSidebarOpen((prev) => !prev)}
+            aria-label={isSidebarOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-expanded={isSidebarOpen}
+            className="md:hidden p-2 -ml-1.5 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant rounded-lg transition-colors cursor-pointer"
           >
-            {isSidebarOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {isSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
 
-          <div className="flex items-center gap-2 text-primary">
-            <Activity className="w-6 h-6" />
-            <span className="text-lg font-bold tracking-tight text-on-surface">HealthVitals</span>
-          </div>
+          <NavLink to="/dashboard" className="focus:outline-none">
+            <BrandLogo size="sm" />
+          </NavLink>
         </div>
 
-        {/*
-        // Center Animation
-        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block">
-          <DnaWave />
-        </div>
-        */}
+        {/* Right Utility Controls */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          {headerActions && <div className="flex items-center">{headerActions}</div>}
 
-        {/* User Menu */}
-        <div className="relative">
-          <button
-            onClick={toggleUserMenu}
-            className="flex items-center gap-2 p-2 rounded-full hover:bg-surface-variant/20 transition-colors"
-          >
-            <div className="w-8 h-8 bg-primary-container rounded-full flex items-center justify-center text-on-primary-container font-bold">
-              {user?.name?.[0] || "U"}
-            </div>
-            <Menu className="w-5 h-5 text-on-surface-variant" />
-          </button>
-
-          {isUserMenuOpen && (
-            <>
-              <div className="fixed inset-0 z-10" onClick={() => setIsUserMenuOpen(false)} />
-              <div className="absolute right-0 top-12 w-64 bg-white rounded-xl shadow-lg border border-outline-variant z-20 py-2 animate-in fade-in zoom-in-95 duration-100">
-                <div className="px-4 py-3 border-b border-outline-variant/50 mb-2">
-                  <p className="text-sm font-bold text-on-surface">{user?.name || "User"}</p>
-                  <p className="text-xs text-on-surface-variant truncate">{user?.email}</p>
-                </div>
-                <button
-                  onClick={logout}
-                  className="w-full text-left px-4 py-2 text-sm text-error hover:bg-error-container/10 flex items-center gap-2"
-                >
-                  <LogOut className="w-4 h-4" />
-                  Sign Out
-                </button>
+          {/* User Dropdown */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setIsUserMenuOpen((prev) => !prev)}
+              aria-expanded={isUserMenuOpen}
+              aria-haspopup="menu"
+              className="flex items-center gap-2.5 pl-1.5 pr-2.5 py-1.5 rounded-xl border border-transparent hover:border-outline-variant hover:bg-surface-variant/60 transition-colors cursor-pointer"
+            >
+              <div className="w-8 h-8 rounded-lg bg-primary-container text-on-primary-container font-display font-bold text-sm flex items-center justify-center shrink-0">
+                {userInitial}
               </div>
-            </>
-          )}
+              <span className="hidden sm:block text-sm font-medium text-on-surface max-w-[140px] truncate">
+                {displayName}
+              </span>
+              <ChevronDown
+                className={cn(
+                  "w-4 h-4 text-on-surface-variant transition-transform duration-150",
+                  isUserMenuOpen && "rotate-180",
+                )}
+              />
+            </button>
+
+            {isUserMenuOpen && (
+              <>
+                <button
+                  type="button"
+                  aria-label="Close account menu"
+                  onClick={() => setIsUserMenuOpen(false)}
+                  className="fixed inset-0 z-10 cursor-default bg-transparent"
+                />
+                <div
+                  role="menu"
+                  className="absolute right-0 top-12 w-64 bg-white rounded-xl shadow-lg shadow-slate-900/10 border border-outline-variant z-20 py-1.5"
+                >
+                  <div className="px-4 py-3 border-b border-outline-variant">
+                    <p className="text-sm font-semibold text-on-surface truncate">
+                      {user?.name || "HealthVitals User"}
+                    </p>
+                    <p className="text-xs text-on-surface-variant truncate mt-0.5">{user?.email}</p>
+                  </div>
+                  <div className="p-1.5">
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setIsUserMenuOpen(false);
+                        logout();
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-error hover:bg-error-container transition-colors flex items-center gap-2.5 cursor-pointer"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </header>
 
       <div className="flex flex-1 overflow-hidden relative">
-        {/* Sidebar for Desktop */}
-        <aside className="hidden md:flex w-64 flex-col bg-white border-r border-outline-variant">
-          <div className="p-4 space-y-2 flex-1">
-            {navItems.map((item) => (
+        {/* Desktop 240px Sidebar */}
+        <aside className="hidden md:flex w-60 shrink-0 flex-col bg-white border-r border-outline-variant">
+          <nav aria-label="Primary navigation" className="p-3 space-y-1 flex-1">
+            <p className="px-3 pt-2 pb-1.5 text-[11px] font-semibold uppercase tracking-wider text-on-surface-variant/75">
+              Workspace
+            </p>
+            {NAV_ITEMS.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all group",
+                    "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors",
                     isActive
-                      ? "bg-primary-container text-on-primary-container font-bold"
-                      : "text-on-surface-variant hover:bg-surface-variant/30",
+                      ? "bg-primary/10 text-primary font-semibold"
+                      : "text-on-surface-variant font-medium hover:bg-surface-variant hover:text-on-surface",
                   )
                 }
               >
-                <item.icon className="w-5 h-5 shrink-0" />
-                {item.label}
-                <ChevronRight
-                  className={cn(
-                    "ml-auto w-4 h-4 opacity-0 transition-all -translate-x-2",
-                    "group-hover:opacity-50 group-hover:translate-x-0",
-                  )}
-                />
+                <item.icon className="w-[18px] h-[18px] shrink-0" />
+                <span>{item.label}</span>
               </NavLink>
             ))}
+          </nav>
+
+          {/* Subtle Workspace Badge */}
+          <div className="p-3 border-t border-outline-variant">
+            <div className="rounded-xl bg-surface border border-outline-variant px-3 py-2.5 flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-primary-soft border border-primary-container flex items-center justify-center text-primary shrink-0">
+                <ShieldCheck className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-on-surface truncate">Clinical Portal</p>
+                <p className="text-[11px] text-on-surface-variant truncate">binderlex.com</p>
+              </div>
+            </div>
           </div>
         </aside>
 
-        {/* Mobile Sidebar Overlay */}
+        {/* Mobile Drawer */}
         {isSidebarOpen && (
-          <div className="absolute inset-0 z-30 flex md:hidden">
-            <div
-              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+          <div className="fixed inset-0 z-30 flex md:hidden">
+            <button
+              type="button"
+              aria-label="Close navigation drawer"
               onClick={() => setIsSidebarOpen(false)}
+              className="fixed inset-0 bg-slate-900/45 backdrop-blur-[2px] cursor-default"
             />
-            <aside className="relative w-64 h-full bg-white shadow-xl p-4 space-y-2 animate-in slide-in-from-left duration-200">
-              {navItems.map((item) => (
-                <NavLink
-                  key={item.to}
-                  to={item.to}
+            <aside className="relative z-10 w-64 max-w-[80vw] h-full bg-white shadow-2xl border-r border-outline-variant flex flex-col">
+              <div className="h-16 px-4 border-b border-outline-variant flex items-center justify-between">
+                <BrandLogo size="sm" />
+                <button
+                  type="button"
                   onClick={() => setIsSidebarOpen(false)}
-                  className={({ isActive }) =>
-                    cn(
-                      "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all",
-                      isActive
-                        ? "bg-primary-container text-on-primary-container font-bold"
-                        : "text-on-surface-variant hover:bg-surface-variant/30",
-                    )
-                  }
+                  aria-label="Close navigation menu"
+                  className="p-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-variant transition-colors cursor-pointer"
                 >
-                  <item.icon className="w-5 h-5 shrink-0" />
-                  {item.label}
-                </NavLink>
-              ))}
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <nav aria-label="Mobile navigation" className="p-3 space-y-1 flex-1">
+                {NAV_ITEMS.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    onClick={() => setIsSidebarOpen(false)}
+                    className={({ isActive }) =>
+                      cn(
+                        "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors",
+                        isActive
+                          ? "bg-primary/10 text-primary font-semibold"
+                          : "text-on-surface-variant font-medium hover:bg-surface-variant hover:text-on-surface",
+                      )
+                    }
+                  >
+                    <item.icon className="w-[18px] h-[18px] shrink-0" />
+                    <span>{item.label}</span>
+                  </NavLink>
+                ))}
+              </nav>
+
+              <div className="p-3 border-t border-outline-variant">
+                <div className="rounded-xl bg-surface border border-outline-variant px-3 py-2.5 flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-primary-soft border border-primary-container flex items-center justify-center text-primary shrink-0">
+                    <ShieldCheck className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold text-on-surface truncate">
+                      Clinical Portal
+                    </p>
+                    <p className="text-[11px] text-on-surface-variant truncate">binderlex.com</p>
+                  </div>
+                </div>
+              </div>
             </aside>
           </div>
         )}
 
-        {/* Main Content */}
+        {/* Main Content Viewport */}
         <main className="flex-1 flex flex-col min-w-0 bg-surface">
-          <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 no-scrollbar relative">
-            <Outlet />
+          <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 lg:p-8">
+            <div className="max-w-7xl mx-auto h-full">
+              <Outlet />
+            </div>
           </div>
-
-          {/* Footer */}
-          <footer className="shrink-0 py-4 text-center text-xs text-on-surface-variant opacity-60">
-            <p>
-              Created by{" "}
-              <a
-                href="mailto:jlevi.gt@gmail.com"
-                className="font-semibold hover:text-primary transition-colors"
-              >
-                jlevi.gt@gmail.com
-              </a>
-            </p>
-          </footer>
         </main>
       </div>
     </div>
