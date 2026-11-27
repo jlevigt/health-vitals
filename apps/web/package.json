@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:mock": "vite --mode mock",
+    "dev:mock": "VITE_MOCK=true VITE_API_URL=http://localhost:3000 vite --mode mock",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
