@@ -6,7 +6,13 @@ import type { QueueChannel, QueueConnection } from "./interface.ts";
  */
 export async function createQueueConnection(url: string): Promise<QueueConnection> {
   const connection = await amqp.connect(url);
+  connection.on("error", () => {
+    // Prevent unhandled EventEmitter 'error' crashes on transient AMQP errors
+  });
   const channel = await connection.createChannel();
+  channel.on("error", () => {
+    // Prevent unhandled EventEmitter 'error' crashes when a channel closes
+  });
 
   return {
     channel: wrapChannel(channel),
@@ -46,13 +52,11 @@ function wrapChannel(channel: Channel): QueueChannel {
     },
     async checkConnection() {
       try {
-        // A simple operation to check if the connection/channel is alive
-        await channel.checkQueue(""); // Checking an empty string usually fails if closed, but checkQueue requires a name
-        // Alternatively, use an internal property if available, but amqplib doesn't expose much
-        // Let's just return true for now if we reach here, as createQueueConnection would have failed otherwise
-        // and we wrap the channel. 
-        return true; 
-      } catch (err) {
+        // Verify the channel is alive against the built-in amq.direct exchange
+        // (checkQueue("") returns 404 and closes the channel in AMQP 0-9-1)
+        await channel.checkExchange("amq.direct");
+        return true;
+      } catch {
         return false;
       }
     },
