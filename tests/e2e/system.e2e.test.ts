@@ -28,7 +28,9 @@ async function waitForHealth(url: string, timeoutMs = 15_000): Promise<void> {
   throw new Error(`API server at ${url}/health did not become healthy within ${timeoutMs}ms`);
 }
 
-describe("Full-Stack System E2E (Live API + Postgres + RabbitMQ + MinIO)", () => {
+const describeE2E = process.env.RUN_E2E === "true" ? describe : describe.skip;
+
+describeE2E("Full-Stack System E2E (Live API + Postgres + RabbitMQ + MinIO)", () => {
   const testEmail = `e2e_${Date.now()}@binderlex.com`;
   const testPassword = "e2e-password-123";
   let serverProc: Subprocess | null = null;

@@ -7,8 +7,8 @@ ENV BUN_INSTALL_FROZEN_LOCKFILE=false
 FROM base AS deps
 COPY package.json bun.lock tsconfig.json ./
 COPY packages/contracts/package.json ./packages/contracts/
-COPY packages/core/package.json ./packages/core/
-COPY packages/infra/package.json ./packages/infra/
+COPY packages/emails/package.json ./packages/emails/
+COPY packages/platform/package.json ./packages/platform/
 COPY apps/web/package.json ./apps/web/
 RUN bun install
 
