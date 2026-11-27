@@ -160,7 +160,8 @@ describe("Platform LLM Providers & Factory", () => {
       expect(result.data.collection_date).toBe("2026-02-10");
       expect(result.data.lab_name).toBe("Local Ollama Lab");
       expect(result.data.observations).toHaveLength(1);
-      expect(result.data.observations[0].canonical_name).toBe("glucose");
+      expect(result.data.observations[0].canonical_name).toBe("fasting_glucose");
+      expect(result.data.observations[0].loinc_code).toBe("1558-6");
     });
 
     it("should merge array responses into a single LLMResult object", async () => {

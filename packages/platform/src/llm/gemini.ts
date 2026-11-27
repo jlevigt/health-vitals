@@ -11,6 +11,7 @@ import {
 } from "@health-vitals/contracts";
 import { AppError } from "../errors/index.ts";
 import type { Logger } from "../logger/interface.ts";
+import { normalizeBiomarker } from "./biomarker-normalizer.ts";
 import type { LLMProvider } from "./interface.ts";
 
 /**
@@ -23,7 +24,7 @@ export function buildExtractionPrompt(extractedText: string, fileName: string): 
     "Aggregate ALL measurements from all sections of the report into a single 'observations' array.",
     "For each measurement, extract:",
     "- category: One of ['lipid_panel', 'glucose_metabolism', 'blood_pressure', 'hematology', 'hormones', 'renal_function', 'liver_function', 'other']",
-    "- canonical_name: A standardized, lowercase, snake_case English name for the measurement (e.g. 'hemoglobin', 'total_cholesterol', 'leukocytes', 'lymphocytes', 'eosinophils').",
+    "- canonical_name: A standardized, lowercase, snake_case English name for the measurement. ALWAYS use these exact canonical names when applicable: total_cholesterol, hdl_cholesterol, ldl_cholesterol, vldl_cholesterol, non_hdl_cholesterol, triglycerides, fasting_glucose, hba1c, estimated_average_glucose, insulin, homa_ir, creatinine, urea, uric_acid, egfr, albumin, hemoglobin, hematocrit, erythrocytes, leukocytes, neutrophils, lymphocytes, eosinophils, basophils, monocytes, platelets, ferritin, vitamin_b12, vitamin_d, sodium, potassium.",
     "- raw_name: Clear clinical name as it appears in the text. CRITICAL: If a row label is generic or ambiguous (such as 'TOTAL' under 'Contagem de Leucócitos' / 'LEUCOGRAMA'), qualify it with its parent section context (e.g. 'Leucócitos Totais', never bare 'TOTAL').",
     "- raw_value: The measured value as text.",
     "- raw_unit: The unit as text (e.g. '/mm³', 'mg/dL', '%', 'g/dL').",
@@ -31,13 +32,14 @@ export function buildExtractionPrompt(extractedText: string, fileName: string): 
     "- base_unit: One of ['mg_dl', 'mmol_l', 'percent', 'ui_l', 'ng_ml', 'unknown'].",
     "- reference_low: Lower bound numeric value (if available and in the EXACT same unit as raw_unit).",
     "- reference_high: Upper bound numeric value (if available and in the EXACT same unit as raw_unit).",
-    "- loinc_code: LOINC code if available.",
+    "- loinc_code: Standard LOINC code whenever known (e.g. '2093-3' Total Cholesterol, '2085-9' HDL, '2089-1' LDL, '2571-8' Triglycerides, '1558-6' Fasting Glucose, '4548-4' HbA1c, '2160-0' Creatinine, '3094-0' Urea, '62238-1' eGFR).",
     "- material: Specimen material.",
     "CRITICAL CLINICAL EXTRACTION RULES:",
     "1. UNIT CONSISTENCY: reference_low and reference_high MUST be in the EXACT same unit as normalized_value and raw_unit. NEVER pair a percentage ('%') value with an absolute ('/mm³', '/µL') reference range.",
     "2. DUAL-UNIT DIFFERENTIAL TABLES (e.g. Leucograma / WBC differential with both '%' and '/mm³' columns): Prefer extracting the ABSOLUTE count ('/mm³') when the reference range is given in '/mm³' (e.g. extract Linfócitos = 2173 '/mm³' with reference 1000–4500, NOT 33.5 '%' with reference 1000–4500). If you also extract a relative '%' observation that has no '%' reference range, omit reference_low and reference_high (do not attach the '/mm³' bounds) and suffix raw_name with '(%)' and canonical_name with '_percent'.",
     "3. AGE/SEX REFERENCE RANGES: When multiple age-stratified reference ranges are listed (e.g. infants, children, 'Adultos'), choose the Adult ('Adultos') reference range unless the report explicitly indicates a pediatric patient.",
-    "4. DATES: Ensure 'collection_date' is always valid and in 'YYYY-MM-DD' format. If only a year is found, use 'YYYY-01-01'.",
+    "4. LABORATORY NAME (lab_name): Extract the performing clinical laboratory's name from header, footer, website domain, address, or technical director block (e.g., 'Laboratório Clementino Fraga'). NEVER extract the health insurance / 'Convênio' (such as 'Unimed', 'Unimed Fortaleza', 'Bradesco Saúde', 'Amil', 'SulAmérica') as lab_name.",
+    "5. DATES: Ensure 'collection_date' is always valid and in 'YYYY-MM-DD' format. If only a year is found, use 'YYYY-01-01'.",
     `File Name: ${fileName}`,
     `Text: ${extractedText}`,
   ].join("\n");
@@ -136,28 +138,39 @@ export function parseExtractionResponse(
     throw new AppError("LLM response failed schema validation.", 502);
   }
 
-  // Defensive clinical guard: a percentage measurement (0–100%) can never have
-  // reference bounds > 100 (e.g. /mm³ leukocyte bounds accidentally attached to a % value).
+  // Normalize canonical names via LOINC & clinical alias registry + strip impossible % reference bounds
   const observations = validated.data.observations.map((obs) => {
-    const isPercent = obs.base_unit === "percent" || obs.raw_unit?.trim() === "%";
+    const normalized = normalizeBiomarker({
+      canonicalName: obs.canonical_name,
+      loincCode: obs.loinc_code,
+      rawName: obs.raw_name,
+    });
+
+    const enriched = {
+      ...obs,
+      canonical_name: normalized.canonicalName,
+      loinc_code: obs.loinc_code ?? normalized.loincCode,
+    };
+
+    const isPercent = enriched.base_unit === "percent" || enriched.raw_unit?.trim() === "%";
     const hasImpossiblePercentBounds =
       isPercent &&
-      ((obs.reference_high !== undefined && obs.reference_high > 100) ||
-        (obs.reference_low !== undefined && obs.reference_low > 100));
+      ((enriched.reference_high !== undefined && enriched.reference_high > 100) ||
+        (enriched.reference_low !== undefined && enriched.reference_low > 100));
 
     if (hasImpossiblePercentBounds) {
       logger.warn("Stripping unit-mismatched reference range from percentage observation", {
-        canonical_name: obs.canonical_name,
-        raw_name: obs.raw_name,
-        raw_unit: obs.raw_unit,
-        reference_low: obs.reference_low,
-        reference_high: obs.reference_high,
+        canonical_name: enriched.canonical_name,
+        raw_name: enriched.raw_name,
+        raw_unit: enriched.raw_unit,
+        reference_low: enriched.reference_low,
+        reference_high: enriched.reference_high,
       });
-      const { reference_low: _low, reference_high: _high, ...rest } = obs;
+      const { reference_low: _low, reference_high: _high, ...rest } = enriched;
       return rest;
     }
 
-    return obs;
+    return enriched;
   });
 
   return {
