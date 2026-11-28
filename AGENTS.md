@@ -16,13 +16,14 @@ Health metrics management and AI-powered PDF lab report extraction platform.
   - `packages/emails`: Branded React Email v6 transactional templates.
 - **Infrastructure:** Local Docker Compose (`compose.yml`: Traefik, Postgres 17, RabbitMQ, MinIO). Production Split Managed Stack: Vercel (`apps/web`), Neon (PostgreSQL + Object Storage configured in `neon.ts`), CloudAMQP (RabbitMQ), Fly.io (`apps/api`, `apps/worker`), Cloudflare (DNS), Resend (email).
 
-See `ARCHITECTURE.md` for full system topology, dependency rationale, and testing details.
+See `docs/README.md` and `docs/architecture/` for full C4 system topology, infrastructure inventory, API docs, and testing details.
 
 ## Core Commands
 
 Run from repository root unless noted:
 
 - `bun run lint` / `bun run lint:fix` — Biome lint & format check/fix.
+- `bun run infra:check` — Validate production infrastructure manifest & env parity.
 - `bun run typecheck` — TypeScript build (`tsc`) across all workspaces.
 - `bun run test` — Run unit and integration tests (requires local Postgres/RabbitMQ for integration suites).
 - `bun run test:e2e` — Run E2E system test (`RUN_E2E=true`).
@@ -48,7 +49,7 @@ Run from repository root unless noted:
 
 ## Package-Specific Conventions
 
-- **`apps/api`:** Group code by business feature in `src/features/<feature>/` (`routes.ts`, `controller.ts`, `service.ts`). Wire infrastructure clients centrally in `src/container.ts`. Keep `apps/api/openapi.yaml` aligned with route contracts.
+- **`apps/api`:** Group code by business feature in `src/features/<feature>/` (`routes.ts`, `controller.ts`, `service.ts`). Wire infrastructure clients centrally in `src/container.ts`. Keep Zod-generated OpenAPI routes in `apps/api/src/docs/openapi.ts` aligned with implemented endpoints (`/openapi.json` and `/docs`).
 - **`apps/worker`:** Jobs must be idempotent under RabbitMQ redelivery. Lock the target `files` row with `SELECT ... FOR UPDATE`, skip non-`QUEUED` rows, and atomically transition to `PROCESSING` before external I/O. Record LLM usage and latency metrics in `llm_requests`.
 - **`apps/web`:** Use the native `fetch` wrapper in `src/api/client.ts` (do not add `axios`). Style with Tailwind CSS and Lucide React icons. Import shared DTO types from `@health-vitals/contracts`, keep `src/locales/` i18n keys synchronized, and maintain MSW mocks in `src/mocks/`.
 - **`apps/jobs/migrator`:** Runs all pending `.sql` files inside a single transaction protected by `pg_advisory_xact_lock` and verifies SHA-256 checksums of already-applied files. Never modify an already-applied migration.

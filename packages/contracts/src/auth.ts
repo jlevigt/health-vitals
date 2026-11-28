@@ -62,3 +62,30 @@ export const userSchema = z.object({
 });
 
 export type UserDTO = z.infer<typeof userSchema>;
+
+// --- Auth Response Models ---
+export const authUserSummarySchema = z.object({
+  id: z.string().uuid(),
+  email: z.string().email(),
+});
+
+export type AuthUserSummary = z.infer<typeof authUserSummarySchema>;
+
+export const loginResponseSchema = z.object({
+  user: authUserSummarySchema,
+  accessToken: z.string().min(1),
+});
+
+export type LoginResponse = z.infer<typeof loginResponseSchema>;
+
+export const refreshResponseSchema = z.object({
+  accessToken: z.string().min(1),
+});
+
+export type RefreshResponse = z.infer<typeof refreshResponseSchema>;
+
+export const messageResponseSchema = z.object({
+  message: z.string(),
+});
+
+export type MessageResponse = z.infer<typeof messageResponseSchema>;

@@ -19,7 +19,8 @@ Comprehensive health metrics management and AI-powered lab report extraction.
 ├── tests/
 │   └── e2e/            # End-to-end system tests
 ├── database/           # SQL Migrations
-├── infra/              # Production deployment configs (Fly.io)
+├── docs/               # System architecture (C4) & API documentation
+├── infra/              # Production deployment configs (Fly.io, DNS, env contract)
 ├── compose.yml         # Root Docker Compose for local stack
 ├── neon.ts             # Neon Postgres & Object Storage config
 └── README.md
@@ -86,15 +87,17 @@ Run checks from root:
 
 ```bash
 bun run lint
+bun run infra:check
 bun run typecheck
 bun run test
 bun run test:e2e   # requires running stack
 ```
 
-## 📖 Component Documentation
+## 📖 Documentation
 
-- [Architecture, Dependencies & Testing Guide](./ARCHITECTURE.md)
-- [Production Infrastructure Guide](./infra/README.md)
-- [Backend API Guide](./apps/api/README.md)
-- [Frontend Guide](./apps/web/README.md)
-- [Worker Package](./apps/worker/README.md) (AI Processing)
+- [Documentation Hub](./docs/README.md)
+- [System Architecture & C4 Diagrams](./docs/architecture/README.md)
+- [HTTP API Docs (`/docs` & `/openapi.json`)](./docs/api/README.md)
+- [Infrastructure Inventory](./docs/architecture/infrastructure.md) & [Production Deployment Guide](./infra/README.md)
+- [Dependencies & Testing Strategy](./docs/architecture/dependencies-and-testing.md)
+- [Backend API Guide](./apps/api/README.md) | [Frontend Guide](./apps/web/README.md) | [Worker Guide](./apps/worker/README.md)

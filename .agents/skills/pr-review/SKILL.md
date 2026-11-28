@@ -36,7 +36,7 @@ If local Postgres/RabbitMQ are not running, note clearly which integration tests
 - **Error Handling:** Errors use `AppError` subclasses (`@health-vitals/platform`) and are not silently swallowed.
 - **Boundaries:** No cross-app imports (`apps/*` importing another app), no direct `process.env` reads outside `packages/platform/src/config/env.ts`, no unmanaged DB connections in feature services.
 - **Worker Idempotency (if `apps/worker` changed):** Preserves `SELECT ... FOR UPDATE` state locking and atomic `QUEUED -> PROCESSING` transition.
-- **API Docs (if `apps/api` routes changed):** `apps/api/openapi.yaml` updated to match.
+- **API Docs (if `apps/api` routes changed):** `apps/api/src/docs/openapi.ts` and `openapi.test.ts` updated to match.
 - **Frontend (if `apps/web` changed):** Uses `src/api/client.ts` (`fetch`, no `axios`), keeps `src/locales/` keys in sync, and updates MSW mocks if endpoints changed.
 - **Observability:** Core flows emit structured Pino logs to `stdout` without leaking secrets or PII.
 

@@ -24,7 +24,18 @@ export const trendSeriesSchema = z.object({
 export type TrendSeries = z.infer<typeof trendSeriesSchema>;
 
 /**
- * Response for GET /dashboard/trends
+ * Supported clinical dashboard categories
+ */
+export const dashboardCategorySchema = z.enum([
+  "lipid_panel",
+  "glucose_metabolism",
+  "renal_function",
+]);
+
+export type DashboardCategory = z.infer<typeof dashboardCategorySchema>;
+
+/**
+ * Response for GET /dashboard/:category
  */
 export const dashboardResponseSchema = z.object({
   category: z.string(),

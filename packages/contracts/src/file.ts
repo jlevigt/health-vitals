@@ -100,45 +100,65 @@ export interface FileUploadRequest {
 /**
  * Response with signed URL for uploading
  */
-export interface FileUploadUrlResponse {
-  file_id: string;
-  object_key: string;
-  upload_url: string;
-  expires_at: string;
-}
+export const fileUploadUrlResponseSchema = z.object({
+  file_id: z.string().uuid(),
+  object_key: z.string().min(1),
+  upload_url: z.string().url(),
+  expires_at: z.string(),
+});
+
+export type FileUploadUrlResponse = z.infer<typeof fileUploadUrlResponseSchema>;
 
 /**
  * Response for POST /files/uploads
  */
-export interface RequestUploadResponse {
-  files: FileUploadUrlResponse[];
-}
+export const requestUploadResponseSchema = z.object({
+  files: z.array(fileUploadUrlResponseSchema),
+});
+
+export type RequestUploadResponse = z.infer<typeof requestUploadResponseSchema>;
 
 /**
  * Response for POST /files/:file_id/upload-complete
  */
-export interface ConfirmUploadResponse {
-  file_id: string;
-  status: FileStatus;
-}
+export const confirmUploadResponseSchema = z.object({
+  file_id: z.string().uuid(),
+  status: FileStatusSchema,
+});
+
+export type ConfirmUploadResponse = z.infer<typeof confirmUploadResponseSchema>;
 
 /**
  * File item in list response
  */
-export interface FileListItem {
-  id: string;
-  filename: string;
-  status: FileStatus;
-  created_at: string;
-  processed_at: string | null;
-}
+export const fileListItemSchema = z.object({
+  id: z.string().uuid(),
+  filename: z.string(),
+  status: FileStatusSchema,
+  created_at: z.string(),
+  processed_at: z.string().nullable(),
+});
+
+export type FileListItem = z.infer<typeof fileListItemSchema>;
 
 /**
  * Response for GET /files
  */
-export interface ListFilesResponse {
-  files: FileListItem[];
-}
+export const listFilesResponseSchema = z.object({
+  files: z.array(fileListItemSchema),
+});
+
+export type ListFilesResponse = z.infer<typeof listFilesResponseSchema>;
+
+/**
+ * Response for DELETE /files/:file_id
+ */
+export const deleteFileResponseSchema = z.object({
+  file_id: z.string().uuid(),
+  deleted: z.literal(true),
+});
+
+export type DeleteFileResponse = z.infer<typeof deleteFileResponseSchema>;
 
 /**
  * LLM request record for rate limiting and observability

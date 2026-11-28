@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { docsRouter } from "@/docs/routes.ts";
 import { authenticateUserRouter } from "@/features/auth/login/routes.ts";
 import { logoutRouter } from "@/features/auth/logout/routes.ts";
 import { passwordRouter } from "@/features/auth/password/routes.ts";
@@ -15,6 +16,7 @@ import { listReportObservationsRouter } from "@/features/reports/list-observatio
 const routes = Router();
 
 routes.use("/health", healthRouter);
+routes.use("/", docsRouter);
 
 // === Auth Routes ===
 routes.use("/auth/register", createUserRouter);
