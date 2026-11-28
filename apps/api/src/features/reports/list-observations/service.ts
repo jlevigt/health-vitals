@@ -1,4 +1,4 @@
-import { type ListObservationsResponse } from "@health-vitals/contracts";
+import type { ListObservationsResponse } from "@health-vitals/contracts";
 import type { Database } from "@health-vitals/platform";
 import { AppError } from "@health-vitals/platform";
 

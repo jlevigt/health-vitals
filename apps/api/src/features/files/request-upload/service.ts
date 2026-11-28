@@ -1,7 +1,7 @@
-import {
-  type FileUploadItem,
-  type FileUploadUrlResponse,
-  type RequestUploadResponse,
+import type {
+  FileUploadItem,
+  FileUploadUrlResponse,
+  RequestUploadResponse,
 } from "@health-vitals/contracts";
 import type { Database, Logger, StorageClient } from "@health-vitals/platform";
 import { Buckets } from "@health-vitals/platform";

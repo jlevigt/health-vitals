@@ -1,4 +1,4 @@
-import { type ListReportsResponse } from "@health-vitals/contracts";
+import type { ListReportsResponse } from "@health-vitals/contracts";
 import type { Database } from "@health-vitals/platform";
 
 export class ListReportsService {

@@ -1,7 +1,4 @@
-import {
-  type ListFilesQuery,
-  type ListFilesResponse,
-} from "@health-vitals/contracts";
+import type { ListFilesQuery, ListFilesResponse } from "@health-vitals/contracts";
 import type { Database, Logger } from "@health-vitals/platform";
 
 export class ListFilesService {
@@ -11,7 +8,6 @@ export class ListFilesService {
   ) {}
 
   async execute(userId: string, query: ListFilesQuery): Promise<ListFilesResponse> {
-
     this.logger.debug(`Listing files for user ${userId}`, { query });
 
     let sql = `

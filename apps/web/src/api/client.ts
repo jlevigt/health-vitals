@@ -114,8 +114,7 @@ async function request<T = any>(
       headers.set("Authorization", `Bearer ${accessToken}`);
       response = await performFetch();
     } catch (refreshError: unknown) {
-      const err =
-        refreshError instanceof Error ? refreshError : new Error(String(refreshError));
+      const err = refreshError instanceof Error ? refreshError : new Error(String(refreshError));
       processQueue(err, null);
       localStorage.removeItem("accessToken");
       localStorage.removeItem("user");

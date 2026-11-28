@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { db, logger, storage, getQueue } from "@/container.ts";
+import { db, getQueue, logger, storage } from "@/container.ts";
 
 export class HealthController {
   async handle(_req: Request, res: Response) {
