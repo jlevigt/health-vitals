@@ -71,11 +71,11 @@ Defined in [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml) on every
 
 ```mermaid
 flowchart LR
-    Checkout["1. Checkout & Setup Bun"] --> Install["2. bun install --frozen-lockfile"]
-    Install --> Lint["3. bun run lint (Biome)"]
-    Lint --> InfraCheck["4. bun run infra:check"]
-    InfraCheck --> Typecheck["5. bun run typecheck (tsc)"]
-    Typecheck --> Migrate["6. bun run migration:run"]
-    Migrate --> Test["7. bun run test (Unit + Integration)"]
-    Test --> Build["8. Docker Build Verification (main only)"]
+    Checkout["Checkout"] --> Install["Install"]
+    Install --> Lint["Lint"]
+    Lint --> InfraCheck["Infra Check"]
+    InfraCheck --> Typecheck["Typecheck"]
+    Typecheck --> Migrate["Migrate"]
+    Migrate --> Test["Test"]
+    Test --> Build["Docker Build (main)"]
 ```

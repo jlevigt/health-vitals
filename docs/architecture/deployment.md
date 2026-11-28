@@ -1,95 +1,70 @@
 # Deployment Topology (C4 Deployment)
 
-Health Vitals runs in two distinct topologies: a **local Docker Compose stack** for self-contained development and integration testing, and a **zero-VPS Split Managed Stack** in production.
+Health Vitals runs in two topologies: a **zero-VPS Split Managed Stack** in production and a self-contained **Docker Compose stack** for local development and integration testing.
 
-## Production Topology (Split Managed Stack)
+---
 
-```mermaid
-flowchart TB
-    Client["End User Browser"]
+## 1. Production Runtime Hosting (Split Managed Stack)
 
-    subgraph EdgeDNS ["Cloudflare DNS (binderlex.com)"]
-        DNS["DNS Records\nbinderlex.com -> Vercel\napi.binderlex.com -> Fly.io\nSPF / DKIM / DMARC -> Resend"]
-    end
-
-    subgraph VercelNode ["Vercel Edge / CDN"]
-        WebProd["health-vitals-web\n(Static React 19 + Vite 8 SPA\napps/web/vercel.json)"]
-    end
-
-    subgraph FlyNode ["Fly.io (Region: iad — Ashburn, VA)"]
-        ApiProd["health-vitals-api\n(shared-cpu-1x, 512MB, auto_stop/auto_start\ninfra/fly/api.toml, /health every 30s)"]
-        WorkerProd["health-vitals-worker\n(shared-cpu-1x, 512MB\ninfra/fly/worker.toml)"]
-    end
-
-    subgraph NeonNode ["Neon (Managed Cloud)"]
-        NeonPG[("Neon PostgreSQL\n(Branches + 7d preview TTL\nneon.ts)")]
-        NeonS3[("Neon Object Storage\n(Bucket: health-vitals-uploads, private\nneon.ts)")]
-    end
-
-    subgraph CloudAMQPNode ["CloudAMQP (us-east-1 — Ashburn)"]
-        RMQProd["RabbitMQ (Little Lemur)\nQueue: file_processing (durable)"]
-    end
-
-    subgraph SaaS ["External SaaS APIs"]
-        ResendProd["Resend API\n(noreply@binderlex.com)"]
-        GeminiProd["Google Gemini API\n(AI Studio — gemini-3.5-flash-lite)"]
-    end
-
-    subgraph ReleaseOps ["CI & Release Execution (Non-Runtime)"]
-        GHA["GitHub Actions (.github/workflows/ci.yml)\nLint + Infra Check + Typecheck + Migrations + Tests + Docker Build"]
-        DevCLI["Operator CLI (Local)\nbun run migration:run -> ./infra/fly/deploy.sh -> vercel --prod"]
-    end
-
-    Client -->|"HTTPS"| DNS
-    DNS --> WebProd
-    DNS --> ApiProd
-    Client -->|"Direct Presigned PUT"| NeonS3
-
-    WebProd -->|"HTTPS JSON (api.binderlex.com)"| ApiProd
-    ApiProd -->|"TLS SQL"| NeonPG
-    ApiProd -->|"S3 API"| NeonS3
-    ApiProd -->|"AMQPS"| RMQProd
-    ApiProd -->|"HTTPS"| ResendProd
-
-    RMQProd -->|"AMQPS"| WorkerProd
-    WorkerProd -->|"TLS SQL"| NeonPG
-    WorkerProd -->|"S3 API"| NeonS3
-    WorkerProd -->|"HTTPS"| GeminiProd
-
-    DevCLI -.->|"Pre-deploy SQL migrations"| NeonPG
-    DevCLI -.->|"Builds & deploys to registry.fly.io"| FlyNode
-    GHA -.->|"Validates PRs & main"| DevCLI
-```
-
-## Local Development Topology (`compose.yml`)
+Live traffic and background processing across managed cloud providers.
 
 ```mermaid
 flowchart LR
-    DevBrowser["Local Browser"] --> Traefik["Traefik v3.6 (:80)\nweb.localhost / api.localhost / s3.localhost / rabbitmq.localhost"]
-    Traefik --> WebLocal["apps/web (:80 or Vite :5173)"]
-    Traefik --> ApiLocal["apps/api (:3000)"]
-    Traefik --> MinIO["MinIO (:9000 / :9001)"]
-    Traefik --> RMQLocal["RabbitMQ 3 (:5672 / :15672)"]
-
-    MigratorLocal["apps/jobs/migrator\n(run-once before api/worker)"] --> PGLocal[("PostgreSQL 17 (:5432)")]
-    MigratorLocal --> MinIO
-    ApiLocal --> PGLocal
-    ApiLocal --> MinIO
-    ApiLocal --> RMQLocal
-    WorkerLocal["apps/worker"] --> PGLocal
-    WorkerLocal --> MinIO
-    WorkerLocal --> RMQLocal
+    User["User Browser"] -->|"binderlex.com"| Vercel["Vercel (Web SPA)"]
+    User -->|"api.binderlex.com"| FlyAPI["Fly.io (API)"]
+    FlyAPI --> NeonDB[("Neon PostgreSQL")]
+    FlyAPI --> NeonS3[("Neon Object Storage")]
+    FlyAPI --> CloudAMQP["CloudAMQP"]
+    CloudAMQP --> FlyWorker["Fly.io (Worker)"]
+    FlyWorker --> NeonDB
+    FlyWorker --> NeonS3
 ```
 
-## Environment Differences
+*(External SaaS integrations not shown to keep arrows clean: **Cloudflare DNS** resolves `binderlex.com` / `api.binderlex.com`; **Fly.io API** sends transactional email via **Resend**; **Fly.io Worker** calls **Google Gemini AI Studio**.)*
+
+---
+
+## 2. Production Deploy Pipeline
+
+Ordered release sequence ensuring forward-only schema migrations run before new backend containers roll out.
+
+```mermaid
+flowchart LR
+    CI["GitHub Actions (Green CI)"] --> Migrate["1. bun run migration:run (Neon)"]
+    Migrate --> FlyDeploy["2. ./infra/fly/deploy.sh (Fly.io)"]
+    FlyDeploy --> WebDeploy["3. vercel --prod (Vercel)"]
+```
+
+---
+
+## 3. Local Development Stack (`compose.yml`)
+
+Self-contained local stack for development and integration tests.
+
+```mermaid
+flowchart LR
+    Browser["Browser"] --> Traefik["Traefik (:80)"]
+    Traefik --> Web["apps/web"]
+    Traefik --> API["apps/api"]
+    API --> PG[("Postgres 17")]
+    API --> MinIO[("MinIO")]
+    API --> RMQ["RabbitMQ 3"]
+    RMQ --> Worker["apps/worker"]
+```
+
+*(In Docker Compose, `apps/jobs/migrator` runs once after `postgres` is healthy and before `api` and `worker` start.)*
+
+---
+
+## Environment Comparison
 
 | Aspect | Local Development (`compose.yml`) | Production (Split Managed Stack) |
 | :--- | :--- | :--- |
-| **Ingress / TLS** | Traefik v3.6 HTTP (`*.localhost`) | Cloudflare DNS + Vercel TLS (`binderlex.com`) + Fly.io Let's Encrypt TLS (`api.binderlex.com`) |
-| **PostgreSQL** | Docker `postgres:17-alpine` | Neon Serverless PostgreSQL (`sslmode=require`) |
-| **Object Storage** | Docker `minio/minio` | Neon Object Storage (`health-vitals-uploads`, private) |
-| **Message Broker** | Docker `rabbitmq:3-management-alpine` (`amqp://`) | CloudAMQP Little Lemur (`amqps://`) |
-| **Backend Hosting** | Local Bun watch or Docker Compose | Fly.io (`iad`): `health-vitals-api` & `health-vitals-worker` |
-| **Frontend Hosting** | Vite dev server (`:5173`) or MSW `dev:mock` | Vercel CDN (`apps/web`) |
-| **Email & LLM** | Mock/Nodemailer + Mock/Ollama/Gemini | Resend (`noreply@binderlex.com`) + Google Gemini AI Studio |
+| **Ingress / TLS** | Traefik v3.6 HTTP (`*.localhost`) | Cloudflare DNS + Vercel TLS (`binderlex.com`) + Fly.io Let's Encrypt (`api.binderlex.com`) |
+| **PostgreSQL** | Docker `postgres:17-alpine` | Neon Serverless PostgreSQL (`sslmode=require`, 7d preview branch TTL in `neon.ts`) |
+| **Object Storage** | Docker `minio/minio` | Neon Object Storage (`health-vitals-uploads` private bucket in `neon.ts`) |
+| **Message Broker** | Docker `rabbitmq:3-management-alpine` (`amqp://`) | CloudAMQP Little Lemur in `us-east-1` (`amqps://`, durable queue `file_processing`) |
+| **Backend Compute** | Local Bun watch or Docker Compose | Fly.io `iad`: `health-vitals-api` (`shared-cpu-1x`, 512 MB, auto-stop/start, `/health` 30s) & `health-vitals-worker` (`shared-cpu-1x`, 512 MB) |
+| **Frontend Hosting** | Vite dev server (`:5173`) or MSW `dev:mock` | Vercel CDN (`apps/web/vercel.json`) |
+| **Email & LLM** | Mock / Nodemailer + Mock / Ollama / Gemini | Resend (`noreply@binderlex.com`) + Google Gemini AI Studio (`gemini-3.5-flash-lite`) |
 | **Image Registry** | Local Docker daemon | Fly.io internal registry (`registry.fly.io`); Docker Hub optional mirror only |
