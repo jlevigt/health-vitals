@@ -10,6 +10,7 @@
   "scripts": {
     "infra:up": "docker compose up -d",
     "infra:down": "docker compose down",
+    "infra:check": "bun scripts/check-infra-config.ts",
     "migration:run": "bun --env-file=.env apps/jobs/migrator/src/index.ts",
     "migration:create": "./scripts/migration-create.sh",
     "lint": "biome check .",

@@ -49,6 +49,9 @@ jobs:
       - name: Lint
         run: bun run lint
 
+      - name: Infra Config Check
+        run: bun run infra:check
+
       - name: Typecheck
         run: bun run typecheck
 
