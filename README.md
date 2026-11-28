@@ -7,28 +7,33 @@ Comprehensive health metrics management and AI-powered lab report extraction.
 ```text
 /
 ├── apps/
-│   ├── api/            # Node.js/Express Backend (@health-vitals/api)
-│   ├── web/            # React/Vite Frontend (@health-vitals/web)
-│   └── worker/         # Background processing worker (@health-vitals/worker)
+│   ├── api/            # Express 5 REST API (@health-vitals/api)
+│   ├── web/            # React 19 / Vite 8 Frontend (@health-vitals/web)
+│   ├── worker/         # Background processing worker (@health-vitals/worker)
+│   └── jobs/
+│       └── migrator/   # Forward-only DB & S3 migrator (@health-vitals/migrator)
 ├── packages/
 │   ├── contracts/      # Pure types & Zod schemas (@health-vitals/contracts)
-│   ├── platform/       # Unified platform layer (@health-vitals/platform)
+│   ├── emails/         # Branded React Email templates (@health-vitals/emails)
+│   └── platform/       # Unified platform layer (@health-vitals/platform)
 ├── tests/
 │   └── e2e/            # End-to-end system tests
 ├── database/           # SQL Migrations
-├── compose.yml         # Root Docker Compose for full stack
-├── .env                # Project configuration
+├── infra/              # Production deployment configs (Fly.io)
+├── compose.yml         # Root Docker Compose for local stack
+├── neon.ts             # Neon Postgres & Object Storage config
 └── README.md
 ```
 
 ## 🛠️ Tech Stack
 
 - **Runtime:** [Bun](https://bun.sh/)
-- **Backend:** Express 5, TypeScript, PostgreSQL, Pino Logger
-- **Frontend:** React 19, Vite 7, Recharts, Tailwind CSS 4
-- **AI:** Google Gemini (Generative AI)
-- **Infra:** Docker Compose, RabbitMQ (Broker), MinIO (Storage)
-- **Patterns:** ESM (Type Module), Absolute Imports (`@/*`), Clean Architecture
+- **Backend:** Express 5, TypeScript 6, PostgreSQL, Pino Logger
+- **Frontend:** React 19, Vite 8, Recharts, Tailwind CSS 4, i18next
+- **Emails:** React Email v6, Resend
+- **AI:** Google Gemini (Generative AI) / Ollama
+- **Local Infra:** Docker Compose, Traefik, PostgreSQL, RabbitMQ, MinIO
+- **Production Infra:** Vercel (`web`), Neon (PostgreSQL + Object Storage), CloudAMQP (RabbitMQ), Fly.io (`api` + `worker`), Cloudflare (DNS)
 
 ## ⚙️ Quick Start
 
@@ -40,15 +45,27 @@ Ensure you have [Bun](https://bun.sh/) and [Docker](https://www.docker.com/) ins
 
 ```bash
 bun install
+bash scripts/setup-hooks.sh
 ```
 
-### 3. Running the Full Stack (Recommended for Dev)
+### 3. Local Development
 
-This starts the infrastructure, runs migrations, and starts all applications:
+Start local infrastructure, run migrations, and launch the services you need:
 
 ```bash
-# Start everything from root
-bun run dev
+bun run infra:up
+bun run migration:run
+
+# Run apps in separate terminals:
+bun --filter @health-vitals/api dev
+bun --filter @health-vitals/worker dev
+bun --filter @health-vitals/web dev
+```
+
+For offline frontend development using Mock Service Worker (MSW):
+
+```bash
+bun --filter @health-vitals/web dev:mock
 ```
 
 ### 4. Running the Full Stack in Docker (Production-like)
@@ -57,31 +74,27 @@ bun run dev
 docker compose up --build
 ```
 
-### 5. Running a Single Service (Isolated Dev)
+## 🧪 Testing & Quality Checks
 
-If you only want to work on the API:
+We follow a **Test Pyramid** approach using `bun test`:
+
+- **Unit Tests:** Co-located next to source files (`*.test.ts` / `*.unit.test.ts`).
+- **Integration Tests:** Located in `apps/*/tests/integration/` (Supertest + real PostgreSQL & RabbitMQ).
+- **E2E Tests:** Located in `tests/e2e/system.e2e.test.ts` (native Bun `fetch` against a running stack).
+
+Run checks from root:
 
 ```bash
-cd apps/api
-bun run infra:up  # Starts only Postgres/Rabbit/Minio for API
-bun run dev       # Starts the API server
-```
-
-## 🧪 Testing Strategy
-
-We follow a **Test Pyramid** approach:
-
-- **Unit Tests:** Located in `__tests__/unit/` or next to source files. Run with `bun test`.
-- **Integration Tests:** Located in `__tests__/integration/`. Uses **Supertest** for fast API testing.
-- **E2E Tests:** Located in `tests/e2e/`. Uses **Playwright** for browser/system testing against a running instance.
-
-Run all tests from root:
-```bash
-bun test
+bun run lint
+bun run typecheck
+bun run test
+bun run test:e2e   # requires running stack
 ```
 
 ## 📖 Component Documentation
 
+- [Architecture, Dependencies & Testing Guide](./ARCHITECTURE.md)
+- [Production Infrastructure Guide](./infra/README.md)
 - [Backend API Guide](./apps/api/README.md)
 - [Frontend Guide](./apps/web/README.md)
 - [Worker Package](./apps/worker/README.md) (AI Processing)

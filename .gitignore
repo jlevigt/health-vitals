@@ -32,5 +32,4 @@ dist-ssr
 Resultado_LABORATORIO CLEMENTINO FRAGA_70005839058701.pdf
 .vercel
 .env*
-infra/oci/oci.env
 .neon
